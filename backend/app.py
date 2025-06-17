@@ -2,6 +2,7 @@ import os
 import logging
 from flask import Flask, request, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
+from werkzeug.exceptions import RequestEntityTooLarge
 from datetime import datetime
 
 # Try to import flask-cors
@@ -32,35 +33,17 @@ else:
 # Configuration
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024
 app.config['UPLOAD_FOLDER'] = 'uploaded'
+app.config['OUTPUT_FOLDER'] = 'output'
 app.config['ALLOWED_EXTENSIONS'] = {'csv', 'json', 'txt', 'log'}
 
-# Ensure upload directory exists
+# Ensure upload directories exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+os.makedirs(app.config['OUTPUT_FOLDER'], exist_ok=True)
 
-@app.route('/api/health')
-def health_check():
-    return jsonify({
-        'status': 'healthy',
-        'timestamp': datetime.utcnow().isoformat(),
-        'version': '1.0.0',
-        'service': 'Cyber Threat Hunter API'
-    })
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
-@app.route('/')
-def index():
-    return jsonify({'message': 'Cyber Threat Hunter API', 'status': 'running'})
-
-@app.route('/api/test')
-def test():
-    return jsonify({'message': 'API is working', 'timestamp': datetime.now().isoformat()})
-
-if __name__ == "__main__":
-    print("=" * 50)
-    print("Starting Cyber Threat Hunter Backend...")
-    print("API available at: http://localhost:5000")
-    print("Health check: http://localhost:5000/api/health")
-    print("=" * 50)
-    app.run(host="0.0.0.0", port=5000, debug=True)
 @app.errorhandler(RequestEntityTooLarge)
 def handle_file_too_large(e):
     return jsonify({'error': 'File too large. Maximum size is 100MB.'}), 413
@@ -70,62 +53,14 @@ def handle_exception(e):
     logger.error(f"Unhandled exception: {e}")
     return jsonify({'error': 'Internal server error'}), 500
 
-# Security analysis functions
-def analyze_security_tools(csv_path):
-    """Analyze CSV for security tools based on process names."""
-    try:
-        df = pd.read_csv(csv_path)
-        
-        # Load security tools list
-        tools_file = os.path.join('lists', 'security-tools.md')
-        if not os.path.exists(tools_file):
-            return {'error': 'Security tools list not found'}
-        
-        with open(tools_file, 'r', encoding='utf-8') as f:
-            content = f.read()
-            # Extract tool names (simplified)
-            tools = set()
-            for line in content.split('\n'):
-                line = line.strip()
-                if line and not line.startswith('#') and not line.endswith(':'):
-                    if line.lower().endswith('.exe') or '.' not in line:
-                        tools.add(line.lower())
-        
-        # Analyze CSV for tools
-        process_col = None
-        for col in df.columns:
-            if any(keyword in col.lower() for keyword in ['process', 'image', 'executable']):
-                process_col = col
-                break
-        
-        if not process_col:
-            return {'error': 'No process column found in CSV'}
-        
-        found_tools = {}
-        for _, row in df.iterrows():
-            process_name = str(row[process_col]).lower()
-            for tool in tools:
-                if tool in process_name:
-                    host = row.get('host', row.get('hostname', 'unknown'))
-                    if tool not in found_tools:
-                        found_tools[tool] = set()
-                    found_tools[tool].add(host)
-        
-        # Convert sets to lists for JSON serialization
-        result = {tool: list(hosts) for tool, hosts in found_tools.items()}
-        return {'tools_found': result, 'total_tools': len(result)}
-        
-    except Exception as e:
-        logger.error(f"Security tools analysis error: {e}")
-        return {'error': str(e)}
-
 # API Routes
 @app.route('/api/health')
 def health_check():
     return jsonify({
         'status': 'healthy',
         'timestamp': datetime.utcnow().isoformat(),
-        'version': '1.0.0'
+        'version': '1.0.0',
+        'service': 'Cyber Threat Hunter API'
     })
 
 @app.route('/api/upload', methods=['POST'])
@@ -165,15 +100,16 @@ def list_files():
         files = []
         upload_dir = app.config['UPLOAD_FOLDER']
         
-        for filename in os.listdir(upload_dir):
-            filepath = os.path.join(upload_dir, filename)
-            if os.path.isfile(filepath):
-                stat = os.stat(filepath)
-                files.append({
-                    'name': filename,
-                    'size': stat.st_size,
-                    'modified': datetime.fromtimestamp(stat.st_mtime).isoformat()
-                })
+        if os.path.exists(upload_dir):
+            for filename in os.listdir(upload_dir):
+                filepath = os.path.join(upload_dir, filename)
+                if os.path.isfile(filepath):
+                    stat = os.stat(filepath)
+                    files.append({
+                        'name': filename,
+                        'size': stat.st_size,
+                        'modified': datetime.fromtimestamp(stat.st_mtime).isoformat()
+                    })
         
         return jsonify({'files': files})
     
@@ -181,46 +117,123 @@ def list_files():
         logger.error(f"List files error: {e}")
         return jsonify({'error': 'Failed to list files'}), 500
 
-# Security tools analysis endpoint
-@app.route('/api/analyze/security-tools/<filename>')
-def analyze_security_tools_endpoint(filename):
+@app.route('/api/stats')
+def get_stats():
     try:
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        if not os.path.exists(filepath):
-            return jsonify({'error': 'File not found'}), 404
+        upload_dir = app.config['UPLOAD_FOLDER']
+        files_count = 0
+        if os.path.exists(upload_dir):
+            files_count = len([f for f in os.listdir(upload_dir) if os.path.isfile(os.path.join(upload_dir, f))])
         
-        result = analyze_security_tools(filepath)
-        return jsonify(result)
+        return jsonify({
+            'filesUploaded': files_count,
+            'analysesCompleted': files_count,
+            'threatsDetected': 0
+        })
+    except Exception as e:
+        logger.error(f"Stats error: {e}")
+        return jsonify({'error': 'Failed to get stats'}), 500
+
+# Static file serving for React app
+@app.route("/")
+def index():
+    if os.path.exists(os.path.join(app.static_folder, "index.html")):
+        return send_from_directory(app.static_folder, "index.html")
+    else:
+        return jsonify({
+            'message': 'Cyber Threat Hunter API', 
+            'status': 'running',
+            'endpoints': [
+                'GET /api/health',
+                'POST /api/upload',
+                'GET /api/files',
+                'GET /api/stats'
+            ]
+        })
+
+if __name__ == "__main__":
+    print("=" * 50)
+    print("Starting Cyber Threat Hunter Backend...")
+    print("API available at: http://localhost:5000")
+    print("Health check: http://localhost:5000/api/health")
+    print("=" * 50)
+    app.run(host="0.0.0.0", port=5000, debug=True)
+        # Basic security tools detection
+        tools_found = []
+        
+        with open(filepath, 'r', encoding='utf-8') as f:
+            content = f.read().lower()
+            
+            # Common security tools to detect
+            security_tools = [
+                'windows defender', 'antimalware', 'avast', 'norton', 'mcafee',
+                'crowdstrike', 'carbon black', 'sentinelone', 'cylance',
+                'kaspersky', 'bitdefender', 'sophos', 'trend micro',
+                'openvpn', 'nordvpn', 'expressvpn', 'cisco anyconnect'
+            ]
+            
+            for tool in security_tools:
+                if tool in content:
+                    tools_found.append(tool)
+        
+        return jsonify({
+            'filename': filename,
+            'tools_found': tools_found,
+            'total_tools': len(tools_found)
+        })
     
     except Exception as e:
-        logger.error(f"Security tools analysis endpoint error: {e}")
+        logger.error(f"Security tools analysis error: {e}")
         return jsonify({'error': 'Analysis failed'}), 500
 
-@app.route('/api/analyze/<filename>')
-def analyze_file(filename):
+@app.route('/api/stats')
+def get_stats():
     try:
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        if not os.path.exists(filepath):
-            return jsonify({'error': 'File not found'}), 404
+        upload_dir = app.config['UPLOAD_FOLDER']
+        files_count = len([f for f in os.listdir(upload_dir) if os.path.isfile(os.path.join(upload_dir, f))])
         
-        # Basic file analysis
-        file_stats = os.stat(filepath)
-        analysis = {
-            'filename': filename,
-            'size': file_stats.st_size,
-            'created': datetime.fromtimestamp(file_stats.st_ctime).isoformat(),
-            'modified': datetime.fromtimestamp(file_stats.st_mtime).isoformat()
-        }
-        
-        # CSV specific analysis (only if pandas is available)
-        if filename.lower().endswith('.csv') and PANDAS_AVAILABLE:
-            try:
-                df = pd.read_csv(filepath)
-                analysis.update({
-                    'rows': len(df),
-                    'columns': len(df.columns),
-                    'column_names': df.columns.tolist(),
-                    'preview': df.head().to_dict('records')
+        return jsonify({
+            'filesUploaded': files_count,
+            'analysesCompleted': files_count,
+            'threatsDetected': 0
+        })
+    except Exception as e:
+        logger.error(f"Stats error: {e}")
+        return jsonify({'error': 'Failed to get stats'}), 500
+
+# Static file serving for React app
+@app.route("/assets/<path:path>")
+def send_assets(path):
+    return send_from_directory(os.path.join(app.static_folder, "assets"), path)
+
+@app.route("/")
+def index():
+    if os.path.exists(os.path.join(app.static_folder, "index.html")):
+        return send_from_directory(app.static_folder, "index.html")
+    else:
+        return jsonify({'message': 'Cyber Threat Hunter API', 'status': 'running'})
+
+# Catch-all route for React Router
+@app.route("/<path:path>")
+def catch_all(path):
+    if os.path.exists(os.path.join(app.static_folder, "index.html")):
+        return send_from_directory(app.static_folder, "index.html")
+    else:
+        return jsonify({'error': 'Frontend not built yet'})
+
+if __name__ == "__main__":
+    print("=" * 50)
+    print("Starting Cyber Threat Hunter Backend...")
+    print("API available at: http://localhost:5000")
+    print("Health check: http://localhost:5000/api/health")
+    print("Available endpoints:")
+    print("  POST /api/upload - Upload files")
+    print("  GET /api/files - List uploaded files")
+    print("  GET /api/analyze/<filename> - Analyze file")
+    print("  GET /api/security-tools/<filename> - Detect security tools")
+    print("  GET /api/stats - Get statistics")
+    print("=" * 50)
+    app.run(host="0.0.0.0", port=5000, debug=True)
                 })
             except Exception as e:
                 analysis['csv_error'] = str(e)

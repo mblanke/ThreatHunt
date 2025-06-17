@@ -16,6 +16,8 @@ const HomePage = () => {
       .catch(err => console.error('Backend connection failed:', err));
   }, []);
 
+  console.log('HomePage rendering'); // Debug log
+
   return (
     <div className="space-y-6">
       <div>
