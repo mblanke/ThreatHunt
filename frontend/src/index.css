@@ -1,1 +1,33 @@
 @import "tailwindcss";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-zinc-900 text-white font-sans;
+  }
+}
+
+@layer components {
+  .sidebar-item {
+    @apply flex items-center cursor-pointer px-4 py-2 rounded-xl hover:bg-zinc-800 transition-all;
+  }
+  
+  .sidebar-icon {
+    @apply w-5 h-5 mr-3 text-cyan-400;
+  }
+  
+  .card {
+    @apply bg-zinc-800 rounded-lg p-6 shadow-lg;
+  }
+  
+  .btn-primary {
+    @apply bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg transition-colors;
+  }
+  
+  .btn-secondary {
+    @apply bg-zinc-700 hover:bg-zinc-600 text-white px-4 py-2 rounded-lg transition-colors;
+  }
+}
