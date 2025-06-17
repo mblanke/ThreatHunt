@@ -1,7 +1,7 @@
 import React from 'react';
 
-const SettingsConfig = () => {
+const SettingsConfigPage = () => {
     return <div>Settings & Config Placeholder</div>;
 };
 
-export default SettingsConfig;
+export default SettingsConfigPage;

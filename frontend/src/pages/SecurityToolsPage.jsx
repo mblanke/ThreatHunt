@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 
-const SecurityTools = () => {
+const SecurityToolsPage = () => {
   const [uploadStatus, setUploadStatus] = useState(null);
   const [analysisResult, setAnalysisResult] = useState(null);
 
@@ -61,4 +61,4 @@ const SecurityTools = () => {
   );
 };
 
-export default SecurityTools;
+export default SecurityToolsPage;

@@ -1,7 +1,7 @@
 import React from 'react';
 
-const Networking = () => {
+const NetworkingPage = () => {
     return <div>Networking Placeholder</div>;
 };
 
-export default Networking;
+export default NetworkingPage;

@@ -1,7 +1,7 @@
 import React from 'react';
 
-const CSVProcessing = () => {
+const CSVProcessingPage = () => {
     return <div>CSV Processing Placeholder</div>;
 };
 
-export default CSVProcessing;
+export default CSVProcessingPage;
