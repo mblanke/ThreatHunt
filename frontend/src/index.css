@@ -1,0 +1,203 @@
+@import "tailwindcss";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    background-color: #18181b;
+    color: white;
+    line-height: 1.6;
+  }
+
+  #root {
+    height: 100vh;
+    width: 100vw;
+  }
+}
+
+@layer components {
+  .sidebar-item {
+    @apply flex items-center cursor-pointer px-4 py-2 rounded-xl hover:bg-zinc-800 transition-all;
+  }
+  
+  .sidebar-icon {
+    @apply w-5 h-5 mr-3 text-cyan-400;
+  }
+  
+  .card {
+    @apply bg-zinc-800 rounded-lg p-6 shadow-lg;
+  }
+  
+  .btn-primary {
+    @apply bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg transition-colors;
+  }
+  
+  .btn-secondary {
+    @apply bg-zinc-700 hover:bg-zinc-600 text-white px-4 py-2 rounded-lg transition-colors;
+  }
+}
+
+@layer utilities {
+  .flex {
+    display: flex;
+  }
+
+  .h-screen {
+    height: 100vh;
+  }
+
+  .bg-zinc-900 {
+    background-color: #18181b;
+  }
+
+  .bg-zinc-950 {
+    background-color: #09090b;
+  }
+
+  .bg-zinc-800 {
+    background-color: #27272a;
+  }
+
+  .text-white {
+    color: white;
+  }
+
+  .text-zinc-400 {
+    color: #a1a1aa;
+  }
+
+  .text-cyan-400 {
+    color: #22d3ee;
+  }
+
+  .flex-1 {
+    flex: 1;
+  }
+
+  .p-6 {
+    padding: 1.5rem;
+  }
+
+  .p-4 {
+    padding: 1rem;
+  }
+
+  .overflow-auto {
+    overflow: auto;
+  }
+
+  .w-56 {
+    width: 14rem;
+  }
+
+  .space-y-6 > * + * {
+    margin-top: 1.5rem;
+  }
+
+  .space-y-2 > * + * {
+    margin-top: 0.5rem;
+  }
+
+  .rounded-r-xl {
+    border-top-right-radius: 0.75rem;
+    border-bottom-right-radius: 0.75rem;
+  }
+
+  .shadow-md {
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  }
+
+  .text-3xl {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+  }
+
+  .font-bold {
+    font-weight: 700;
+  }
+
+  .mb-2 {
+    margin-bottom: 0.5rem;
+  }
+
+  .text-lg {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+  }
+
+  .font-semibold {
+    font-weight: 600;
+  }
+
+  .text-2xl {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+
+  .w-8 {
+    width: 2rem;
+  }
+
+  .h-8 {
+    height: 2rem;
+  }
+
+  .mr-4 {
+    margin-right: 1rem;
+  }
+
+  .rounded-lg {
+    border-radius: 0.5rem;
+  }
+
+  .items-center {
+    align-items: center;
+  }
+
+  .cursor-pointer {
+    cursor: pointer;
+  }
+
+  .px-4 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .py-2 {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .rounded-xl {
+    border-radius: 0.75rem;
+  }
+
+  .hover\:bg-zinc-800:hover {
+    background-color: #27272a;
+  }
+
+  .transition-all {
+    transition: all 0.15s ease-in-out;
+  }
+
+  .w-5 {
+    width: 1.25rem;
+  }
+
+  .h-5 {
+    height: 1.25rem;
+  }
+
+  .mr-3 {
+    margin-right: 0.75rem;
+  }
+}
