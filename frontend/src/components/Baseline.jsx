@@ -33,10 +33,10 @@ const Baseline = () => {
             {/* Summary Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 {[
-                    { label: "Windows", color: "bg-blue-600", pattern: "windows" },
-                    { label: "Linux", color: "bg-green-600", pattern: "ubuntu" },
-                    { label: "Servers", color: "bg-red-600", pattern: "server" },
-                    { label: "Workstations", color: "bg-yellow-500", pattern: "workstation" },
+                    { label: "Windows", color: "bg-blue-700", pattern: "windows" },
+                    { label: "Linux", color: "bg-green-700", pattern: "ubuntu" },
+                    { label: "Servers", color: "bg-red-800", pattern: "server" },
+                    { label: "Workstations", color: "bg-yellow-400", pattern: "workstation" },
                 ].map(({ label, color, pattern }) => (
                     <div
                         key={label}

@@ -4,6 +4,9 @@ import {
   ChevronDown, ChevronRight, Folder
 } from 'lucide-react';
 import AddIcon from '@mui/icons-material/Add';
+import BugReportIcon from '@mui/icons-material/BugReport';
+import EngineeringIcon from '@mui/icons-material/Engineering';
+
 
 const SidebarItem = ({ icon: Icon, label, children }) => {
   const [open, setOpen] = useState(false);
@@ -34,7 +37,7 @@ const SidebarItem = ({ icon: Icon, label, children }) => {
 
 const Sidebar = () => (
   <div className="h-screen w-64 shadow-lg p-4 flex flex-col space-y-2">
-    <h2 className="text-xl font-bold text-white mb-4">Velo Dashboard</h2>
+    <h2 className="text-xl font-bold text-white mb-4">Threat Hunt Dashboard</h2>
     <SidebarItem icon={ShieldCheck} label="HomePage" />
     <SidebarItem icon={Server} label="Baseline" />
     <SidebarItem icon={Bug} label="Networking" />
@@ -45,8 +48,8 @@ const Sidebar = () => (
       <div>Endpoint Detection & Response</div>
       <div>Virtual Private Networks</div>
     </SidebarItem>
-    <SidebarItem icon={Globe} label="Virus Totals" />
-    <SidebarItem icon={Globe} label="Configuration & Settings" />
+    <SidebarItem icon={BugReportIcon} label="Virus Totals" />   
+    <SidebarItem icon={EngineeringIcon} label="Settings & Config" />  
   </div>
 );
 
