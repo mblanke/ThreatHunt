@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const Baseline = () => {
+const BaselinePage = () => {
     const [data, setData] = useState([]);
 
     useEffect(() => {
@@ -77,4 +77,4 @@ const Baseline = () => {
     );
 };
 
-export default Baseline;
+export default BaselinePage;

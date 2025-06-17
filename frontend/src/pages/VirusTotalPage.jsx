@@ -1,7 +1,7 @@
 import React from 'react';
 
-const VirusTotal = () => {
+const VirusTotalPage = () => {
     return <div>Virus Total Placeholder</div>;
 };
 
-export default VirusTotal;
+export default VirusTotalPage;

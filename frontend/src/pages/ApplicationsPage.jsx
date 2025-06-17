@@ -1,7 +1,7 @@
 import React from 'react';
 
-const Applications = () => {
+const ApplicationsPage = () => {
     return <div>Applications Placeholder</div>;
 };
 
-export default Applications;
+export default ApplicationsPage;
