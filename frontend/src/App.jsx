@@ -1,17 +1,17 @@
 import React, { Suspense, useMemo, lazy } from "react";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { CssBaseline } from "@mui/material";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router";
 
 import Sidebar from "./components/Sidebar";
-const HomePage = lazy(() => import("./components/HomePage"));
-const Baseline = lazy(() => import("./components/Baseline"));
-const Networking = lazy(() => import("./components/Networking"));
-const Applications = lazy(() => import("./components/Applications"));
-const SecurityTools = lazy(() => import("./components/securitytools"));
-const CSVProcessing = lazy(() => import("./components/CSVProcessing"));
-const SettingsConfig = lazy(() => import("./components/SettingsConfig"));
-const VirusTotal = lazy(() => import("./components/VirusTotal"));
+const HomePage = lazy(() => import("./pages/HomePage"));
+const Baseline = lazy(() => import("./pages/BaselinePage"));
+const Networking = lazy(() => import("./pages/NetworkingPage"));
+const Applications = lazy(() => import("./pages/ApplicationsPage"));
+const SecurityTools = lazy(() => import("./pages/SecurityToolsPage"));
+const CSVProcessing = lazy(() => import("./pages/CSVProcessingPage"));
+const SettingsConfig = lazy(() => import("./pages/SettingsConfigPage"));
+const VirusTotal = lazy(() => import("./pages/VirusTotalPage"));
 
 function App() {
   const theme = useMemo(
