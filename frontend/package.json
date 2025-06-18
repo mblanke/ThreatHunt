@@ -11,23 +11,33 @@
         "test": "vitest"
     },
     "dependencies": {
+        "@emotion/react": "^11.14.0",
+        "@emotion/styled": "^11.14.0",
+        "@fontsource/roboto": "^5.2.5",
+        "@mui/icons-material": "^6.4.8",
+        "@mui/x-data-grid": "^7.1.0",
+        "@mui/material": "^6.4.8",
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
+        "react-dropzone": "^14.3.8",
         "react-router-dom": "^6.26.1",
         "lucide-react": "^0.515.0",
+        "tailwindcss": "^4.1.10",
+        "@tailwindcss/vite": "^4.1.10",
+        "react-router": "^7.6.0",
         "axios": "^1.7.2"
     },
     "devDependencies": {
         "@types/react": "^18.3.3",
         "@types/react-dom": "^18.3.0",
         "@vitejs/plugin-react": "^4.3.1",
+        "esbuild": "^0.25.5",
         "eslint": "^8.57.0",
         "eslint-plugin-react": "^7.34.3",
         "eslint-plugin-react-hooks": "^4.6.2",
         "eslint-plugin-react-refresh": "^0.4.7",
         "vite": "^5.3.4",
         "vitest": "^1.6.0",
-        "tailwindcss": "^3.4.4",
         "autoprefixer": "^10.4.19",
         "postcss": "^8.4.39"
     }
