@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: threat-hunter-backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: threat-hunter-backend
+  template:
+    metadata:
+      labels:
+        app: threat-hunter-backend
+    spec:
+      containers:
+      - name: backend
+        image: your-registry/threat-hunter-backend:latest
+        ports:
+        - containerPort: 5000
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: threat-hunter-secrets
+              key: database-url
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: threat-hunter-backend-service
+spec:
+  selector:
+    app: threat-hunter-backend
+  ports:
+  - port: 5000
+    targetPort: 5000
+  type: LoadBalancer

@@ -1,0 +1,31 @@
+# AWS ECS Deployment Configuration
+version: '3.8'
+
+services:
+  database:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: threat_hunter
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    image: your-registry/threat-hunter-backend:latest
+    environment:
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@database:5432/threat_hunter
+      SECRET_KEY: ${SECRET_KEY}
+      FLASK_ENV: production
+    depends_on:
+      - database
+
+  frontend:
+    image: your-registry/threat-hunter-frontend:latest
+    ports:
+      - "80:3000"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

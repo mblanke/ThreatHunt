@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  database:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: threat_hunter
+      POSTGRES_USER_FILE: /run/secrets/db_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    secrets:
+      - db_user
+      - db_password
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
+  backend:
+    image: your-registry/threat-hunter-backend:latest
+    environment:
+      DATABASE_URL: postgresql://admin:secure_password_123@database:5432/threat_hunter
+      SECRET_KEY_FILE: /run/secrets/secret_key
+    secrets:
+      - secret_key
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  frontend:
+    image: your-registry/threat-hunter-frontend:latest
+    ports:
+      - "80:3000"
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+
+volumes:
+  postgres_data:
+
+secrets:
+  db_user:
+    external: true
+  db_password:
+    external: true
+  secret_key:
+    external: true

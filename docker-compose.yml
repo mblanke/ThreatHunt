@@ -1,0 +1,55 @@
+version: "3.8"
+
+services:
+  database:
+    image: postgres:15
+    container_name: threat-hunter-db
+    environment:
+      POSTGRES_DB: threat_hunter
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secure_password_123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - threat-hunter-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: threat-hunter-backend
+    environment:
+      DATABASE_URL: postgresql://admin:secure_password_123@database:5432/threat_hunter
+      FLASK_ENV: production
+      SECRET_KEY: your-secret-key-change-in-production
+    depends_on:
+      - database
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./output:/app/output
+    networks:
+      - threat-hunter-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: threat-hunter-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - threat-hunter-network
+
+volumes:
+  postgres_data:
+
+networks:
+  threat-hunter-network:
+    driver: bridge

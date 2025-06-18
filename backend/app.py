@@ -1,9 +1,11 @@
 import os
 import logging
+from datetime import datetime, timedelta
 from flask import Flask, request, jsonify, send_from_directory
+from flask_sqlalchemy import SQLAlchemy
+from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
 from werkzeug.utils import secure_filename
-from werkzeug.exceptions import RequestEntityTooLarge
-from datetime import datetime
+import bcrypt
 
 # Try to import flask-cors
 try:
@@ -19,6 +21,24 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__, static_folder="../frontend/dist")
 
+# Configuration
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'postgresql://admin:secure_password_123@localhost:5432/threat_hunter')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['JWT_SECRET_KEY'] = os.getenv('SECRET_KEY', 'change-this-in-production')
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=24)
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024
+app.config['UPLOAD_FOLDER'] = 'uploaded'
+app.config['OUTPUT_FOLDER'] = 'output'
+app.config['ALLOWED_EXTENSIONS'] = {'csv', 'json', 'txt', 'log'}
+
+# Ensure upload directories exist
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+os.makedirs(app.config['OUTPUT_FOLDER'], exist_ok=True)
+
+# Initialize extensions
+db = SQLAlchemy(app)
+jwt = JWTManager(app)
+
 # Enable CORS
 if CORS_AVAILABLE:
     CORS(app)
@@ -29,16 +49,6 @@ else:
         response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
         response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
         return response
-
-# Configuration
-app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024
-app.config['UPLOAD_FOLDER'] = 'uploaded'
-app.config['OUTPUT_FOLDER'] = 'output'
-app.config['ALLOWED_EXTENSIONS'] = {'csv', 'json', 'txt', 'log'}
-
-# Ensure upload directories exist
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-os.makedirs(app.config['OUTPUT_FOLDER'], exist_ok=True)
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -52,6 +62,144 @@ def handle_file_too_large(e):
 def handle_exception(e):
     logger.error(f"Unhandled exception: {e}")
     return jsonify({'error': 'Internal server error'}), 500
+
+# Database Models
+class User(db.Model):
+    __tablename__ = 'users'
+    id = db.Column(db.String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_login = db.Column(db.DateTime)
+
+class Hunt(db.Model):
+    __tablename__ = 'hunts'
+    id = db.Column(db.String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    created_by = db.Column(db.String, db.ForeignKey('users.id'))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.String(20), default='active')
+
+# Authentication Routes
+@app.route('/api/auth/login', methods=['POST'])
+def login():
+    try:
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
+        
+        user = User.query.filter_by(username=username).first()
+        
+        if user and bcrypt.checkpw(password.encode('utf-8'), user.password_hash.encode('utf-8')):
+            access_token = create_access_token(identity=user.id)
+            user.last_login = datetime.utcnow()
+            db.session.commit()
+            
+            return jsonify({
+                'access_token': access_token,
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email
+                }
+            })
+        else:
+            return jsonify({'error': 'Invalid credentials'}), 401
+            
+    except Exception as e:
+        logger.error(f"Login error: {e}")
+        return jsonify({'error': 'Login failed'}), 500
+
+@app.route('/api/auth/register', methods=['POST'])
+def register():
+    try:
+        data = request.get_json()
+        username = data.get('username')
+        email = data.get('email')
+        password = data.get('password')
+        
+        # Check if user exists
+        if User.query.filter_by(username=username).first():
+            return jsonify({'error': 'Username already exists'}), 400
+            
+        if User.query.filter_by(email=email).first():
+            return jsonify({'error': 'Email already exists'}), 400
+        
+        # Hash password
+        password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        
+        # Create user
+        user = User(username=username, email=email, password_hash=password_hash)
+        db.session.add(user)
+        db.session.commit()
+        
+        access_token = create_access_token(identity=user.id)
+        
+        return jsonify({
+            'access_token': access_token,
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Registration error: {e}")
+        return jsonify({'error': 'Registration failed'}), 500
+
+# Hunt Management Routes
+@app.route('/api/hunts', methods=['GET'])
+@jwt_required()
+def get_hunts():
+    try:
+        user_id = get_jwt_identity()
+        hunts = Hunt.query.filter_by(created_by=user_id).all()
+        
+        return jsonify({
+            'hunts': [{
+                'id': hunt.id,
+                'name': hunt.name,
+                'description': hunt.description,
+                'created_at': hunt.created_at.isoformat(),
+                'status': hunt.status
+            } for hunt in hunts]
+        })
+    except Exception as e:
+        logger.error(f"Get hunts error: {e}")
+        return jsonify({'error': 'Failed to fetch hunts'}), 500
+
+@app.route('/api/hunts', methods=['POST'])
+@jwt_required()
+def create_hunt():
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        
+        hunt = Hunt(
+            name=data.get('name'),
+            description=data.get('description'),
+            created_by=user_id
+        )
+        
+        db.session.add(hunt)
+        db.session.commit()
+        
+        return jsonify({
+            'hunt': {
+                'id': hunt.id,
+                'name': hunt.name,
+                'description': hunt.description,
+                'created_at': hunt.created_at.isoformat(),
+                'status': hunt.status
+            }
+        })
+    except Exception as e:
+        logger.error(f"Create hunt error: {e}")
+        return jsonify({'error': 'Failed to create hunt'}), 500
 
 # API Routes
 @app.route('/api/health')
@@ -135,6 +283,10 @@ def get_stats():
         return jsonify({'error': 'Failed to get stats'}), 500
 
 # Static file serving for React app
+@app.route("/assets/<path:path>")
+def send_assets(path):
+    return send_from_directory(os.path.join(app.static_folder, "assets"), path)
+
 @app.route("/")
 def index():
     if os.path.exists(os.path.join(app.static_folder, "index.html")):
@@ -151,68 +303,6 @@ def index():
             ]
         })
 
-if __name__ == "__main__":
-    print("=" * 50)
-    print("Starting Cyber Threat Hunter Backend...")
-    print("API available at: http://localhost:5000")
-    print("Health check: http://localhost:5000/api/health")
-    print("=" * 50)
-    app.run(host="0.0.0.0", port=5000, debug=True)
-        # Basic security tools detection
-        tools_found = []
-        
-        with open(filepath, 'r', encoding='utf-8') as f:
-            content = f.read().lower()
-            
-            # Common security tools to detect
-            security_tools = [
-                'windows defender', 'antimalware', 'avast', 'norton', 'mcafee',
-                'crowdstrike', 'carbon black', 'sentinelone', 'cylance',
-                'kaspersky', 'bitdefender', 'sophos', 'trend micro',
-                'openvpn', 'nordvpn', 'expressvpn', 'cisco anyconnect'
-            ]
-            
-            for tool in security_tools:
-                if tool in content:
-                    tools_found.append(tool)
-        
-        return jsonify({
-            'filename': filename,
-            'tools_found': tools_found,
-            'total_tools': len(tools_found)
-        })
-    
-    except Exception as e:
-        logger.error(f"Security tools analysis error: {e}")
-        return jsonify({'error': 'Analysis failed'}), 500
-
-@app.route('/api/stats')
-def get_stats():
-    try:
-        upload_dir = app.config['UPLOAD_FOLDER']
-        files_count = len([f for f in os.listdir(upload_dir) if os.path.isfile(os.path.join(upload_dir, f))])
-        
-        return jsonify({
-            'filesUploaded': files_count,
-            'analysesCompleted': files_count,
-            'threatsDetected': 0
-        })
-    except Exception as e:
-        logger.error(f"Stats error: {e}")
-        return jsonify({'error': 'Failed to get stats'}), 500
-
-# Static file serving for React app
-@app.route("/assets/<path:path>")
-def send_assets(path):
-    return send_from_directory(os.path.join(app.static_folder, "assets"), path)
-
-@app.route("/")
-def index():
-    if os.path.exists(os.path.join(app.static_folder, "index.html")):
-        return send_from_directory(app.static_folder, "index.html")
-    else:
-        return jsonify({'message': 'Cyber Threat Hunter API', 'status': 'running'})
-
 # Catch-all route for React Router
 @app.route("/<path:path>")
 def catch_all(path):
@@ -222,69 +312,12 @@ def catch_all(path):
         return jsonify({'error': 'Frontend not built yet'})
 
 if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
+    
     print("=" * 50)
     print("Starting Cyber Threat Hunter Backend...")
     print("API available at: http://localhost:5000")
-    print("Health check: http://localhost:5000/api/health")
-    print("Available endpoints:")
-    print("  POST /api/upload - Upload files")
-    print("  GET /api/files - List uploaded files")
-    print("  GET /api/analyze/<filename> - Analyze file")
-    print("  GET /api/security-tools/<filename> - Detect security tools")
-    print("  GET /api/stats - Get statistics")
+    print("Database: Connected to PostgreSQL")
     print("=" * 50)
-    app.run(host="0.0.0.0", port=5000, debug=True)
-                })
-            except Exception as e:
-                analysis['csv_error'] = str(e)
-        elif filename.lower().endswith('.csv'):
-            # Basic CSV analysis without pandas
-            try:
-                with open(filepath, 'r', encoding='utf-8') as f:
-                    lines = f.readlines()
-                    analysis.update({
-                        'rows': len(lines) - 1,  # Subtract header
-                        'columns': len(lines[0].split(',')) if lines else 0,
-                        'preview': lines[:6] if lines else []
-                    })
-            except Exception as e:
-                analysis['csv_error'] = str(e)
-        
-        return jsonify(analysis)
-    
-    except Exception as e:
-        logger.error(f"Analysis error: {e}")
-        return jsonify({'error': 'Analysis failed'}), 500
-
-# Stats endpoint
-@app.route('/api/stats')
-def get_stats():
-    try:
-        upload_dir = app.config['UPLOAD_FOLDER']
-        files_count = len([f for f in os.listdir(upload_dir) if os.path.isfile(os.path.join(upload_dir, f))])
-        
-        return jsonify({
-            'filesUploaded': files_count,
-            'analysesCompleted': files_count,  # Simplified
-            'threatsDetected': 0  # Placeholder
-        })
-    except Exception as e:
-        logger.error(f"Stats error: {e}")
-        return jsonify({'error': 'Failed to get stats'}), 500
-
-# Static file serving
-@app.route("/assets/<path:path>")
-def send_assets(path):
-    return send_from_directory(os.path.join(app.static_folder, "assets"), path)
-
-@app.route("/")
-def index():
-    return send_from_directory(app.static_folder, "index.html")
-
-# Catch-all route for React Router
-@app.route("/<path:path>")
-def catch_all(path):
-    return send_from_directory(app.static_folder, "index.html")
-
-if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
