@@ -3,14 +3,14 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import (
     auth, users, tenants, hosts, ingestion, vt, audit,
-    notifications, velociraptor, playbooks, threat_intel, reports
+    notifications, velociraptor, playbooks, threat_intel, reports, llm
 )
 from app.core.config import settings
 
 app = FastAPI(
     title=settings.app_name,
-    description="Multi-tenant threat hunting companion for Velociraptor with ML-powered threat detection",
-    version="1.0.0"
+    description="Multi-tenant threat hunting companion for Velociraptor with ML-powered threat detection and distributed LLM routing",
+    version="1.1.0"
 )
 
 # Configure CORS
@@ -35,6 +35,7 @@ app.include_router(velociraptor.router, prefix="/api/velociraptor", tags=["Veloc
 app.include_router(playbooks.router, prefix="/api/playbooks", tags=["Playbooks"])
 app.include_router(threat_intel.router, prefix="/api/threat-intel", tags=["Threat Intelligence"])
 app.include_router(reports.router, prefix="/api/reports", tags=["Reports"])
+app.include_router(llm.router, prefix="/api/llm", tags=["Distributed LLM"])
 
 
 @app.get("/")
@@ -42,7 +43,7 @@ async def root():
     """Root endpoint"""
     return {
         "message": f"Welcome to {settings.app_name}",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "docs": "/docs",
         "features": [
             "JWT Authentication with 2FA",
@@ -52,7 +53,8 @@ async def root():
             "Velociraptor integration",
             "ML-powered threat detection",
             "Automated playbooks",
-            "Advanced reporting"
+            "Advanced reporting",
+            "Distributed LLM routing (Phase 5)"
         ]
     }
 
