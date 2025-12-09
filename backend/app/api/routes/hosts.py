@@ -37,14 +37,43 @@ class HostRead(BaseModel):
 async def list_hosts(
     skip: int = 0,
     limit: int = 100,
+    hostname: Optional[str] = None,
+    ip_address: Optional[str] = None,
+    os: Optional[str] = None,
+    sort_by: Optional[str] = None,
+    sort_desc: bool = False,
     current_user: User = Depends(get_current_active_user),
     tenant_id: int = Depends(get_tenant_id),
     db: Session = Depends(get_db)
 ):
     """
-    List hosts scoped to user's tenant
+    List hosts scoped to user's tenant with advanced filtering
+    
+    Supports:
+    - Filtering by hostname, IP address, OS
+    - Sorting by any field
+    - Pagination
     """
-    hosts = db.query(Host).filter(Host.tenant_id == tenant_id).offset(skip).limit(limit).all()
+    query = db.query(Host).filter(Host.tenant_id == tenant_id)
+    
+    # Apply filters
+    if hostname:
+        query = query.filter(Host.hostname.ilike(f"%{hostname}%"))
+    if ip_address:
+        query = query.filter(Host.ip_address.ilike(f"%{ip_address}%"))
+    if os:
+        query = query.filter(Host.os.ilike(f"%{os}%"))
+    
+    # Apply sorting
+    if sort_by:
+        sort_column = getattr(Host, sort_by, None)
+        if sort_column:
+            if sort_desc:
+                query = query.order_by(sort_column.desc())
+            else:
+                query = query.order_by(sort_column)
+    
+    hosts = query.offset(skip).limit(limit).all()
     return hosts
 
 
