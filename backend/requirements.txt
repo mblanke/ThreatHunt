@@ -8,3 +8,6 @@ python-multipart==0.0.6
 alembic==1.13.1
 pydantic==2.5.3
 pydantic-settings==2.1.0
+pyotp==2.9.0
+qrcode[pil]==7.4.2
+websockets==12.0

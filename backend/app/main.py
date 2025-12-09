@@ -1,13 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import auth, users, tenants, hosts, ingestion, vt
+from app.api.routes import auth, users, tenants, hosts, ingestion, vt, audit
 from app.core.config import settings
 
 app = FastAPI(
     title=settings.app_name,
     description="Multi-tenant threat hunting companion for Velociraptor",
-    version="0.1.0"
+    version="0.2.0"
 )
 
 # Configure CORS
@@ -26,6 +26,7 @@ app.include_router(tenants.router, prefix="/api/tenants", tags=["Tenants"])
 app.include_router(hosts.router, prefix="/api/hosts", tags=["Hosts"])
 app.include_router(ingestion.router, prefix="/api/ingestion", tags=["Ingestion"])
 app.include_router(vt.router, prefix="/api/vt", tags=["VirusTotal"])
+app.include_router(audit.router, prefix="/api/audit", tags=["Audit Logs"])
 
 
 @app.get("/")
@@ -33,7 +34,7 @@ async def root():
     """Root endpoint"""
     return {
         "message": f"Welcome to {settings.app_name}",
-        "version": "0.1.0",
+        "version": "0.2.0",
         "docs": "/docs"
     }
 
