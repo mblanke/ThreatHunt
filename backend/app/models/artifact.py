@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, JSON
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.core.database import Base
 
@@ -14,7 +14,7 @@ class Artifact(Base):
     description = Column(Text, nullable=True)
     case_id = Column(Integer, ForeignKey("cases.id"), nullable=True)
     artifact_metadata = Column(JSON, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     # Relationships
     case = relationship("Case", back_populates="artifacts")

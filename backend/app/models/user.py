@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.core.database import Base
 
@@ -14,7 +14,7 @@ class User(Base):
     role = Column(String, default="user", nullable=False)  # user, admin
     tenant_id = Column(Integer, ForeignKey("tenants.id"), nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     # Relationships
     tenant = relationship("Tenant", back_populates="users")
