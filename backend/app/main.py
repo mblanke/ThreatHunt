@@ -1,13 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import auth, users, tenants, hosts, ingestion, vt, audit, notifications, velociraptor
+from app.api.routes import (
+    auth, users, tenants, hosts, ingestion, vt, audit,
+    notifications, velociraptor, playbooks, threat_intel, reports
+)
 from app.core.config import settings
 
 app = FastAPI(
     title=settings.app_name,
-    description="Multi-tenant threat hunting companion for Velociraptor",
-    version="0.3.0"
+    description="Multi-tenant threat hunting companion for Velociraptor with ML-powered threat detection",
+    version="1.0.0"
 )
 
 # Configure CORS
@@ -29,6 +32,9 @@ app.include_router(vt.router, prefix="/api/vt", tags=["VirusTotal"])
 app.include_router(audit.router, prefix="/api/audit", tags=["Audit Logs"])
 app.include_router(notifications.router, prefix="/api/notifications", tags=["Notifications"])
 app.include_router(velociraptor.router, prefix="/api/velociraptor", tags=["Velociraptor"])
+app.include_router(playbooks.router, prefix="/api/playbooks", tags=["Playbooks"])
+app.include_router(threat_intel.router, prefix="/api/threat-intel", tags=["Threat Intelligence"])
+app.include_router(reports.router, prefix="/api/reports", tags=["Reports"])
 
 
 @app.get("/")
@@ -36,8 +42,18 @@ async def root():
     """Root endpoint"""
     return {
         "message": f"Welcome to {settings.app_name}",
-        "version": "0.3.0",
-        "docs": "/docs"
+        "version": "1.0.0",
+        "docs": "/docs",
+        "features": [
+            "JWT Authentication with 2FA",
+            "Multi-tenant isolation",
+            "Audit logging",
+            "Real-time notifications",
+            "Velociraptor integration",
+            "ML-powered threat detection",
+            "Automated playbooks",
+            "Advanced reporting"
+        ]
     }
 
 
