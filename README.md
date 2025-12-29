@@ -1,70 +1,333 @@
-# VelociCompanion
+# ThreatHunt - Analyst-Assist Threat Hunting Platform
 
-A multi-tenant threat hunting companion for analyzing data exported from Velociraptor with JWT authentication and role-based access control.
+A modern threat hunting platform with integrated analyst-assist agent guidance. Analyze CSV artifact data exported from Velociraptor with AI-powered suggestions for investigation directions, analytical pivots, and hypothesis formation.
 
 ## Overview
 
-VelociCompanion is a standalone web application designed to help security teams organize, analyze, and track threat hunting data derived from Velociraptor artifact collections. Users export artifacts from Velociraptor as CSV files and upload them to VelociCompanion for centralized analysis and tracking.
+ThreatHunt is a web application designed to help security analysts efficiently hunt for threats by:
+- Importing CSV artifacts from Velociraptor or other sources
+- Displaying data in an organized, queryable interface
+- Providing AI-powered guidance through an analyst-assist agent
+- Suggesting analytical directions, filters, and pivots
+- Highlighting anomalies and patterns of interest
 
-> **Note:** This application does not connect directly to a Velociraptor server. Data is imported manually via CSV file uploads.
+> **Agent Policy**: The analyst-assist agent provides read-only guidance only. It does not execute actions, escalate alerts, or modify data. All decisions remain with the analyst.
 
-## Workflow
+## Quick Start
 
-1. **Run hunts/collections** in Velociraptor
-2. **Export artifact results** as CSV files
-3. **Upload CSV files** to VelociCompanion via the ingestion API
-4. **Analyze, annotate, and track** findings across your team
-5. **Enrich data** using the VirusTotal integration for hash lookups
+### Docker (Recommended)
+
+```bash
+# Clone and navigate
+git clone https://github.com/mblanke/ThreatHunt.git
+cd ThreatHunt
+
+# Configure provider (choose one)
+cp .env.example .env
+# Edit .env and set your LLM provider:
+# Option 1: Online (OpenAI, etc.)
+#   THREAT_HUNT_AGENT_PROVIDER=online
+#   THREAT_HUNT_ONLINE_API_KEY=sk-your-key
+# Option 2: Local (Ollama, GGML, etc.)
+#   THREAT_HUNT_AGENT_PROVIDER=local
+#   THREAT_HUNT_LOCAL_MODEL_PATH=/path/to/model
+# Option 3: Networked (Internal inference service)
+#   THREAT_HUNT_AGENT_PROVIDER=networked
+#   THREAT_HUNT_NETWORKED_ENDPOINT=http://service:5000
+
+# Start services
+docker-compose up -d
+
+# Verify
+curl http://localhost:8000/api/agent/health
+curl http://localhost:3000
+```
+
+Access at http://localhost:3000
+
+### Local Development
+
+**Backend**:
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+
+# Configure provider
+export THREAT_HUNT_ONLINE_API_KEY=sk-your-key
+# OR set another provider env var
+
+# Run
+python run.py
+# API at http://localhost:8000/docs
+```
+
+**Frontend** (new terminal):
+```bash
+cd frontend
+npm install
+npm start
+# App at http://localhost:3000
+```
 
 ## Features
 
-- **CSV Data Import**: Upload and parse Velociraptor artifact exports
-- **JWT Authentication**: Secure token-based authentication system
-- **Multi-Tenancy**: Complete data isolation between tenants
-- **Role-Based Access Control**: Admin and user roles with different permissions
-- **RESTful API**: FastAPI backend with automatic OpenAPI documentation
-- **React Frontend**: Modern TypeScript React application with authentication
-- **Database Migrations**: Alembic for database schema management
-- **Docker Support**: Complete Docker Compose setup for easy deployment
-- **VirusTotal Integration**: Enrich hash data with threat intelligence
+### Analyst-Assist Agent 🤖
+- **Read-only guidance**: Explains data patterns and suggests investigation directions
+- **Context-aware**: Understands current dataset, host, and artifact type
+- **Pluggable providers**: Local, networked, or online LLM backends
+- **Transparent reasoning**: Explains logic with caveats and confidence scores
+- **Governance-compliant**: Strictly adheres to agent policy (no execution, no escalation)
+
+### Chat Interface
+- Analyst asks questions about artifact data
+- Agent provides guidance with suggested pivots and filters
+- Conversation history for context continuity
+- Real-time typing and response indicators
+
+### Data Management
+- Import CSV artifacts from Velociraptor
+- Browse and filter findings by severity, host, artifact type
+- Annotate findings with analyst notes
+- Track investigation progress
+
+## Architecture
+
+### Backend
+- **Framework**: FastAPI (Python 3.11)
+- **Agent Module**: Pluggable LLM provider interface
+- **API**: RESTful endpoints with OpenAPI documentation
+- **Structure**: Modular design with clear separation of concerns
+
+### Frontend
+- **Framework**: React 18 with TypeScript
+- **Components**: Agent chat panel + analysis dashboard
+- **Styling**: CSS with responsive design
+- **State Management**: React hooks + Context API
+
+### LLM Providers
+Supports three provider architectures:
+
+1. **Local**: On-device or on-prem models (GGML, Ollama, vLLM)
+2. **Networked**: Shared internal inference services
+3. **Online**: External hosted APIs (OpenAI, Anthropic, Google)
+
+Auto-detection: Automatically uses the first available provider.
 
 ## Project Structure
 
 ```
 ThreatHunt/
 ├── backend/
-│   ├── alembic/               # Database migrations
 │   ├── app/
-│   │   ├── api/routes/        # API endpoints
-│   │   │   ├── auth.py        # Authentication routes
-│   │   │   ├── users.py       # User management
-│   │   │   ├── tenants.py     # Tenant management
-│   │   │   ├── hosts.py       # Host management
-│   │   │   ├── ingestion.py   # CSV data ingestion
-│   │   │   └── vt.py          # VirusTotal integration
-│   │   ├── core/              # Core functionality
-│   │   │   ├── config.py      # Configuration
-│   │   │   ├── database.py    # Database setup
-│   │   │   ├── security.py    # Password hashing, JWT
-│   │   │   └── deps.py        # FastAPI dependencies
-│   │   ├── models/            # SQLAlchemy models
-│   │   └── schemas/           # Pydantic schemas
+│   │   ├── agents/              # Analyst-assist agent
+│   │   │   ├── core.py          # ThreatHuntAgent class
+│   │   │   ├── providers.py     # LLM provider interface
+│   │   │   ├── config.py        # Configuration
+│   │   │   └── __init__.py
+│   │   ├── api/routes/          # API endpoints
+│   │   │   ├── agent.py         # /api/agent/* routes
+│   │   │   ├── __init__.py
+│   │   ├── main.py              # FastAPI app
+│   │   └── __init__.py
 │   ├── requirements.txt
+│   ├── run.py
 │   └── Dockerfile
 ├── frontend/
-│   ├── public/
 │   ├── src/
-│   │   ├── components/        # React components
-│   │   ├── context/           # Auth context
-│   │   ├── pages/             # Page components
-│   │   ├── utils/             # API utilities
+│   │   ├── components/
+│   │   │   ├── AgentPanel.tsx   # Chat interface
+│   │   │   └── AgentPanel.css
+│   │   ├── utils/
+│   │   │   └── agentApi.ts      # API communication
 │   │   ├── App.tsx
-│   │   └── index.tsx
+│   │   ├── App.css
+│   │   ├── index.tsx
+│   │   └── index.css
+│   ├── public/index.html
 │   ├── package.json
+│   ├── tsconfig.json
 │   └── Dockerfile
-└── docker-compose.yml
-
+├── docker-compose.yml
+├── .env.example
+├── .gitignore
+├── AGENT_IMPLEMENTATION.md       # Technical guide
+├── INTEGRATION_GUIDE.md           # Deployment guide
+├── IMPLEMENTATION_SUMMARY.md      # Overview
+├── README.md                      # This file
+├── ROADMAP.md
+└── THREATHUNT_INTENT.md
 ```
+
+## API Endpoints
+
+### Agent Assistance
+- **POST /api/agent/assist** - Request guidance on artifact data
+- **GET /api/agent/health** - Check agent availability
+
+See full API documentation at http://localhost:8000/docs
+
+## Configuration
+
+### LLM Provider Selection
+
+Set via `THREAT_HUNT_AGENT_PROVIDER` environment variable:
+
+```bash
+# Auto-detect (tries local → networked → online)
+THREAT_HUNT_AGENT_PROVIDER=auto
+
+# Local (on-device/on-prem)
+THREAT_HUNT_AGENT_PROVIDER=local
+THREAT_HUNT_LOCAL_MODEL_PATH=/models/model.gguf
+
+# Networked (internal service)
+THREAT_HUNT_AGENT_PROVIDER=networked
+THREAT_HUNT_NETWORKED_ENDPOINT=http://inference:5000
+THREAT_HUNT_NETWORKED_KEY=api-key
+
+# Online (hosted API)
+THREAT_HUNT_AGENT_PROVIDER=online
+THREAT_HUNT_ONLINE_API_KEY=sk-your-key
+THREAT_HUNT_ONLINE_PROVIDER=openai
+THREAT_HUNT_ONLINE_MODEL=gpt-3.5-turbo
+```
+
+### Agent Behavior
+
+```bash
+THREAT_HUNT_AGENT_MAX_TOKENS=1024
+THREAT_HUNT_AGENT_REASONING=true
+THREAT_HUNT_AGENT_HISTORY_LENGTH=10
+THREAT_HUNT_AGENT_FILTER_SENSITIVE=true
+```
+
+See `.env.example` for all configuration options.
+
+## Governance & Compliance
+
+This implementation strictly follows governance principles:
+
+- ✅ **Agents assist analysts** - No autonomous execution
+- ✅ **No tool execution** - Agent provides guidance only
+- ✅ **No alert escalation** - Analyst controls alerts
+- ✅ **No data modification** - Read-only analysis
+- ✅ **Transparent reasoning** - Explains guidance with caveats
+- ✅ **Analyst authority** - All decisions remain with analyst
+
+**References**:
+- `goose-core/governance/AGENT_POLICY.md`
+- `goose-core/governance/AI_RULES.md`
+- `THREATHUNT_INTENT.md`
+
+## Documentation
+
+- **[AGENT_IMPLEMENTATION.md](AGENT_IMPLEMENTATION.md)** - Detailed technical architecture
+- **[INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md)** - Deployment and configuration
+- **[IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md)** - Feature overview
+
+## Testing the Agent
+
+### Check Health
+```bash
+curl http://localhost:8000/api/agent/health
+```
+
+### Test API
+```bash
+curl -X POST http://localhost:8000/api/agent/assist \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "What patterns suggest suspicious activity?",
+    "dataset_name": "FileList",
+    "artifact_type": "FileList",
+    "host_identifier": "DESKTOP-ABC123"
+  }'
+```
+
+### Use UI
+1. Open http://localhost:3000
+2. Enter a question in the agent panel
+3. View guidance with suggested pivots and filters
+
+## Troubleshooting
+
+### Agent Unavailable (503)
+- Check environment variables for provider configuration
+- Verify LLM provider is accessible
+- See logs: `docker-compose logs backend`
+
+### No Frontend Response
+- Verify backend health: `curl http://localhost:8000/api/agent/health`
+- Check browser console for errors
+- See logs: `docker-compose logs frontend`
+
+See [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md) for detailed troubleshooting.
+
+## Development
+
+### Running Tests
+```bash
+cd backend
+pytest
+
+cd ../frontend
+npm test
+```
+
+### Building Images
+```bash
+docker-compose build
+```
+
+### Logs
+```bash
+docker-compose logs -f backend
+docker-compose logs -f frontend
+```
+
+## Security Notes
+
+For production deployment:
+1. Add authentication to API endpoints
+2. Enable HTTPS/TLS
+3. Implement rate limiting
+4. Filter sensitive data before LLM
+5. Add audit logging
+6. Use secrets management for API keys
+
+See [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md#security-notes) for details.
+
+## Future Enhancements
+
+- [ ] Integration with actual CVE databases
+- [ ] Fine-tuned models for cybersecurity domain
+- [ ] Structured output from LLMs (JSON mode)
+- [ ] Feedback loop on guidance quality
+- [ ] Multi-modal support (images, documents)
+- [ ] Compliance reporting and audit trails
+- [ ] Performance optimization and caching
+
+## Contributing
+
+Follow the architecture and governance principles in `goose-core`. All changes must:
+- Adhere to agent policy (read-only, advisory only)
+- Conform to shared terminology in goose-core
+- Include appropriate documentation
+- Pass tests and lint checks
+
+## License
+
+See LICENSE file
+
+## Support
+
+For issues or questions:
+1. Check [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md)
+2. Review [AGENT_IMPLEMENTATION.md](AGENT_IMPLEMENTATION.md)
+3. See API docs at http://localhost:8000/docs
+4. Check backend logs for errors
 
 ## Getting Started
 
