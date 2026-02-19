@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   backend:
     build:
@@ -9,33 +7,29 @@ services:
     ports:
       - "8000:8000"
     environment:
-      # Agent provider configuration
-      # Set one of these to enable the agent:
-      # THREAT_HUNT_AGENT_PROVIDER=local
-      # THREAT_HUNT_LOCAL_MODEL_PATH=/models/model.gguf
-      #
-      # THREAT_HUNT_AGENT_PROVIDER=networked
-      # THREAT_HUNT_NETWORKED_ENDPOINT=http://inference-service:5000
-      # THREAT_HUNT_NETWORKED_KEY=your-api-key
-      #
-      # THREAT_HUNT_AGENT_PROVIDER=online
-      # THREAT_HUNT_ONLINE_API_KEY=sk-your-openai-key
-      # THREAT_HUNT_ONLINE_MODEL=gpt-3.5-turbo
-      
-      # Auto-detect available provider (tries local -> networked -> online)
-      THREAT_HUNT_AGENT_PROVIDER: auto
-      
-      # Optional agent settings
-      THREAT_HUNT_AGENT_MAX_TOKENS: "1024"
-      THREAT_HUNT_AGENT_REASONING: "true"
-      THREAT_HUNT_AGENT_HISTORY_LENGTH: "10"
-      THREAT_HUNT_AGENT_FILTER_SENSITIVE: "true"
+      # ── LLM Cluster (Wile / Roadrunner via Tailscale) ──
+      TH_WILE_HOST: "100.110.190.12"
+      TH_ROADRUNNER_HOST: "100.110.190.11"
+      TH_OLLAMA_PORT: "11434"
+      TH_OPEN_WEBUI_URL: "https://ai.guapo613.beer"
+
+      # ── Database ──
+      TH_DATABASE_URL: "sqlite+aiosqlite:///./threathunt.db"
+
+      # ── Auth ──
+      TH_JWT_SECRET: "change-me-in-production"
+
+      # ── Enrichment API keys (set your own) ──
+      # TH_VIRUSTOTAL_API_KEY: ""
+      # TH_ABUSEIPDB_API_KEY: ""
+      # TH_SHODAN_API_KEY: ""
+
+      # ── Agent behaviour ──
+      TH_AGENT_MAX_TOKENS: "4096"
+      TH_AGENT_TEMPERATURE: "0.3"
     volumes:
-      # Optional: Mount local models for local provider
-      # - ./models:/models:ro
       - ./backend:/app
-    depends_on:
-      - frontend
+      - backend-data:/app/data
     networks:
       - threathunt
     healthcheck:
@@ -52,9 +46,8 @@ services:
     container_name: threathunt-frontend
     ports:
       - "3000:3000"
-    environment:
-      # API endpoint configuration
-      REACT_APP_API_URL: http://localhost:8000
+    depends_on:
+      - backend
     networks:
       - threathunt
     healthcheck:
@@ -69,8 +62,5 @@ networks:
     driver: bridge
 
 volumes:
-  # Optional: Persistent storage for models or data
-  # models:
-  #   driver: local
-  # data:
-  #   driver: local
+  backend-data:
+    driver: local

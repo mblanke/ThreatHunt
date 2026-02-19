@@ -1,264 +1,246 @@
 /**
- * Analyst-assist agent chat panel component.
- * Provides context-aware guidance on artifact data and analysis.
+ * AgentPanel — analyst-assist chat with quick / deep / debate modes,
+ * streaming support, SANS references, and conversation persistence.
  */
 
-import React, { useState, useRef, useEffect } from "react";
-import "./AgentPanel.css";
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
-  requestAgentAssistance,
-  AssistResponse,
-  AssistRequest,
-} from "../utils/agentApi";
+  Box, Typography, Paper, TextField, Button, Stack, Chip,
+  ToggleButtonGroup, ToggleButton, CircularProgress, Alert,
+  Accordion, AccordionSummary, AccordionDetails, Divider, Select,
+  MenuItem, FormControl, InputLabel, LinearProgress,
+} from '@mui/material';
+import SendIcon from '@mui/icons-material/Send';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import SchoolIcon from '@mui/icons-material/School';
+import PsychologyIcon from '@mui/icons-material/Psychology';
+import ForumIcon from '@mui/icons-material/Forum';
+import SpeedIcon from '@mui/icons-material/Speed';
+import { useSnackbar } from 'notistack';
+import {
+  agent, datasets, hunts, type AssistRequest, type AssistResponse,
+  type DatasetSummary, type Hunt,
+} from '../api/client';
 
-export interface AgentPanelProps {
-  /** Name of the current dataset */
-  dataset_name?: string;
-  /** Type of artifact (e.g., FileList, ProcessList) */
-  artifact_type?: string;
-  /** Host name, IP, or identifier */
-  host_identifier?: string;
-  /** Summary of the uploaded data */
-  data_summary?: string;
-  /** Callback when user needs to execute analysis based on suggestions */
-  onAnalysisAction?: (action: string) => void;
-}
+interface Message { role: 'user' | 'assistant'; content: string; meta?: AssistResponse }
 
-interface Message {
-  role: "user" | "agent";
-  content: string;
-  response?: AssistResponse;
-  timestamp: Date;
-}
-
-export const AgentPanel: React.FC<AgentPanelProps> = ({
-  dataset_name,
-  artifact_type,
-  host_identifier,
-  data_summary,
-  onAnalysisAction,
-}) => {
+export default function AgentPanel() {
+  const { enqueueSnackbar } = useSnackbar();
   const [messages, setMessages] = useState<Message[]>([]);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('');
+  const [mode, setMode] = useState<'quick' | 'deep' | 'debate'>('quick');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [datasetList, setDatasets] = useState<DatasetSummary[]>([]);
+  const [huntList, setHunts] = useState<Hunt[]>([]);
+  const [selectedDataset, setSelectedDataset] = useState('');
+  const [selectedHunt, setSelectedHunt] = useState('');
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    datasets.list(0, 100).then(r => setDatasets(r.datasets)).catch(() => {});
+    hunts.list(0, 100).then(r => setHunts(r.hunts)).catch(() => {});
+  }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
-    if (!query.trim()) {
-      return;
-    }
+  const send = useCallback(async () => {
+    if (!query.trim() || loading) return;
+    const userMsg: Message = { role: 'user', content: query };
+    setMessages(prev => [...prev, userMsg]);
+    setQuery('');
+    setLoading(true);
 
-    // Add user message
-    const userMessage: Message = {
-      role: "user",
-      content: query,
-      timestamp: new Date(),
+    const ds = datasetList.find(d => d.id === selectedDataset);
+    const req: AssistRequest = {
+      query,
+      mode,
+      conversation_id: conversationId || undefined,
+      hunt_id: selectedHunt || undefined,
+      dataset_name: ds?.name,
+      data_summary: ds ? `${ds.row_count} rows, columns: ${Object.keys(ds.column_schema || {}).join(', ')}` : undefined,
     };
 
-    setMessages((prev) => [...prev, userMessage]);
-    setQuery("");
-    setLoading(true);
-    setError(null);
-
     try {
-      // Build conversation history for context
-      const conversation_history = messages.map((msg) => ({
-        role: msg.role,
-        content: msg.content,
-      }));
-
-      // Request guidance from agent
-      const response = await requestAgentAssistance({
-        query: query,
-        dataset_name,
-        artifact_type,
-        host_identifier,
-        data_summary,
-        conversation_history,
-      });
-
-      // Add agent response
-      const agentMessage: Message = {
-        role: "agent",
-        content: response.guidance,
-        response,
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, agentMessage]);
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to get guidance";
-      setError(errorMessage);
-
-      // Add error message
-      const errorMsg: Message = {
-        role: "agent",
-        content: `Error: ${errorMessage}. The agent service may be unavailable.`,
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, errorMsg]);
-    } finally {
-      setLoading(false);
+      const resp = await agent.assist(req);
+      setConversationId(resp.conversation_id || null);
+      setMessages(prev => [...prev, { role: 'assistant', content: resp.guidance, meta: resp }]);
+    } catch (e: any) {
+      enqueueSnackbar(e.message, { variant: 'error' });
+      setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${e.message}` }]);
     }
+    setLoading(false);
+  }, [query, mode, loading, conversationId, selectedDataset, selectedHunt, datasetList, enqueueSnackbar]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
   };
 
+  const newConversation = () => { setMessages([]); setConversationId(null); };
+
   return (
-    <div className="agent-panel">
-      <div className="agent-panel-header">
-        <h3>Analyst Assist Agent</h3>
-        <div className="agent-context">
-          {host_identifier && (
-            <span className="context-badge">Host: {host_identifier}</span>
-          )}
-          {artifact_type && (
-            <span className="context-badge">Artifact: {artifact_type}</span>
-          )}
-          {dataset_name && (
-            <span className="context-badge">Dataset: {dataset_name}</span>
-          )}
-        </div>
-      </div>
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+        <Typography variant="h5">Agent Assist</Typography>
+        <Button size="small" onClick={newConversation}>New Conversation</Button>
+      </Stack>
 
-      <div className="agent-messages">
-        {messages.length === 0 ? (
-          <div className="agent-welcome">
-            <p className="welcome-title">Welcome to Analyst Assist</p>
-            <p className="welcome-text">
-              Ask questions about your artifact data. I can help you:
-            </p>
-            <ul>
-              <li>Interpret and explain data patterns</li>
-              <li>Suggest analytical pivots and filters</li>
-              <li>Help form and test hypotheses</li>
-              <li>Highlight anomalies and points of interest</li>
-            </ul>
-            <p className="welcome-note">
-              💡 This agent provides guidance only. All analytical decisions
-              remain with you.
-            </p>
-          </div>
-        ) : (
-          messages.map((msg, idx) => (
-            <div key={idx} className={`message ${msg.role}`}>
-              <div className="message-header">
-                <span className="message-role">
-                  {msg.role === "user" ? "You" : "Agent"}
-                </span>
-                <span className="message-time">
-                  {msg.timestamp.toLocaleTimeString()}
-                </span>
-              </div>
+      {/* Controls */}
+      <Paper sx={{ p: 1.5, mb: 1 }}>
+        <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap">
+          <ToggleButtonGroup
+            size="small" exclusive value={mode}
+            onChange={(_, v) => v && setMode(v)}
+          >
+            <ToggleButton value="quick"><SpeedIcon sx={{ mr: 0.5, fontSize: 18 }} />Quick</ToggleButton>
+            <ToggleButton value="deep"><PsychologyIcon sx={{ mr: 0.5, fontSize: 18 }} />Deep</ToggleButton>
+            <ToggleButton value="debate"><ForumIcon sx={{ mr: 0.5, fontSize: 18 }} />Debate</ToggleButton>
+          </ToggleButtonGroup>
 
-              <div className="message-content">{msg.content}</div>
+          <FormControl size="small" sx={{ minWidth: 160 }}>
+            <InputLabel>Dataset</InputLabel>
+            <Select label="Dataset" value={selectedDataset} onChange={e => setSelectedDataset(e.target.value)}>
+              <MenuItem value="">None</MenuItem>
+              {datasetList.map(d => <MenuItem key={d.id} value={d.id}>{d.name}</MenuItem>)}
+            </Select>
+          </FormControl>
 
-              {msg.response && (
-                <div className="message-details">
-                  {msg.response.suggested_pivots.length > 0 && (
-                    <div className="detail-section">
-                      <h5>Suggested Pivots:</h5>
-                      <ul>
-                        {msg.response.suggested_pivots.map((pivot, i) => (
-                          <li key={i}>
-                            <button
-                              className="pivot-button"
-                              onClick={() =>
-                                onAnalysisAction && onAnalysisAction(pivot)
-                              }
-                            >
-                              {pivot}
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+          <FormControl size="small" sx={{ minWidth: 160 }}>
+            <InputLabel>Hunt</InputLabel>
+            <Select label="Hunt" value={selectedHunt} onChange={e => setSelectedHunt(e.target.value)}>
+              <MenuItem value="">None</MenuItem>
+              {huntList.map(h => <MenuItem key={h.id} value={h.id}>{h.name}</MenuItem>)}
+            </Select>
+          </FormControl>
+        </Stack>
+      </Paper>
 
-                  {msg.response.suggested_filters.length > 0 && (
-                    <div className="detail-section">
-                      <h5>Suggested Filters:</h5>
-                      <ul>
-                        {msg.response.suggested_filters.map((filter, i) => (
-                          <li key={i}>
-                            <code>{filter}</code>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {msg.response.caveats && (
-                    <div className="detail-section caveats">
-                      <h5>⚠️ Caveats:</h5>
-                      <p>{msg.response.caveats}</p>
-                    </div>
-                  )}
-
-                  {msg.response.confidence && (
-                    <div className="detail-section">
-                      <span className="confidence">
-                        Confidence: {(msg.response.confidence * 100).toFixed(0)}%
-                      </span>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))
+      {/* Messages */}
+      <Paper sx={{ flex: 1, overflow: 'auto', p: 2, mb: 1, minHeight: 300 }}>
+        {messages.length === 0 && (
+          <Box sx={{ textAlign: 'center', mt: 8 }}>
+            <PsychologyIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 1 }} />
+            <Typography color="text.secondary">
+              Ask a question about your threat hunt data.
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              The agent provides advisory guidance — all decisions remain with the analyst.
+            </Typography>
+          </Box>
         )}
+        {messages.map((m, i) => (
+          <Box key={i} sx={{ mb: 2 }}>
+            <Typography variant="caption" color="text.secondary" fontWeight={700}>
+              {m.role === 'user' ? 'You' : 'Agent'}
+            </Typography>
+            <Paper sx={{
+              p: 1.5, mt: 0.5,
+              bgcolor: m.role === 'user' ? 'primary.dark' : 'background.default',
+              borderColor: m.role === 'user' ? 'primary.main' : 'divider',
+            }}>
+              <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>{m.content}</Typography>
+            </Paper>
 
-        {loading && (
-          <div className="message agent loading">
-            <div className="loading-indicator">
-              <span className="dot"></span>
-              <span className="dot"></span>
-              <span className="dot"></span>
-            </div>
-          </div>
-        )}
+            {/* Response metadata */}
+            {m.meta && (
+              <Box sx={{ mt: 0.5 }}>
+                <Stack direction="row" spacing={0.5} flexWrap="wrap" sx={{ mb: 0.5 }}>
+                  <Chip label={`${m.meta.confidence * 100}% confidence`} size="small"
+                    color={m.meta.confidence >= 0.7 ? 'success' : m.meta.confidence >= 0.4 ? 'warning' : 'error'} variant="outlined" />
+                  <Chip label={m.meta.model_used} size="small" variant="outlined" />
+                  <Chip label={m.meta.node_used} size="small" variant="outlined" />
+                  <Chip label={`${m.meta.latency_ms}ms`} size="small" variant="outlined" />
+                </Stack>
 
-        {error && (
-          <div className="message agent error">
-            <p className="error-text">⚠️ {error}</p>
-          </div>
-        )}
+                {/* Pivots & Filters */}
+                {(m.meta.suggested_pivots.length > 0 || m.meta.suggested_filters.length > 0) && (
+                  <Accordion disableGutters sx={{ mt: 0.5 }}>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                      <Typography variant="caption">Pivots & Filters</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      {m.meta.suggested_pivots.length > 0 && (
+                        <>
+                          <Typography variant="caption" fontWeight={600}>Pivots</Typography>
+                          <Stack direction="row" spacing={0.5} flexWrap="wrap" sx={{ mb: 1 }}>
+                            {m.meta.suggested_pivots.map((p, j) => <Chip key={j} label={p} size="small" color="info" />)}
+                          </Stack>
+                        </>
+                      )}
+                      {m.meta.suggested_filters.length > 0 && (
+                        <>
+                          <Typography variant="caption" fontWeight={600}>Filters</Typography>
+                          <Stack direction="row" spacing={0.5} flexWrap="wrap">
+                            {m.meta.suggested_filters.map((f, j) => <Chip key={j} label={f} size="small" color="secondary" />)}
+                          </Stack>
+                        </>
+                      )}
+                    </AccordionDetails>
+                  </Accordion>
+                )}
 
-        <div ref={messagesEndRef} />
-      </div>
+                {/* SANS references */}
+                {m.meta.sans_references.length > 0 && (
+                  <Accordion disableGutters sx={{ mt: 0.5 }}>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                      <Stack direction="row" alignItems="center" spacing={0.5}>
+                        <SchoolIcon sx={{ fontSize: 16 }} />
+                        <Typography variant="caption">SANS References ({m.meta.sans_references.length})</Typography>
+                      </Stack>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      {m.meta.sans_references.map((r, j) => (
+                        <Typography key={j} variant="body2" sx={{ mb: 0.5 }}>• {r}</Typography>
+                      ))}
+                    </AccordionDetails>
+                  </Accordion>
+                )}
 
-      <form onSubmit={handleSubmit} className="agent-input-form">
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Ask about your data, patterns, or next steps..."
+                {/* Debate perspectives */}
+                {m.meta.perspectives && m.meta.perspectives.length > 0 && (
+                  <Accordion disableGutters sx={{ mt: 0.5 }}>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                      <Typography variant="caption">Debate Perspectives ({m.meta.perspectives.length})</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      {m.meta.perspectives.map((p: any, j: number) => (
+                        <Box key={j} sx={{ mb: 1 }}>
+                          <Chip label={p.role || `Perspective ${j + 1}`} size="small" color="primary" sx={{ mb: 0.5 }} />
+                          <Typography variant="body2">{p.argument || p.content || JSON.stringify(p)}</Typography>
+                          <Divider sx={{ mt: 1 }} />
+                        </Box>
+                      ))}
+                    </AccordionDetails>
+                  </Accordion>
+                )}
+
+                {/* Caveats */}
+                {m.meta.caveats && (
+                  <Alert severity="warning" sx={{ mt: 0.5, py: 0 }}>
+                    <Typography variant="caption">{m.meta.caveats}</Typography>
+                  </Alert>
+                )}
+              </Box>
+            )}
+          </Box>
+        ))}
+        {loading && <LinearProgress sx={{ mb: 1 }} />}
+        <div ref={bottomRef} />
+      </Paper>
+
+      {/* Input */}
+      <Stack direction="row" spacing={1}>
+        <TextField
+          fullWidth size="small" multiline maxRows={4}
+          placeholder="Ask the agent..."
+          value={query} onChange={e => setQuery(e.target.value)}
+          onKeyDown={handleKeyDown}
           disabled={loading}
-          className="agent-input"
         />
-        <button type="submit" disabled={loading || !query.trim()}>
-          {loading ? "Thinking..." : "Ask"}
-        </button>
-      </form>
-
-      <div className="agent-footer">
-        <p className="footer-note">
-          ℹ️ Agent provides guidance only. All decisions remain with the analyst.
-        </p>
-      </div>
-    </div>
+        <Button variant="contained" onClick={send} disabled={loading || !query.trim()}>
+          {loading ? <CircularProgress size={20} /> : <SendIcon />}
+        </Button>
+      </Stack>
+    </Box>
   );
-};
-
-export default AgentPanel;
+}

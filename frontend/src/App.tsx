@@ -1,123 +1,137 @@
 /**
- * Main ThreatHunt application entry point.
+ * ThreatHunt — MUI-powered analyst-assist platform.
  */
 
-import React, { useState } from "react";
-import "./App.css";
-import AgentPanel from "./components/AgentPanel";
+import React, { useState, useCallback } from 'react';
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { ThemeProvider, CssBaseline, Box, AppBar, Toolbar, Typography, IconButton,
+  Drawer, List, ListItemButton, ListItemIcon, ListItemText, Divider, Chip } from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import SearchIcon from '@mui/icons-material/Search';
+import StorageIcon from '@mui/icons-material/Storage';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
+import SmartToyIcon from '@mui/icons-material/SmartToy';
+import SecurityIcon from '@mui/icons-material/Security';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
+import ScienceIcon from '@mui/icons-material/Science';
+import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
+import GppMaybeIcon from '@mui/icons-material/GppMaybe';
+import HubIcon from '@mui/icons-material/Hub';
+import { SnackbarProvider } from 'notistack';
+import theme from './theme';
 
-function App() {
-  // Sample state for demonstration
-  const [currentDataset] = useState("FileList-2025-12-26");
-  const [currentHost] = useState("DESKTOP-ABC123");
-  const [currentArtifact] = useState("FileList");
-  const [dataDescription] = useState(
-    "File listing from system scan showing recent modifications"
-  );
+import Dashboard from './components/Dashboard';
+import HuntManager from './components/HuntManager';
+import DatasetViewer from './components/DatasetViewer';
+import FileUpload from './components/FileUpload';
+import AgentPanel from './components/AgentPanel';
+import EnrichmentPanel from './components/EnrichmentPanel';
+import AnnotationPanel from './components/AnnotationPanel';
+import HypothesisTracker from './components/HypothesisTracker';
+import CorrelationView from './components/CorrelationView';
+import AUPScanner from './components/AUPScanner';
+import NetworkMap from './components/NetworkMap';
 
-  const handleAnalysisAction = (action: string) => {
-    console.log("Analysis action triggered:", action);
-    // In a real app, this would update the analysis view or apply filters
-  };
+const DRAWER_WIDTH = 240;
+
+interface NavItem { label: string; path: string; icon: React.ReactNode }
+
+const NAV: NavItem[] = [
+  { label: 'Dashboard',    path: '/',              icon: <DashboardIcon /> },
+  { label: 'Hunts',        path: '/hunts',         icon: <SearchIcon /> },
+  { label: 'Datasets',     path: '/datasets',      icon: <StorageIcon /> },
+  { label: 'Upload',       path: '/upload',        icon: <UploadFileIcon /> },
+  { label: 'Agent',        path: '/agent',         icon: <SmartToyIcon /> },
+  { label: 'Enrichment',   path: '/enrichment',    icon: <SecurityIcon /> },
+  { label: 'Annotations',  path: '/annotations',   icon: <BookmarkIcon /> },
+  { label: 'Hypotheses',   path: '/hypotheses',    icon: <ScienceIcon /> },
+  { label: 'Correlation',  path: '/correlation',   icon: <CompareArrowsIcon /> },
+  { label: 'Network Map',  path: '/network',        icon: <HubIcon /> },
+  { label: 'AUP Scanner',  path: '/aup',            icon: <GppMaybeIcon /> },
+];
+
+function Shell() {
+  const [open, setOpen] = useState(true);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const toggle = useCallback(() => setOpen(o => !o), []);
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <h1>ThreatHunt - Analyst-Assist Platform</h1>
-        <p className="subtitle">
-          Powered by agent guidance for faster threat hunting
-        </p>
-      </header>
+    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+      {/* App bar */}
+      <AppBar position="fixed" sx={{ zIndex: t => t.zIndex.drawer + 1 }}>
+        <Toolbar variant="dense">
+          <IconButton edge="start" color="inherit" onClick={toggle} sx={{ mr: 1 }}>
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" noWrap sx={{ flexGrow: 1 }}>
+            ThreatHunt
+          </Typography>
+          <Chip label="v0.3.0" size="small" color="primary" variant="outlined" />
+        </Toolbar>
+      </AppBar>
 
-      <main className="app-main">
-        <div className="app-content">
-          <section className="main-panel">
-            <h2>Analysis Dashboard</h2>
-            <p className="placeholder-text">
-              [Main analysis interface would display here]
-            </p>
-            <div className="data-view">
-              <table className="sample-data">
-                <thead>
-                  <tr>
-                    <th>File</th>
-                    <th>Modified</th>
-                    <th>Size</th>
-                    <th>Hash</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>System32\drivers\etc\hosts</td>
-                    <td>2025-12-20 14:32</td>
-                    <td>456 B</td>
-                    <td>d41d8cd98f00b204...</td>
-                  </tr>
-                  <tr>
-                    <td>Windows\Temp\cache.bin</td>
-                    <td>2025-12-26 09:15</td>
-                    <td>2.3 MB</td>
-                    <td>5d41402abc4b2a76...</td>
-                  </tr>
-                  <tr>
-                    <td>Users\Admin\AppData\Roaming\config.xml</td>
-                    <td>2025-12-25 16:45</td>
-                    <td>12.4 KB</td>
-                    <td>e99a18c428cb38d5...</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
+      {/* Sidebar drawer */}
+      <Drawer
+        variant="persistent"
+        open={open}
+        sx={{
+          width: open ? DRAWER_WIDTH : 0,
+          flexShrink: 0,
+          '& .MuiDrawer-paper': { width: DRAWER_WIDTH, boxSizing: 'border-box', mt: '48px' },
+        }}
+      >
+        <List dense>
+          {NAV.map(item => (
+            <ListItemButton
+              key={item.path}
+              selected={location.pathname === item.path}
+              onClick={() => navigate(item.path)}
+            >
+              <ListItemIcon sx={{ minWidth: 36 }}>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.label} />
+            </ListItemButton>
+          ))}
+        </List>
+        <Divider />
+      </Drawer>
 
-          <aside className="agent-sidebar">
-            <AgentPanel
-              dataset_name={currentDataset}
-              artifact_type={currentArtifact}
-              host_identifier={currentHost}
-              data_summary={dataDescription}
-              onAnalysisAction={handleAnalysisAction}
-            />
-          </aside>
-        </div>
-      </main>
+      {/* Main content */}
+      <Box component="main" sx={{
+        flexGrow: 1, p: 2, mt: '48px',
+        ml: open ? 0 : `-${DRAWER_WIDTH}px`,
+        transition: 'margin 225ms cubic-bezier(0,0,0.2,1)',
+      }}>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/hunts" element={<HuntManager />} />
+          <Route path="/datasets" element={<DatasetViewer />} />
+          <Route path="/upload" element={<FileUpload />} />
+          <Route path="/agent" element={<AgentPanel />} />
+          <Route path="/enrichment" element={<EnrichmentPanel />} />
+          <Route path="/annotations" element={<AnnotationPanel />} />
+          <Route path="/hypotheses" element={<HypothesisTracker />} />
+          <Route path="/correlation" element={<CorrelationView />} />
+          <Route path="/network" element={<NetworkMap />} />
+          <Route path="/aup" element={<AUPScanner />} />
+        </Routes>
+      </Box>
+    </Box>
+  );
+}
 
-      <footer className="app-footer">
-        <div className="footer-content">
-          <div className="footer-section">
-            <h4>About Analyst-Assist Agent</h4>
-            <p>
-              The agent provides advisory guidance on artifact data, analytical
-              pivots, and hypotheses. All decisions remain with the analyst.
-            </p>
-          </div>
-          <div className="footer-section">
-            <h4>Capabilities</h4>
-            <ul>
-              <li>Interpret CSV artifact data</li>
-              <li>Suggest analytical directions</li>
-              <li>Highlight anomalies</li>
-              <li>Propose investigative steps</li>
-            </ul>
-          </div>
-          <div className="footer-section">
-            <h4>Governance</h4>
-            <ul>
-              <li>Read-only guidance</li>
-              <li>No tool execution</li>
-              <li>No autonomous actions</li>
-              <li>Analyst controls decisions</li>
-            </ul>
-          </div>
-        </div>
-        <div className="footer-bottom">
-          <p>
-            &copy; 2025 ThreatHunt. Agent guidance is advisory only. All
-            analytical decisions remain with the analyst.
-          </p>
-        </div>
-      </footer>
-    </div>
+function App() {
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+        <BrowserRouter>
+          <Shell />
+        </BrowserRouter>
+      </SnackbarProvider>
+    </ThemeProvider>
   );
 }
 
