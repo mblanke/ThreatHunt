@@ -3,6 +3,7 @@
 Uses async SQLAlchemy with aiosqlite for local dev and asyncpg for production PostgreSQL.
 """
 
+from sqlalchemy import event
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
@@ -12,11 +13,31 @@ from sqlalchemy.orm import DeclarativeBase
 
 from app.config import settings
 
-engine = create_async_engine(
-    settings.DATABASE_URL,
+_is_sqlite = settings.DATABASE_URL.startswith("sqlite")
+
+_engine_kwargs: dict = dict(
     echo=settings.DEBUG,
     future=True,
 )
+
+if _is_sqlite:
+    _engine_kwargs["connect_args"] = {"timeout": 30}
+    _engine_kwargs["pool_size"] = 1
+    _engine_kwargs["max_overflow"] = 0
+
+engine = create_async_engine(settings.DATABASE_URL, **_engine_kwargs)
+
+
+@event.listens_for(engine.sync_engine, "connect")
+def _set_sqlite_pragmas(dbapi_conn, connection_record):
+    """Enable WAL mode and tune busy-timeout for SQLite connections."""
+    if _is_sqlite:
+        cursor = dbapi_conn.cursor()
+        cursor.execute("PRAGMA journal_mode=WAL")
+        cursor.execute("PRAGMA busy_timeout=5000")
+        cursor.execute("PRAGMA synchronous=NORMAL")
+        cursor.close()
+
 
 async_session_factory = async_sessionmaker(
     engine,

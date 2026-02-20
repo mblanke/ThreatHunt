@@ -1,5 +1,5 @@
 /**
- * ThreatHunt — MUI-powered analyst-assist platform.
+ * ThreatHunt  MUI-powered analyst-assist platform.
  */
 
 import React, { useState, useCallback } from 'react';
@@ -18,6 +18,7 @@ import ScienceIcon from '@mui/icons-material/Science';
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 import GppMaybeIcon from '@mui/icons-material/GppMaybe';
 import HubIcon from '@mui/icons-material/Hub';
+import AssessmentIcon from '@mui/icons-material/Assessment';
 import { SnackbarProvider } from 'notistack';
 import theme from './theme';
 
@@ -32,6 +33,7 @@ import HypothesisTracker from './components/HypothesisTracker';
 import CorrelationView from './components/CorrelationView';
 import AUPScanner from './components/AUPScanner';
 import NetworkMap from './components/NetworkMap';
+import AnalysisDashboard from './components/AnalysisDashboard';
 
 const DRAWER_WIDTH = 240;
 
@@ -42,13 +44,14 @@ const NAV: NavItem[] = [
   { label: 'Hunts',        path: '/hunts',         icon: <SearchIcon /> },
   { label: 'Datasets',     path: '/datasets',      icon: <StorageIcon /> },
   { label: 'Upload',       path: '/upload',        icon: <UploadFileIcon /> },
+  { label: 'AI Analysis',  path: '/analysis',      icon: <AssessmentIcon /> },
   { label: 'Agent',        path: '/agent',         icon: <SmartToyIcon /> },
   { label: 'Enrichment',   path: '/enrichment',    icon: <SecurityIcon /> },
   { label: 'Annotations',  path: '/annotations',   icon: <BookmarkIcon /> },
   { label: 'Hypotheses',   path: '/hypotheses',    icon: <ScienceIcon /> },
   { label: 'Correlation',  path: '/correlation',   icon: <CompareArrowsIcon /> },
-  { label: 'Network Map',  path: '/network',        icon: <HubIcon /> },
-  { label: 'AUP Scanner',  path: '/aup',            icon: <GppMaybeIcon /> },
+  { label: 'Network Map',  path: '/network',       icon: <HubIcon /> },
+  { label: 'AUP Scanner',  path: '/aup',           icon: <GppMaybeIcon /> },
 ];
 
 function Shell() {
@@ -109,6 +112,7 @@ function Shell() {
           <Route path="/hunts" element={<HuntManager />} />
           <Route path="/datasets" element={<DatasetViewer />} />
           <Route path="/upload" element={<FileUpload />} />
+          <Route path="/analysis" element={<AnalysisDashboard />} />
           <Route path="/agent" element={<AgentPanel />} />
           <Route path="/enrichment" element={<EnrichmentPanel />} />
           <Route path="/annotations" element={<AnnotationPanel />} />

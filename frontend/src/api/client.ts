@@ -1,11 +1,11 @@
 /* ====================================================================
-   ThreatHunt API Client — mirrors every backend endpoint.
+   ThreatHunt API Client -- mirrors every backend endpoint.
    All requests go through the CRA proxy (see package.json "proxy").
    ==================================================================== */
 
 const BASE = '';  // proxied to http://localhost:8000 by CRA
 
-// ── Helpers ──────────────────────────────────────────────────────────
+// -- Helpers --
 
 let authToken: string | null = localStorage.getItem('th_token');
 
@@ -36,7 +36,7 @@ async function api<T = any>(
   return res.text() as unknown as T;
 }
 
-// ── Auth ─────────────────────────────────────────────────────────────
+// -- Auth --
 
 export interface UserPayload {
   id: string; username: string; email: string;
@@ -63,7 +63,7 @@ export const auth = {
   me: () => api<UserPayload>('/api/auth/me'),
 };
 
-// ── Hunts ────────────────────────────────────────────────────────────
+// -- Hunts --
 
 export interface Hunt {
   id: string; name: string; description: string | null; status: string;
@@ -82,7 +82,7 @@ export const hunts = {
   delete: (id: string) => api(`/api/hunts/${id}`, { method: 'DELETE' }),
 };
 
-// ── Datasets ─────────────────────────────────────────────────────────
+// -- Datasets --
 
 export interface DatasetSummary {
   id: string; name: string; filename: string; source_tool: string | null;
@@ -92,6 +92,8 @@ export interface DatasetSummary {
   file_size_bytes: number; encoding: string | null; delimiter: string | null;
   time_range_start: string | null; time_range_end: string | null;
   hunt_id: string | null; created_at: string;
+  processing_status?: string; artifact_type?: string | null;
+  error_message?: string | null; file_path?: string | null;
 }
 
 export interface UploadResult {
@@ -155,7 +157,7 @@ export const datasets = {
   delete: (id: string) => api(`/api/datasets/${id}`, { method: 'DELETE' }),
 };
 
-// ── Agent ────────────────────────────────────────────────────────────
+// -- Agent --
 
 export interface AssistRequest {
   query: string;
@@ -198,7 +200,7 @@ export const agent = {
   },
 };
 
-// ── Annotations ──────────────────────────────────────────────────────
+// -- Annotations --
 
 export interface AnnotationData {
   id: string; row_id: number | null; dataset_id: string | null;
@@ -224,7 +226,7 @@ export const annotations = {
   delete: (id: string) => api(`/api/annotations/${id}`, { method: 'DELETE' }),
 };
 
-// ── Hypotheses ───────────────────────────────────────────────────────
+// -- Hypotheses --
 
 export interface HypothesisData {
   id: string; hunt_id: string | null; title: string; description: string | null;
@@ -249,7 +251,7 @@ export const hypotheses = {
   delete: (id: string) => api(`/api/hypotheses/${id}`, { method: 'DELETE' }),
 };
 
-// ── Enrichment ───────────────────────────────────────────────────────
+// -- Enrichment --
 
 export interface EnrichmentResult {
   ioc_value: string; ioc_type: string; source: string; verdict: string;
@@ -274,7 +276,7 @@ export const enrichment = {
   status: () => api<Record<string, any>>('/api/enrichment/status'),
 };
 
-// ── Correlation ──────────────────────────────────────────────────────
+// -- Correlation --
 
 export interface CorrelationResult {
   hunt_ids: string[]; summary: string; total_correlations: number;
@@ -292,7 +294,7 @@ export const correlation = {
     api<{ ioc_value: string; occurrences: any[]; total: number }>(`/api/correlation/ioc/${encodeURIComponent(ioc_value)}`),
 };
 
-// ── Reports ──────────────────────────────────────────────────────────
+// -- Reports --
 
 export const reports = {
   json: (huntId: string) =>
@@ -305,13 +307,13 @@ export const reports = {
     api<Record<string, any>>(`/api/reports/hunt/${huntId}/summary`),
 };
 
-// ── Root / misc ──────────────────────────────────────────────────────
+// -- Root / misc --
 
 export const misc = {
   root: () => api<{ name: string; version: string; status: string }>('/'),
 };
 
-// ── AUP Keywords ─────────────────────────────────────────────────────
+// -- AUP Keywords --
 
 export interface KeywordOut {
   id: number; theme_id: string; value: string; is_regex: boolean; created_at: string;
@@ -367,4 +369,217 @@ export const keywords = {
     }),
   quickScan: (datasetId: string) =>
     api<ScanResponse>(`/api/keywords/scan/quick?dataset_id=${encodeURIComponent(datasetId)}`),
+};
+
+
+// -- Analysis (Phase 2+) --
+
+export interface TriageResultData {
+  id: string; dataset_id: string; row_start: number; row_end: number;
+  risk_score: number; verdict: string;
+  findings: any[] | null; suspicious_indicators: any[] | null;
+  mitre_techniques: any[] | null;
+  model_used: string | null; node_used: string | null;
+}
+
+export interface HostProfileData {
+  id: string; hunt_id: string; hostname: string; fqdn: string | null;
+  risk_score: number; risk_level: string;
+  artifact_summary: Record<string, any> | null;
+  timeline_summary: string | null;
+  suspicious_findings: any[] | null;
+  mitre_techniques: any[] | null;
+  llm_analysis: string | null;
+  model_used: string | null;
+}
+
+export interface HuntReportData {
+  id: string; hunt_id: string; status: string;
+  exec_summary: string | null; full_report: string | null;
+  findings: any[] | null; recommendations: any[] | null;
+  mitre_mapping: Record<string, any> | null;
+  ioc_table: any[] | null; host_risk_summary: any[] | null;
+  models_used: any[] | null; generation_time_ms: number | null;
+}
+
+export interface AnomalyResultData {
+  id: string; dataset_id: string; row_id: number | null;
+  anomaly_score: number; distance_from_centroid: number | null;
+  cluster_id: number | null; is_outlier: boolean;
+  explanation: string | null;
+}
+
+export interface HostGroupData {
+  hostname: string;
+  dataset_count: number;
+  total_rows: number;
+  artifact_types: string[];
+  first_seen: string | null;
+  last_seen: string | null;
+  risk_score: number | null;
+}
+
+// -- Job queue types (Phase 10) --
+
+export interface JobData {
+  id: string;
+  job_type: string;
+  status: 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
+  progress: number;
+  message: string;
+  error: string | null;
+  created_at: number;
+  started_at: number | null;
+  completed_at: number | null;
+  elapsed_ms: number;
+  params: Record<string, any>;
+}
+
+export interface JobStats {
+  total: number;
+  queued: number;
+  by_status: Record<string, number>;
+  workers: number;
+  active_workers: number;
+}
+
+export interface LBNodeStatus {
+  healthy: boolean;
+  active_jobs: number;
+  total_completed: number;
+  total_errors: number;
+  avg_latency_ms: number;
+  last_check: number;
+}
+
+export const analysis = {
+  // Triage
+  triageResults: (datasetId: string, minRisk = 0) =>
+    api<TriageResultData[]>(`/api/analysis/triage/${datasetId}?min_risk=${minRisk}`),
+  triggerTriage: (datasetId: string) =>
+    api<{ status: string; dataset_id: string }>(`/api/analysis/triage/${datasetId}`, { method: 'POST' }),
+
+  // Host profiles
+  hostProfiles: (huntId: string, minRisk = 0) =>
+    api<HostProfileData[]>(`/api/analysis/profiles/${huntId}?min_risk=${minRisk}`),
+  triggerAllProfiles: (huntId: string) =>
+    api<{ status: string; hunt_id: string }>(`/api/analysis/profiles/${huntId}`, { method: 'POST' }),
+  triggerHostProfile: (huntId: string, hostname: string) =>
+    api<{ status: string }>(`/api/analysis/profiles/${huntId}/${encodeURIComponent(hostname)}`, { method: 'POST' }),
+
+  // Reports
+  listReports: (huntId: string) =>
+    api<HuntReportData[]>(`/api/analysis/reports/${huntId}`),
+  getReport: (huntId: string, reportId: string) =>
+    api<HuntReportData>(`/api/analysis/reports/${huntId}/${reportId}`),
+  generateReport: (huntId: string) =>
+    api<{ status: string; hunt_id: string }>(`/api/analysis/reports/${huntId}/generate`, { method: 'POST' }),
+
+  // Anomaly detection
+  anomalies: (datasetId: string, outliersOnly = false) =>
+    api<AnomalyResultData[]>(`/api/analysis/anomalies/${datasetId}?outliers_only=${outliersOnly}`),
+  triggerAnomalyDetection: (datasetId: string, k = 3, threshold = 0.35) =>
+    api<{ status: string; dataset_id: string }>(
+      `/api/analysis/anomalies/${datasetId}?k=${k}&threshold=${threshold}`, { method: 'POST' },
+    ),
+
+  // IOC extraction
+  extractIocs: (datasetId: string) =>
+    api<{ dataset_id: string; iocs: Record<string, string[]>; total: number }>(
+      `/api/analysis/iocs/${datasetId}`,
+    ),
+
+  // Host grouping
+  hostGroups: (huntId: string) =>
+    api<{ hunt_id: string; hosts: HostGroupData[] }>(
+      `/api/analysis/hosts/${huntId}`,
+    ),
+
+  // Data query (Phase 9) - SSE streaming
+  queryStream: async (datasetId: string, question: string, mode: string = 'quick'): Promise<Response> => {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+    return fetch(`${BASE}/api/analysis/query/${datasetId}`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ question, mode }),
+    });
+  },
+
+  // Data query (Phase 9) - sync
+  querySync: (datasetId: string, question: string, mode: string = 'quick') =>
+    api<{ dataset_id: string; question: string; answer: string; mode: string }>(
+      `/api/analysis/query/${datasetId}/sync`, {
+        method: 'POST',
+        body: JSON.stringify({ question, mode }),
+      },
+    ),
+
+  // Job queue (Phase 10)
+  listJobs: (status?: string, jobType?: string, limit = 50) => {
+    const q = new URLSearchParams();
+    if (status) q.set('status', status);
+    if (jobType) q.set('job_type', jobType);
+    q.set('limit', String(limit));
+    return api<{ jobs: JobData[]; stats: JobStats }>(`/api/analysis/jobs?${q}`);
+  },
+  getJob: (jobId: string) =>
+    api<JobData>(`/api/analysis/jobs/${jobId}`),
+  cancelJob: (jobId: string) =>
+    api<{ status: string; job_id: string }>(`/api/analysis/jobs/${jobId}`, { method: 'DELETE' }),
+  submitJob: (jobType: string, params: Record<string, any> = {}) =>
+    api<{ job_id: string; status: string; job_type: string }>(
+      `/api/analysis/jobs/submit/${jobType}`, {
+        method: 'POST',
+        body: JSON.stringify(params),
+      },
+    ),
+
+  // Load balancer (Phase 10)
+  lbStatus: () =>
+    api<Record<string, LBNodeStatus>>('/api/analysis/lb/status'),
+  lbCheck: () =>
+    api<Record<string, LBNodeStatus>>('/api/analysis/lb/check', { method: 'POST' }),
+};
+
+// -- Network Topology --
+
+export interface InventoryHost {
+  id: string;
+  hostname: string;
+  fqdn: string;
+  client_id: string;
+  ips: string[];
+  os: string;
+  users: string[];
+  datasets: string[];
+  row_count: number;
+}
+
+export interface InventoryConnection {
+  source: string;
+  target: string;
+  target_ip: string;
+  port: string;
+  count: number;
+}
+
+export interface InventoryStats {
+  total_hosts: number;
+  total_datasets_scanned: number;
+  datasets_with_hosts: number;
+  total_rows_scanned: number;
+  hosts_with_ips: number;
+  hosts_with_users: number;
+}
+
+export interface HostInventory {
+  hosts: InventoryHost[];
+  connections: InventoryConnection[];
+  stats: InventoryStats;
+}
+
+export const network = {
+  hostInventory: (huntId: string) =>
+    api<HostInventory>(`/api/network/host-inventory?hunt_id=${encodeURIComponent(huntId)}`),
 };
