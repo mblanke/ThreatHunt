@@ -146,6 +146,12 @@ export default function DatasetViewer() {
                 <Chip label={`${selected.row_count} rows`} size="small" />
                 <Chip label={selected.encoding || 'utf-8'} size="small" variant="outlined" />
                 {selected.source_tool && <Chip label={selected.source_tool} size="small" color="info" variant="outlined" />}
+                {selected.artifact_type && <Chip label={selected.artifact_type} size="small" color="secondary" />}
+                {selected.processing_status && selected.processing_status !== 'ready' && (
+                  <Chip label={selected.processing_status} size="small"
+                    color={selected.processing_status === 'done' ? 'success' : selected.processing_status === 'error' ? 'error' : 'warning'}
+                    variant="outlined" />
+                )}
                 {selected.ioc_columns && Object.keys(selected.ioc_columns).length > 0 && (
                   <Chip label={`${Object.keys(selected.ioc_columns).length} IOC columns`} size="small" color="warning" variant="outlined" />
                 )}
