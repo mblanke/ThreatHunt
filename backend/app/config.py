@@ -15,7 +15,7 @@ class AppConfig(BaseSettings):
 
     # ── General ────────────────────────────────────────────────────────
     APP_NAME: str = "ThreatHunt"
-    APP_VERSION: str = "0.3.0"
+    APP_VERSION: str = "0.4.0"
     DEBUG: bool = Field(default=False, description="Enable debug mode")
 
     # ── Database ───────────────────────────────────────────────────────

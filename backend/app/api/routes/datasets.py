@@ -293,3 +293,30 @@ async def delete_dataset(
     if not deleted:
         raise HTTPException(status_code=404, detail="Dataset not found")
     return {"message": "Dataset deleted", "id": dataset_id}
+
+
+@router.post(
+    "/rescan-ioc",
+    summary="Re-scan IOC columns for all datasets",
+)
+async def rescan_ioc_columns(
+    db: AsyncSession = Depends(get_db),
+):
+    """Re-run detect_ioc_columns on every dataset using current detection logic."""
+    repo = DatasetRepository(db)
+    all_ds = await repo.list_datasets(limit=10000)
+    updated = 0
+    for ds in all_ds:
+        columns = list((ds.column_schema or {}).keys())
+        if not columns:
+            continue
+        new_ioc = detect_ioc_columns(
+            columns,
+            ds.column_schema or {},
+            ds.normalized_columns or {},
+        )
+        if new_ioc != (ds.ioc_columns or {}):
+            ds.ioc_columns = new_ioc
+            updated += 1
+    await db.commit()
+    return {"message": f"Rescanned {len(all_ds)} datasets, updated {updated}"}

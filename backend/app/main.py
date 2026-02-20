@@ -21,6 +21,11 @@ from app.api.routes.correlation import router as correlation_router
 from app.api.routes.reports import router as reports_router
 from app.api.routes.auth import router as auth_router
 from app.api.routes.keywords import router as keywords_router
+from app.api.routes.network import router as network_router
+from app.api.routes.analysis import router as analysis_router
+from app.api.routes.cases import router as cases_router
+from app.api.routes.alerts import router as alerts_router
+from app.api.routes.notebooks import router as notebooks_router
 
 logger = logging.getLogger(__name__)
 
@@ -74,6 +79,11 @@ app.include_router(enrichment_router)
 app.include_router(correlation_router)
 app.include_router(reports_router)
 app.include_router(keywords_router)
+app.include_router(network_router)
+app.include_router(analysis_router)
+app.include_router(cases_router)
+app.include_router(alerts_router)
+app.include_router(notebooks_router)
 
 
 @app.get("/", tags=["health"])

@@ -23,12 +23,12 @@ COLUMN_MAPPINGS: list[tuple[str, str]] = [
     # Operating system
     (r"^(os|operating_?system|os_?version|os_?name|platform|os_?type)$", "os"),
     # Source / destination IPs
-    (r"^(source_?ip|src_?ip|srcaddr|local_?address|sourceaddress)$", "src_ip"),
-    (r"^(dest_?ip|dst_?ip|dstaddr|remote_?address|destinationaddress|destaddress)$", "dst_ip"),
+    (r"^(source_?ip|src_?ip|srcaddr|local_?address|sourceaddress|sourceip|laddr\.?ip)$", "src_ip"),
+    (r"^(dest_?ip|dst_?ip|dstaddr|remote_?address|destinationaddress|destaddress|destination_?ip|destinationip|raddr\.?ip)$", "dst_ip"),
     (r"^(ip_?address|ipaddress|ip)$", "ip_address"),
     # Ports
-    (r"^(source_?port|src_?port|localport)$", "src_port"),
-    (r"^(dest_?port|dst_?port|remoteport|destinationport)$", "dst_port"),
+    (r"^(source_?port|src_?port|localport|laddr\.?port)$", "src_port"),
+    (r"^(dest_?port|dst_?port|remoteport|destinationport|raddr\.?port)$", "dst_port"),
     # Process info
     (r"^(process_?name|name|image|exe|executable|binary)$", "process_name"),
     (r"^(pid|process_?id)$", "pid"),
@@ -51,6 +51,10 @@ COLUMN_MAPPINGS: list[tuple[str, str]] = [
     (r"^(protocol|proto)$", "protocol"),
     (r"^(domain|dns_?name|query_?name|queriedname)$", "domain"),
     (r"^(url|uri|request_?url)$", "url"),
+    # MAC address
+    (r"^(mac|mac_?address|physical_?address|mac_?addr|hw_?addr|ethernet)$", "mac_address"),
+    # Connection state (netstat)
+    (r"^(state|status|tcp_?state|conn_?state)$", "connection_state"),
     # Event info
     (r"^(event_?id|eventid|eid)$", "event_id"),
     (r"^(event_?type|eventtype|category|action)$", "event_type"),
@@ -120,13 +124,27 @@ def detect_ioc_columns(
         "domain": "domain",
     }
 
+    # Canonical names that should NEVER be treated as IOCs even if values
+    # match a pattern (e.g. process_name "svchost.exe" matching domain regex).
+    _non_ioc_canonicals = frozenset({
+        "process_name", "file_name", "file_path", "command_line",
+        "parent_command_line", "description", "event_type", "registry_key",
+        "registry_value", "severity", "os",
+        "title", "netmask", "gateway", "connection_state",
+    })
+
     for col in columns:
+        canonical = column_mapping.get(col, "")
+
+        # Skip columns whose canonical meaning is obviously not an IOC
+        if canonical in _non_ioc_canonicals:
+            continue
+
         col_type = column_types.get(col)
         if col_type in ioc_type_map:
             ioc_columns[col] = ioc_type_map[col_type]
 
         # Also check canonical name
-        canonical = column_mapping.get(col, "")
         if canonical in ("src_ip", "dst_ip", "ip_address"):
             ioc_columns[col] = "ip"
         elif canonical == "hash_md5":
@@ -139,6 +157,8 @@ def detect_ioc_columns(
             ioc_columns[col] = "domain"
         elif canonical == "url":
             ioc_columns[col] = "url"
+        elif canonical == "hostname":
+            ioc_columns[col] = "hostname"
 
     return ioc_columns
 

@@ -13,6 +13,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { useSnackbar } from 'notistack';
 import { datasets, enrichment, type DatasetSummary } from '../api/client';
+import ContextMenu, { useContextMenu, type ContextTarget } from './ContextMenu';
 
 export default function DatasetViewer() {
   const { enqueueSnackbar } = useSnackbar();
@@ -24,6 +25,7 @@ export default function DatasetViewer() {
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({ page: 0, pageSize: 50 });
   const [rowLoading, setRowLoading] = useState(false);
   const [enriching, setEnriching] = useState(false);
+  const { menuPos, menuTarget, openMenu, closeMenu } = useContextMenu();
 
   const loadList = useCallback(async () => {
     setLoading(true);
@@ -163,7 +165,19 @@ export default function DatasetViewer() {
 
       {/* Data grid */}
       {selected ? (
-        <Paper sx={{ height: 520 }}>
+        <Paper
+          sx={{ height: 520 }}
+          onContextMenu={e => {
+            // Find cell value from the DataGrid event target
+            const cell = (e.target as HTMLElement).closest('.MuiDataGrid-cell');
+            if (!cell) return;
+            const field = cell.getAttribute('data-field') || '';
+            const value = cell.textContent || '';
+            const rowEl = cell.closest('.MuiDataGrid-row');
+            const rowIdx = rowEl ? parseInt(rowEl.getAttribute('data-rowindex') || '0', 10) : undefined;
+            openMenu(e, { value, field, datasetId: selected.id, rowIndex: rowIdx });
+          }}
+        >
           <DataGrid
             rows={rows}
             columns={columns}
@@ -177,7 +191,7 @@ export default function DatasetViewer() {
             density="compact"
             sx={{
               border: 'none',
-              '& .MuiDataGrid-cell': { fontSize: '0.8rem' },
+              '& .MuiDataGrid-cell': { fontSize: '0.8rem', cursor: 'context-menu' },
               '& .MuiDataGrid-columnHeader': { fontWeight: 700 },
               // IOC column highlights
               ...Object.fromEntries(
@@ -195,6 +209,9 @@ export default function DatasetViewer() {
       ) : (
         <Alert severity="info">Upload a CSV to get started.</Alert>
       )}
+
+      {/* Right-click context menu */}
+      <ContextMenu anchorPosition={menuPos} target={menuTarget} onClose={closeMenu} />
     </Box>
   );
 }

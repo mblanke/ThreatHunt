@@ -18,6 +18,17 @@ import ScienceIcon from '@mui/icons-material/Science';
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 import GppMaybeIcon from '@mui/icons-material/GppMaybe';
 import HubIcon from '@mui/icons-material/Hub';
+import DevicesIcon from '@mui/icons-material/Devices';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import TimelineIcon from '@mui/icons-material/Timeline';
+import ManageSearchIcon from '@mui/icons-material/ManageSearch';
+import ScheduleIcon from '@mui/icons-material/Schedule';
+import ShieldIcon from '@mui/icons-material/Shield';
+import BubbleChartIcon from '@mui/icons-material/BubbleChart';
+import WorkIcon from '@mui/icons-material/Work';
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
+import PlaylistPlayIcon from '@mui/icons-material/PlaylistPlay';
 import { SnackbarProvider } from 'notistack';
 import theme from './theme';
 
@@ -26,12 +37,23 @@ import HuntManager from './components/HuntManager';
 import DatasetViewer from './components/DatasetViewer';
 import FileUpload from './components/FileUpload';
 import AgentPanel from './components/AgentPanel';
-import EnrichmentPanel from './components/EnrichmentPanel';
+import AnalysisPanel from './components/AnalysisPanel';
 import AnnotationPanel from './components/AnnotationPanel';
 import HypothesisTracker from './components/HypothesisTracker';
 import CorrelationView from './components/CorrelationView';
 import AUPScanner from './components/AUPScanner';
 import NetworkMap from './components/NetworkMap';
+import NetworkPicture from './components/NetworkPicture';
+import ProcessTree from './components/ProcessTree';
+import StorylineGraph from './components/StorylineGraph';
+import TimelineScrubber from './components/TimelineScrubber';
+import QueryBar from './components/QueryBar';
+import MitreMatrix from './components/MitreMatrix';
+import KnowledgeGraph from './components/KnowledgeGraph';
+import CaseManager from './components/CaseManager';
+import AlertPanel from './components/AlertPanel';
+import InvestigationNotebook from './components/InvestigationNotebook';
+import PlaybookManager from './components/PlaybookManager';
 
 const DRAWER_WIDTH = 240;
 
@@ -43,11 +65,22 @@ const NAV: NavItem[] = [
   { label: 'Datasets',     path: '/datasets',      icon: <StorageIcon /> },
   { label: 'Upload',       path: '/upload',        icon: <UploadFileIcon /> },
   { label: 'Agent',        path: '/agent',         icon: <SmartToyIcon /> },
-  { label: 'Enrichment',   path: '/enrichment',    icon: <SecurityIcon /> },
+  { label: 'Analysis',     path: '/analysis',      icon: <SecurityIcon /> },
   { label: 'Annotations',  path: '/annotations',   icon: <BookmarkIcon /> },
   { label: 'Hypotheses',   path: '/hypotheses',    icon: <ScienceIcon /> },
   { label: 'Correlation',  path: '/correlation',   icon: <CompareArrowsIcon /> },
   { label: 'Network Map',  path: '/network',        icon: <HubIcon /> },
+  { label: 'Net Picture',  path: '/netpicture',     icon: <DevicesIcon /> },
+  { label: 'Proc Tree',   path: '/proctree',       icon: <AccountTreeIcon /> },
+  { label: 'Storyline',   path: '/storyline',      icon: <TimelineIcon /> },
+  { label: 'Timeline',    path: '/timeline',       icon: <ScheduleIcon /> },
+  { label: 'Search',      path: '/search',         icon: <ManageSearchIcon /> },
+  { label: 'MITRE Map',   path: '/mitre',          icon: <ShieldIcon /> },
+  { label: 'Knowledge',   path: '/knowledge',      icon: <BubbleChartIcon /> },
+  { label: 'Cases',       path: '/cases',          icon: <WorkIcon /> },
+  { label: 'Alerts',      path: '/alerts',         icon: <NotificationsActiveIcon /> },
+  { label: 'Notebooks',   path: '/notebooks',      icon: <MenuBookIcon /> },
+  { label: 'Playbooks',   path: '/playbooks',      icon: <PlaylistPlayIcon /> },
   { label: 'AUP Scanner',  path: '/aup',            icon: <GppMaybeIcon /> },
 ];
 
@@ -110,11 +143,22 @@ function Shell() {
           <Route path="/datasets" element={<DatasetViewer />} />
           <Route path="/upload" element={<FileUpload />} />
           <Route path="/agent" element={<AgentPanel />} />
-          <Route path="/enrichment" element={<EnrichmentPanel />} />
+          <Route path="/analysis" element={<AnalysisPanel />} />
           <Route path="/annotations" element={<AnnotationPanel />} />
           <Route path="/hypotheses" element={<HypothesisTracker />} />
           <Route path="/correlation" element={<CorrelationView />} />
           <Route path="/network" element={<NetworkMap />} />
+          <Route path="/netpicture" element={<NetworkPicture />} />
+          <Route path="/proctree" element={<ProcessTree />} />
+          <Route path="/storyline" element={<StorylineGraph />} />
+          <Route path="/timeline" element={<TimelineScrubber />} />
+          <Route path="/search" element={<QueryBar />} />
+          <Route path="/mitre" element={<MitreMatrix />} />
+          <Route path="/knowledge" element={<KnowledgeGraph />} />
+          <Route path="/cases" element={<CaseManager />} />
+          <Route path="/alerts" element={<AlertPanel />} />
+          <Route path="/notebooks" element={<InvestigationNotebook />} />
+          <Route path="/playbooks" element={<PlaybookManager />} />
           <Route path="/aup" element={<AUPScanner />} />
         </Routes>
       </Box>

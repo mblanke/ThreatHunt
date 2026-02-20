@@ -1,0 +1,411 @@
+Hostname,IP,TaskName,CommandLine,Enabled,LastRunTime,NextRunTime,Username
+HR-WS-001,10.10.2.101,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-11T04:10:18.272Z,2026-02-13T00:59:27.083Z,NT AUTHORITY\SYSTEM
+HR-WS-001,10.10.2.101,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-18T22:21:06.535Z,2026-02-13T00:20:19.721Z,NT AUTHORITY\SYSTEM
+HR-WS-001,10.10.2.101,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-11T22:34:59.678Z,2026-02-10T14:58:18.353Z,NT AUTHORITY\SYSTEM
+HR-WS-001,10.10.2.101,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-19T10:19:22.767Z,2026-02-20T15:37:57.928Z,ACME\svc_backup
+HR-WS-001,10.10.2.101,\ACME\Inventory,C:\Tools\inventory.exe --scan,False,2026-02-18T16:32:05.355Z,2026-02-18T09:04:04.511Z,ACME\svc_backup
+FIN-WS-002,10.10.3.102,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-19T19:08:35.756Z,2026-02-17T04:24:25.316Z,NT AUTHORITY\SYSTEM
+FIN-WS-002,10.10.3.102,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,False,2026-02-12T10:09:36.081Z,2026-02-12T14:35:40.437Z,NT AUTHORITY\SYSTEM
+FIN-WS-002,10.10.3.102,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-15T16:46:39.201Z,2026-02-18T17:27:26.085Z,NT AUTHORITY\SYSTEM
+FIN-WS-002,10.10.3.102,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-15T19:09:52.759Z,2026-02-18T11:49:21.126Z,ACME\svc_backup
+FIN-WS-002,10.10.3.102,\ACME\Inventory,C:\Tools\inventory.exe --scan,False,2026-02-19T01:57:38.377Z,2026-02-19T03:39:09.043Z,ACME\svc_backup
+SLS-WS-003,10.10.1.103,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-17T23:33:16.784Z,2026-02-18T03:56:24.145Z,NT AUTHORITY\SYSTEM
+SLS-WS-003,10.10.1.103,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-14T12:02:21.885Z,2026-02-10T09:06:28.155Z,NT AUTHORITY\SYSTEM
+SLS-WS-003,10.10.1.103,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-10T08:29:32.180Z,2026-02-20T05:43:38.079Z,NT AUTHORITY\SYSTEM
+SLS-WS-003,10.10.1.103,\ACME\Backup,C:\Tools\backup.ps1,False,2026-02-12T20:47:27.743Z,2026-02-14T20:40:38.686Z,ACME\svc_backup
+SLS-WS-003,10.10.1.103,\ACME\Inventory,C:\Tools\inventory.exe --scan,False,2026-02-15T08:44:46.616Z,2026-02-14T02:51:26.262Z,ACME\svc_backup
+ENG-WS-004,10.10.2.104,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-16T09:23:23.347Z,2026-02-14T22:26:28.830Z,NT AUTHORITY\SYSTEM
+ENG-WS-004,10.10.2.104,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,False,2026-02-20T06:44:32.640Z,2026-02-17T21:47:53.810Z,NT AUTHORITY\SYSTEM
+ENG-WS-004,10.10.2.104,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-15T04:57:06.522Z,2026-02-12T18:35:33.511Z,NT AUTHORITY\SYSTEM
+ENG-WS-004,10.10.2.104,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-13T19:05:56.454Z,2026-02-12T15:35:44.582Z,ACME\svc_backup
+ENG-WS-004,10.10.2.104,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-15T12:42:15.302Z,2026-02-20T10:33:44.912Z,ACME\svc_backup
+LEG-WS-005,10.10.3.105,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-12T06:05:12.613Z,2026-02-15T21:32:29.512Z,NT AUTHORITY\SYSTEM
+LEG-WS-005,10.10.3.105,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-18T11:19:55.513Z,2026-02-10T22:00:16.747Z,NT AUTHORITY\SYSTEM
+LEG-WS-005,10.10.3.105,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,False,2026-02-16T12:32:08.627Z,2026-02-13T08:21:40.415Z,NT AUTHORITY\SYSTEM
+LEG-WS-005,10.10.3.105,\ACME\Backup,C:\Tools\backup.ps1,False,2026-02-14T06:57:14.139Z,2026-02-11T10:11:17.762Z,ACME\svc_backup
+LEG-WS-005,10.10.3.105,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-15T03:50:01.070Z,2026-02-18T00:35:18.228Z,ACME\svc_backup
+MKT-WS-006,10.10.1.106,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-11T22:20:50.111Z,2026-02-17T09:07:59.275Z,NT AUTHORITY\SYSTEM
+MKT-WS-006,10.10.1.106,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-15T03:21:15.355Z,2026-02-16T21:59:46.067Z,NT AUTHORITY\SYSTEM
+MKT-WS-006,10.10.1.106,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-13T05:57:57.374Z,2026-02-10T16:59:40.813Z,NT AUTHORITY\SYSTEM
+MKT-WS-006,10.10.1.106,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-11T23:34:05.389Z,2026-02-13T01:32:43.835Z,ACME\svc_backup
+MKT-WS-006,10.10.1.106,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-18T04:35:33.516Z,2026-02-13T17:55:50.780Z,ACME\svc_backup
+EXEC-WS-007,10.10.2.107,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-19T09:31:08.738Z,2026-02-17T19:09:26.442Z,NT AUTHORITY\SYSTEM
+EXEC-WS-007,10.10.2.107,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,False,2026-02-11T21:48:25.002Z,2026-02-11T03:43:03.357Z,NT AUTHORITY\SYSTEM
+EXEC-WS-007,10.10.2.107,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-10T23:54:37.709Z,2026-02-14T23:33:07.222Z,NT AUTHORITY\SYSTEM
+EXEC-WS-007,10.10.2.107,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-13T19:14:09.341Z,2026-02-14T09:51:49.598Z,ACME\svc_backup
+EXEC-WS-007,10.10.2.107,\ACME\Inventory,C:\Tools\inventory.exe --scan,False,2026-02-19T10:07:28.683Z,2026-02-15T07:58:45.104Z,ACME\svc_backup
+IT-WS-008,10.10.3.108,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-11T11:58:13.097Z,2026-02-19T14:28:46.034Z,NT AUTHORITY\SYSTEM
+IT-WS-008,10.10.3.108,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,False,2026-02-17T18:52:05.470Z,2026-02-19T08:37:29.557Z,NT AUTHORITY\SYSTEM
+IT-WS-008,10.10.3.108,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-17T12:54:47.353Z,2026-02-18T13:22:38.075Z,NT AUTHORITY\SYSTEM
+IT-WS-008,10.10.3.108,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-18T12:22:20.956Z,2026-02-15T10:44:19.542Z,ACME\svc_backup
+IT-WS-008,10.10.3.108,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-17T15:14:52.999Z,2026-02-15T10:03:00.756Z,ACME\svc_backup
+HR-WS-009,10.10.1.109,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,False,2026-02-15T17:50:29.509Z,2026-02-19T02:51:18.037Z,NT AUTHORITY\SYSTEM
+HR-WS-009,10.10.1.109,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-12T18:45:37.946Z,2026-02-18T18:31:24.942Z,NT AUTHORITY\SYSTEM
+HR-WS-009,10.10.1.109,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-20T14:02:14.569Z,2026-02-16T07:54:05.576Z,NT AUTHORITY\SYSTEM
+HR-WS-009,10.10.1.109,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-12T14:46:40.034Z,2026-02-17T09:05:45.968Z,ACME\svc_backup
+HR-WS-009,10.10.1.109,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-20T12:34:17.719Z,2026-02-10T10:25:36.528Z,ACME\svc_backup
+FIN-WS-010,10.10.2.110,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-12T16:05:20.284Z,2026-02-11T14:09:53.006Z,NT AUTHORITY\SYSTEM
+FIN-WS-010,10.10.2.110,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,False,2026-02-18T17:20:38.118Z,2026-02-11T14:06:07.250Z,NT AUTHORITY\SYSTEM
+FIN-WS-010,10.10.2.110,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-17T16:42:52.183Z,2026-02-18T13:30:07.185Z,NT AUTHORITY\SYSTEM
+FIN-WS-010,10.10.2.110,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-20T16:08:48.332Z,2026-02-12T08:59:35.678Z,ACME\svc_backup
+FIN-WS-010,10.10.2.110,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-10T21:41:35.587Z,2026-02-19T02:02:26.909Z,ACME\svc_backup
+SLS-WS-011,10.10.3.111,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-12T07:35:36.579Z,2026-02-14T04:17:39.468Z,NT AUTHORITY\SYSTEM
+SLS-WS-011,10.10.3.111,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-11T10:21:27.809Z,2026-02-19T22:23:50.559Z,NT AUTHORITY\SYSTEM
+SLS-WS-011,10.10.3.111,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,False,2026-02-17T23:54:51.119Z,2026-02-11T11:19:59.085Z,NT AUTHORITY\SYSTEM
+SLS-WS-011,10.10.3.111,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-18T14:59:56.507Z,2026-02-10T15:12:34.534Z,ACME\svc_backup
+SLS-WS-011,10.10.3.111,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-16T01:42:27.441Z,2026-02-15T16:42:53.961Z,ACME\svc_backup
+ENG-WS-012,10.10.1.112,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-18T08:47:19.597Z,2026-02-15T23:16:44.221Z,NT AUTHORITY\SYSTEM
+ENG-WS-012,10.10.1.112,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-16T05:17:16.467Z,2026-02-20T15:14:36.400Z,NT AUTHORITY\SYSTEM
+ENG-WS-012,10.10.1.112,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,False,2026-02-12T17:04:07.300Z,2026-02-17T13:33:01.444Z,NT AUTHORITY\SYSTEM
+ENG-WS-012,10.10.1.112,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-19T10:41:22.404Z,2026-02-15T08:14:38.725Z,ACME\svc_backup
+ENG-WS-012,10.10.1.112,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-16T19:29:02.351Z,2026-02-11T19:48:45.196Z,ACME\svc_backup
+LEG-WS-013,10.10.2.113,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-19T12:38:12.330Z,2026-02-17T15:08:18.153Z,NT AUTHORITY\SYSTEM
+LEG-WS-013,10.10.2.113,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,False,2026-02-12T12:39:57.944Z,2026-02-16T08:29:18.173Z,NT AUTHORITY\SYSTEM
+LEG-WS-013,10.10.2.113,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-14T16:53:14.600Z,2026-02-10T15:48:25.569Z,NT AUTHORITY\SYSTEM
+LEG-WS-013,10.10.2.113,\ACME\Backup,C:\Tools\backup.ps1,False,2026-02-18T23:37:15.766Z,2026-02-16T04:26:54.647Z,ACME\svc_backup
+LEG-WS-013,10.10.2.113,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-19T18:56:57.978Z,2026-02-18T08:05:41.707Z,ACME\svc_backup
+MKT-WS-014,10.10.3.114,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-19T04:54:01.657Z,2026-02-16T08:42:00.134Z,NT AUTHORITY\SYSTEM
+MKT-WS-014,10.10.3.114,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-16T00:19:53.914Z,2026-02-15T07:55:08.380Z,NT AUTHORITY\SYSTEM
+MKT-WS-014,10.10.3.114,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,False,2026-02-17T02:15:29.456Z,2026-02-17T14:37:46.580Z,NT AUTHORITY\SYSTEM
+MKT-WS-014,10.10.3.114,\ACME\Backup,C:\Tools\backup.ps1,False,2026-02-19T03:41:01.814Z,2026-02-18T20:49:02.270Z,ACME\svc_backup
+MKT-WS-014,10.10.3.114,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-18T22:20:31.364Z,2026-02-16T10:39:04.357Z,ACME\svc_backup
+EXEC-WS-015,10.10.1.115,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-16T00:25:37.310Z,2026-02-11T04:27:50.639Z,NT AUTHORITY\SYSTEM
+EXEC-WS-015,10.10.1.115,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-13T21:45:43.509Z,2026-02-17T07:13:31.528Z,NT AUTHORITY\SYSTEM
+EXEC-WS-015,10.10.1.115,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,False,2026-02-18T10:33:00.550Z,2026-02-12T03:49:17.618Z,NT AUTHORITY\SYSTEM
+EXEC-WS-015,10.10.1.115,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-19T13:57:59.293Z,2026-02-12T17:08:19.461Z,ACME\svc_backup
+EXEC-WS-015,10.10.1.115,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-20T15:58:21.276Z,2026-02-18T02:43:23.938Z,ACME\svc_backup
+IT-WS-016,10.10.2.116,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,False,2026-02-11T17:53:34.407Z,2026-02-15T13:47:25.202Z,NT AUTHORITY\SYSTEM
+IT-WS-016,10.10.2.116,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-19T05:34:08.201Z,2026-02-10T12:07:30.178Z,NT AUTHORITY\SYSTEM
+IT-WS-016,10.10.2.116,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-17T00:09:46.336Z,2026-02-15T06:50:54.924Z,NT AUTHORITY\SYSTEM
+IT-WS-016,10.10.2.116,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-15T09:11:55.347Z,2026-02-19T18:34:52.818Z,ACME\svc_backup
+IT-WS-016,10.10.2.116,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-11T23:33:28.562Z,2026-02-17T11:48:41.377Z,ACME\svc_backup
+HR-WS-017,10.10.3.117,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-15T09:47:17.619Z,2026-02-20T07:55:22.028Z,NT AUTHORITY\SYSTEM
+HR-WS-017,10.10.3.117,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-12T20:20:44.882Z,2026-02-19T08:19:13.236Z,NT AUTHORITY\SYSTEM
+HR-WS-017,10.10.3.117,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-12T15:24:05.664Z,2026-02-11T00:56:49.490Z,NT AUTHORITY\SYSTEM
+HR-WS-017,10.10.3.117,\ACME\Backup,C:\Tools\backup.ps1,False,2026-02-14T07:55:36.757Z,2026-02-19T07:54:44.258Z,ACME\svc_backup
+HR-WS-017,10.10.3.117,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-14T16:29:13.283Z,2026-02-14T21:46:54.021Z,ACME\svc_backup
+FIN-WS-018,10.10.1.118,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-18T14:39:21.986Z,2026-02-14T21:47:34.203Z,NT AUTHORITY\SYSTEM
+FIN-WS-018,10.10.1.118,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,False,2026-02-14T22:11:15.193Z,2026-02-11T11:23:59.541Z,NT AUTHORITY\SYSTEM
+FIN-WS-018,10.10.1.118,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-14T13:50:52.916Z,2026-02-14T00:08:04.372Z,NT AUTHORITY\SYSTEM
+FIN-WS-018,10.10.1.118,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-20T06:09:38.641Z,2026-02-19T21:38:06.213Z,ACME\svc_backup
+FIN-WS-018,10.10.1.118,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-16T23:36:15.163Z,2026-02-14T22:05:30.950Z,ACME\svc_backup
+SLS-WS-019,10.10.2.119,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-16T17:26:19.317Z,2026-02-18T14:05:54.158Z,NT AUTHORITY\SYSTEM
+SLS-WS-019,10.10.2.119,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-13T00:53:27.139Z,2026-02-17T01:41:01.159Z,NT AUTHORITY\SYSTEM
+SLS-WS-019,10.10.2.119,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,False,2026-02-18T11:19:23.835Z,2026-02-16T12:51:56.274Z,NT AUTHORITY\SYSTEM
+SLS-WS-019,10.10.2.119,\ACME\Backup,C:\Tools\backup.ps1,False,2026-02-11T07:27:43.891Z,2026-02-17T13:45:31.692Z,ACME\svc_backup
+SLS-WS-019,10.10.2.119,\ACME\Inventory,C:\Tools\inventory.exe --scan,False,2026-02-18T13:09:32.527Z,2026-02-16T17:33:43.569Z,ACME\svc_backup
+ENG-WS-020,10.10.3.120,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-18T06:49:14.065Z,2026-02-15T08:04:18.774Z,NT AUTHORITY\SYSTEM
+ENG-WS-020,10.10.3.120,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-14T09:23:50.169Z,2026-02-10T12:51:38.083Z,NT AUTHORITY\SYSTEM
+ENG-WS-020,10.10.3.120,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-18T05:01:59.602Z,2026-02-16T13:15:30.465Z,NT AUTHORITY\SYSTEM
+ENG-WS-020,10.10.3.120,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-11T05:20:52.039Z,2026-02-10T11:12:43.499Z,ACME\svc_backup
+ENG-WS-020,10.10.3.120,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-15T08:32:00.457Z,2026-02-17T15:43:39.779Z,ACME\svc_backup
+LEG-WS-021,10.10.1.121,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-20T11:10:29.415Z,2026-02-11T13:13:41.644Z,NT AUTHORITY\SYSTEM
+LEG-WS-021,10.10.1.121,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-17T23:06:43.206Z,2026-02-12T10:50:24.538Z,NT AUTHORITY\SYSTEM
+LEG-WS-021,10.10.1.121,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-11T01:40:28.291Z,2026-02-15T22:59:54.785Z,NT AUTHORITY\SYSTEM
+LEG-WS-021,10.10.1.121,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-12T11:56:38.797Z,2026-02-12T05:51:20.276Z,ACME\svc_backup
+LEG-WS-021,10.10.1.121,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-10T22:08:15.182Z,2026-02-15T16:48:06.361Z,ACME\svc_backup
+MKT-WS-022,10.10.2.122,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-12T17:43:14.699Z,2026-02-17T08:30:49.188Z,NT AUTHORITY\SYSTEM
+MKT-WS-022,10.10.2.122,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-15T06:41:06.394Z,2026-02-19T10:32:28.292Z,NT AUTHORITY\SYSTEM
+MKT-WS-022,10.10.2.122,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-19T10:24:37.330Z,2026-02-13T02:16:21.356Z,NT AUTHORITY\SYSTEM
+MKT-WS-022,10.10.2.122,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-17T21:37:04.120Z,2026-02-13T06:53:53.583Z,ACME\svc_backup
+MKT-WS-022,10.10.2.122,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-19T20:02:44.067Z,2026-02-20T04:48:00.316Z,ACME\svc_backup
+EXEC-WS-023,10.10.3.123,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,False,2026-02-15T17:40:24.940Z,2026-02-15T11:34:19.658Z,NT AUTHORITY\SYSTEM
+EXEC-WS-023,10.10.3.123,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-13T08:32:29.614Z,2026-02-18T15:15:55.737Z,NT AUTHORITY\SYSTEM
+EXEC-WS-023,10.10.3.123,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,False,2026-02-19T22:32:49.533Z,2026-02-11T02:57:20.999Z,NT AUTHORITY\SYSTEM
+EXEC-WS-023,10.10.3.123,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-10T13:55:56.086Z,2026-02-19T23:21:07.294Z,ACME\svc_backup
+EXEC-WS-023,10.10.3.123,\ACME\Inventory,C:\Tools\inventory.exe --scan,False,2026-02-15T00:20:20.226Z,2026-02-18T08:40:38.412Z,ACME\svc_backup
+IT-WS-024,10.10.1.124,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-11T15:25:00.827Z,2026-02-10T09:26:07.179Z,NT AUTHORITY\SYSTEM
+IT-WS-024,10.10.1.124,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,False,2026-02-11T14:09:06.733Z,2026-02-15T06:05:45.983Z,NT AUTHORITY\SYSTEM
+IT-WS-024,10.10.1.124,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-12T07:46:04.449Z,2026-02-14T05:57:31.991Z,NT AUTHORITY\SYSTEM
+IT-WS-024,10.10.1.124,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-13T15:17:14.219Z,2026-02-17T20:08:02.700Z,ACME\svc_backup
+IT-WS-024,10.10.1.124,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-19T19:59:37.242Z,2026-02-16T00:09:04.759Z,ACME\svc_backup
+HR-WS-025,10.10.2.125,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,False,2026-02-16T04:55:50.389Z,2026-02-16T14:01:37.319Z,NT AUTHORITY\SYSTEM
+HR-WS-025,10.10.2.125,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-15T13:04:32.418Z,2026-02-11T03:10:31.981Z,NT AUTHORITY\SYSTEM
+HR-WS-025,10.10.2.125,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-20T03:38:36.810Z,2026-02-19T16:34:13.701Z,NT AUTHORITY\SYSTEM
+HR-WS-025,10.10.2.125,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-13T15:01:01.192Z,2026-02-19T20:36:40.015Z,ACME\svc_backup
+HR-WS-025,10.10.2.125,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-14T03:20:06.246Z,2026-02-15T07:33:50.496Z,ACME\svc_backup
+FIN-WS-026,10.10.3.126,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-12T03:14:45.670Z,2026-02-19T17:51:52.973Z,NT AUTHORITY\SYSTEM
+FIN-WS-026,10.10.3.126,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-12T02:37:02.769Z,2026-02-13T17:09:29.023Z,NT AUTHORITY\SYSTEM
+FIN-WS-026,10.10.3.126,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-16T15:57:32.073Z,2026-02-12T07:59:55.524Z,NT AUTHORITY\SYSTEM
+FIN-WS-026,10.10.3.126,\ACME\Backup,C:\Tools\backup.ps1,False,2026-02-11T16:37:59.553Z,2026-02-20T09:54:18.072Z,ACME\svc_backup
+FIN-WS-026,10.10.3.126,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-13T08:39:07.969Z,2026-02-15T09:49:07.790Z,ACME\svc_backup
+SLS-WS-027,10.10.1.127,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-18T15:23:10.055Z,2026-02-12T05:53:57.700Z,NT AUTHORITY\SYSTEM
+SLS-WS-027,10.10.1.127,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-10T15:00:56.181Z,2026-02-19T15:38:50.857Z,NT AUTHORITY\SYSTEM
+SLS-WS-027,10.10.1.127,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-14T00:42:32.206Z,2026-02-17T14:17:13.806Z,NT AUTHORITY\SYSTEM
+SLS-WS-027,10.10.1.127,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-10T18:46:56.374Z,2026-02-12T21:23:32.173Z,ACME\svc_backup
+SLS-WS-027,10.10.1.127,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-16T04:37:41.365Z,2026-02-11T01:23:31.251Z,ACME\svc_backup
+ENG-WS-028,10.10.2.128,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-15T13:04:58.474Z,2026-02-17T02:25:59.995Z,NT AUTHORITY\SYSTEM
+ENG-WS-028,10.10.2.128,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-13T08:54:27.210Z,2026-02-19T20:33:58.101Z,NT AUTHORITY\SYSTEM
+ENG-WS-028,10.10.2.128,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,False,2026-02-17T04:37:46.619Z,2026-02-14T19:45:40.877Z,NT AUTHORITY\SYSTEM
+ENG-WS-028,10.10.2.128,\ACME\Backup,C:\Tools\backup.ps1,False,2026-02-15T16:16:04.921Z,2026-02-10T14:30:04.621Z,ACME\svc_backup
+ENG-WS-028,10.10.2.128,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-15T10:32:54.762Z,2026-02-16T13:11:05.730Z,ACME\svc_backup
+LEG-WS-029,10.10.3.129,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-10T20:33:02.827Z,2026-02-16T16:21:00.588Z,NT AUTHORITY\SYSTEM
+LEG-WS-029,10.10.3.129,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,False,2026-02-13T23:34:43.565Z,2026-02-12T13:16:47.250Z,NT AUTHORITY\SYSTEM
+LEG-WS-029,10.10.3.129,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,False,2026-02-19T13:38:02.407Z,2026-02-17T10:33:17.759Z,NT AUTHORITY\SYSTEM
+LEG-WS-029,10.10.3.129,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-15T20:36:41.924Z,2026-02-13T11:46:06.808Z,ACME\svc_backup
+LEG-WS-029,10.10.3.129,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-17T18:14:48.691Z,2026-02-18T00:04:12.553Z,ACME\svc_backup
+MKT-WS-030,10.10.1.130,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,False,2026-02-16T04:50:25.242Z,2026-02-19T06:32:03.303Z,NT AUTHORITY\SYSTEM
+MKT-WS-030,10.10.1.130,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-16T03:09:11.888Z,2026-02-18T19:17:17.312Z,NT AUTHORITY\SYSTEM
+MKT-WS-030,10.10.1.130,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-16T19:54:43.760Z,2026-02-10T08:42:57.840Z,NT AUTHORITY\SYSTEM
+MKT-WS-030,10.10.1.130,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-20T15:58:22.109Z,2026-02-18T03:19:40.560Z,ACME\svc_backup
+MKT-WS-030,10.10.1.130,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-12T22:26:04.406Z,2026-02-15T16:12:35.508Z,ACME\svc_backup
+EXEC-WS-031,10.10.2.131,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-19T18:39:03.864Z,2026-02-13T01:35:35.660Z,NT AUTHORITY\SYSTEM
+EXEC-WS-031,10.10.2.131,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-20T02:01:54.852Z,2026-02-15T22:53:31.476Z,NT AUTHORITY\SYSTEM
+EXEC-WS-031,10.10.2.131,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-16T22:27:22.763Z,2026-02-19T20:20:26.276Z,NT AUTHORITY\SYSTEM
+EXEC-WS-031,10.10.2.131,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-17T13:30:08.797Z,2026-02-10T21:37:36.455Z,ACME\svc_backup
+EXEC-WS-031,10.10.2.131,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-10T19:45:08.117Z,2026-02-15T03:26:58.890Z,ACME\svc_backup
+IT-WS-032,10.10.3.132,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-16T01:11:58.620Z,2026-02-17T16:57:29.329Z,NT AUTHORITY\SYSTEM
+IT-WS-032,10.10.3.132,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,False,2026-02-12T01:08:52.343Z,2026-02-19T07:55:59.921Z,NT AUTHORITY\SYSTEM
+IT-WS-032,10.10.3.132,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-15T06:08:56.865Z,2026-02-17T22:09:43.378Z,NT AUTHORITY\SYSTEM
+IT-WS-032,10.10.3.132,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-10T19:49:42.684Z,2026-02-19T19:18:30.053Z,ACME\svc_backup
+IT-WS-032,10.10.3.132,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-16T18:14:57.150Z,2026-02-19T15:36:07.924Z,ACME\svc_backup
+HR-WS-033,10.10.1.133,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-17T05:31:20.367Z,2026-02-19T13:32:04.721Z,NT AUTHORITY\SYSTEM
+HR-WS-033,10.10.1.133,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-20T07:41:32.969Z,2026-02-12T02:11:07.863Z,NT AUTHORITY\SYSTEM
+HR-WS-033,10.10.1.133,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-19T12:03:45.202Z,2026-02-17T09:21:44.329Z,NT AUTHORITY\SYSTEM
+HR-WS-033,10.10.1.133,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-20T00:18:58.723Z,2026-02-16T20:17:56.784Z,ACME\svc_backup
+HR-WS-033,10.10.1.133,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-17T10:14:16.140Z,2026-02-15T01:13:59.702Z,ACME\svc_backup
+FIN-WS-034,10.10.2.134,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-16T00:27:55.308Z,2026-02-13T18:34:21.414Z,NT AUTHORITY\SYSTEM
+FIN-WS-034,10.10.2.134,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,False,2026-02-15T05:21:12.636Z,2026-02-14T22:04:37.191Z,NT AUTHORITY\SYSTEM
+FIN-WS-034,10.10.2.134,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-16T18:41:00.839Z,2026-02-14T22:25:57.601Z,NT AUTHORITY\SYSTEM
+FIN-WS-034,10.10.2.134,\ACME\Backup,C:\Tools\backup.ps1,False,2026-02-15T18:02:25.400Z,2026-02-16T04:53:02.671Z,ACME\svc_backup
+FIN-WS-034,10.10.2.134,\ACME\Inventory,C:\Tools\inventory.exe --scan,False,2026-02-13T15:50:06.949Z,2026-02-11T04:07:22.042Z,ACME\svc_backup
+SLS-WS-035,10.10.3.135,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-15T23:52:06.120Z,2026-02-14T12:09:55.914Z,NT AUTHORITY\SYSTEM
+SLS-WS-035,10.10.3.135,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-14T13:05:06.701Z,2026-02-15T08:42:28.508Z,NT AUTHORITY\SYSTEM
+SLS-WS-035,10.10.3.135,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-10T11:15:21.002Z,2026-02-17T13:37:59.232Z,NT AUTHORITY\SYSTEM
+SLS-WS-035,10.10.3.135,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-15T02:44:47.045Z,2026-02-15T04:41:10.501Z,ACME\svc_backup
+SLS-WS-035,10.10.3.135,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-12T02:27:25.262Z,2026-02-20T08:42:40.871Z,ACME\svc_backup
+ENG-WS-036,10.10.1.136,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-15T12:53:00.176Z,2026-02-13T04:33:20.240Z,NT AUTHORITY\SYSTEM
+ENG-WS-036,10.10.1.136,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-12T14:22:34.288Z,2026-02-11T01:13:46.648Z,NT AUTHORITY\SYSTEM
+ENG-WS-036,10.10.1.136,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-13T11:55:36.117Z,2026-02-10T14:20:40.804Z,NT AUTHORITY\SYSTEM
+ENG-WS-036,10.10.1.136,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-16T12:46:25.045Z,2026-02-19T20:12:56.821Z,ACME\svc_backup
+ENG-WS-036,10.10.1.136,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-14T07:34:56.922Z,2026-02-10T12:49:56.644Z,ACME\svc_backup
+LEG-WS-037,10.10.2.137,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-18T02:51:51.978Z,2026-02-13T06:11:38.941Z,NT AUTHORITY\SYSTEM
+LEG-WS-037,10.10.2.137,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-11T01:44:07.216Z,2026-02-16T23:48:04.905Z,NT AUTHORITY\SYSTEM
+LEG-WS-037,10.10.2.137,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-18T17:58:07.400Z,2026-02-15T22:26:08.683Z,NT AUTHORITY\SYSTEM
+LEG-WS-037,10.10.2.137,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-17T18:16:48.846Z,2026-02-10T16:29:10.995Z,ACME\svc_backup
+LEG-WS-037,10.10.2.137,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-11T17:42:26.427Z,2026-02-16T12:20:33.670Z,ACME\svc_backup
+MKT-WS-038,10.10.3.138,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-19T17:39:41.163Z,2026-02-11T04:30:07.114Z,NT AUTHORITY\SYSTEM
+MKT-WS-038,10.10.3.138,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,False,2026-02-18T09:19:05.003Z,2026-02-19T11:32:12.157Z,NT AUTHORITY\SYSTEM
+MKT-WS-038,10.10.3.138,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,False,2026-02-12T07:20:45.346Z,2026-02-16T19:24:42.020Z,NT AUTHORITY\SYSTEM
+MKT-WS-038,10.10.3.138,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-13T23:31:46.676Z,2026-02-12T23:17:47.391Z,ACME\svc_backup
+MKT-WS-038,10.10.3.138,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-15T06:38:36.143Z,2026-02-17T05:16:43.062Z,ACME\svc_backup
+EXEC-WS-039,10.10.1.139,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-12T17:12:53.766Z,2026-02-17T07:38:30.430Z,NT AUTHORITY\SYSTEM
+EXEC-WS-039,10.10.1.139,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-15T09:43:58.381Z,2026-02-16T15:33:28.709Z,NT AUTHORITY\SYSTEM
+EXEC-WS-039,10.10.1.139,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-14T21:23:01.168Z,2026-02-14T17:31:20.994Z,NT AUTHORITY\SYSTEM
+EXEC-WS-039,10.10.1.139,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-19T12:01:04.643Z,2026-02-10T16:20:29.794Z,ACME\svc_backup
+EXEC-WS-039,10.10.1.139,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-13T17:39:02.933Z,2026-02-12T10:14:43.649Z,ACME\svc_backup
+IT-WS-040,10.10.2.140,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-18T04:52:30.083Z,2026-02-12T22:44:13.582Z,NT AUTHORITY\SYSTEM
+IT-WS-040,10.10.2.140,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,False,2026-02-11T09:59:49.613Z,2026-02-12T04:53:13.144Z,NT AUTHORITY\SYSTEM
+IT-WS-040,10.10.2.140,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-10T20:32:09.001Z,2026-02-15T21:51:24.060Z,NT AUTHORITY\SYSTEM
+IT-WS-040,10.10.2.140,\ACME\Backup,C:\Tools\backup.ps1,False,2026-02-14T02:02:25.314Z,2026-02-13T19:45:08.607Z,ACME\svc_backup
+IT-WS-040,10.10.2.140,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-12T08:37:46.983Z,2026-02-15T06:11:10.277Z,ACME\svc_backup
+HR-WS-041,10.10.3.141,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,False,2026-02-20T16:34:18.148Z,2026-02-20T01:17:01.526Z,NT AUTHORITY\SYSTEM
+HR-WS-041,10.10.3.141,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-14T18:27:49.393Z,2026-02-14T16:48:45.838Z,NT AUTHORITY\SYSTEM
+HR-WS-041,10.10.3.141,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-16T19:58:20.162Z,2026-02-13T18:30:27.303Z,NT AUTHORITY\SYSTEM
+HR-WS-041,10.10.3.141,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-16T07:35:31.485Z,2026-02-20T07:24:39.759Z,ACME\svc_backup
+HR-WS-041,10.10.3.141,\ACME\Inventory,C:\Tools\inventory.exe --scan,False,2026-02-13T07:27:28.310Z,2026-02-13T11:41:10.906Z,ACME\svc_backup
+FIN-WS-042,10.10.1.142,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,False,2026-02-12T08:32:06.811Z,2026-02-12T05:10:22.185Z,NT AUTHORITY\SYSTEM
+FIN-WS-042,10.10.1.142,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,False,2026-02-17T00:06:44.259Z,2026-02-20T16:31:44.712Z,NT AUTHORITY\SYSTEM
+FIN-WS-042,10.10.1.142,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-13T09:20:35.899Z,2026-02-15T03:20:39.739Z,NT AUTHORITY\SYSTEM
+FIN-WS-042,10.10.1.142,\ACME\Backup,C:\Tools\backup.ps1,False,2026-02-19T22:55:01.161Z,2026-02-15T03:32:13.303Z,ACME\svc_backup
+FIN-WS-042,10.10.1.142,\ACME\Inventory,C:\Tools\inventory.exe --scan,False,2026-02-10T17:54:52.225Z,2026-02-18T08:28:27.424Z,ACME\svc_backup
+SLS-WS-043,10.10.2.143,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-18T00:24:25.555Z,2026-02-16T02:01:43.780Z,NT AUTHORITY\SYSTEM
+SLS-WS-043,10.10.2.143,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-13T14:00:55.806Z,2026-02-18T13:50:11.756Z,NT AUTHORITY\SYSTEM
+SLS-WS-043,10.10.2.143,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,False,2026-02-13T06:53:39.515Z,2026-02-20T04:01:26.269Z,NT AUTHORITY\SYSTEM
+SLS-WS-043,10.10.2.143,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-20T00:12:31.793Z,2026-02-19T05:23:06.750Z,ACME\svc_backup
+SLS-WS-043,10.10.2.143,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-13T13:02:39.583Z,2026-02-20T11:31:42.030Z,ACME\svc_backup
+ENG-WS-044,10.10.3.144,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-17T21:30:20.789Z,2026-02-13T16:26:17.537Z,NT AUTHORITY\SYSTEM
+ENG-WS-044,10.10.3.144,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-11T21:35:02.192Z,2026-02-15T01:29:08.612Z,NT AUTHORITY\SYSTEM
+ENG-WS-044,10.10.3.144,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-20T00:35:55.846Z,2026-02-13T22:04:14.343Z,NT AUTHORITY\SYSTEM
+ENG-WS-044,10.10.3.144,\ACME\Backup,C:\Tools\backup.ps1,False,2026-02-12T00:27:50.050Z,2026-02-14T12:14:17.634Z,ACME\svc_backup
+ENG-WS-044,10.10.3.144,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-15T22:57:28.555Z,2026-02-18T21:33:18.664Z,ACME\svc_backup
+LEG-WS-045,10.10.1.145,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-15T00:38:54.627Z,2026-02-18T17:56:33.277Z,NT AUTHORITY\SYSTEM
+LEG-WS-045,10.10.1.145,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-10T14:37:41.313Z,2026-02-16T03:33:54.586Z,NT AUTHORITY\SYSTEM
+LEG-WS-045,10.10.1.145,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-14T11:30:41.181Z,2026-02-18T20:06:24.052Z,NT AUTHORITY\SYSTEM
+LEG-WS-045,10.10.1.145,\ACME\Backup,C:\Tools\backup.ps1,False,2026-02-17T19:45:45.532Z,2026-02-18T08:32:51.250Z,ACME\svc_backup
+LEG-WS-045,10.10.1.145,\ACME\Inventory,C:\Tools\inventory.exe --scan,False,2026-02-10T17:46:03.622Z,2026-02-20T11:51:45.421Z,ACME\svc_backup
+MKT-WS-046,10.10.2.146,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,False,2026-02-16T22:38:49.613Z,2026-02-16T05:01:54.471Z,NT AUTHORITY\SYSTEM
+MKT-WS-046,10.10.2.146,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-19T07:31:12.356Z,2026-02-12T19:41:18.613Z,NT AUTHORITY\SYSTEM
+MKT-WS-046,10.10.2.146,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-13T18:14:10.252Z,2026-02-18T21:06:38.332Z,NT AUTHORITY\SYSTEM
+MKT-WS-046,10.10.2.146,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-15T16:48:36.176Z,2026-02-12T10:24:42.652Z,ACME\svc_backup
+MKT-WS-046,10.10.2.146,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-12T16:41:02.198Z,2026-02-11T06:13:28.016Z,ACME\svc_backup
+EXEC-WS-047,10.10.3.147,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-17T02:42:54.883Z,2026-02-14T01:24:49.703Z,NT AUTHORITY\SYSTEM
+EXEC-WS-047,10.10.3.147,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-15T15:48:14.287Z,2026-02-20T00:45:42.458Z,NT AUTHORITY\SYSTEM
+EXEC-WS-047,10.10.3.147,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-15T13:25:29.139Z,2026-02-20T01:58:50.715Z,NT AUTHORITY\SYSTEM
+EXEC-WS-047,10.10.3.147,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-18T02:20:08.558Z,2026-02-20T03:12:22.453Z,ACME\svc_backup
+EXEC-WS-047,10.10.3.147,\ACME\Inventory,C:\Tools\inventory.exe --scan,False,2026-02-14T19:24:32.981Z,2026-02-13T16:28:04.308Z,ACME\svc_backup
+IT-WS-048,10.10.1.148,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-15T12:59:56.698Z,2026-02-15T00:06:53.085Z,NT AUTHORITY\SYSTEM
+IT-WS-048,10.10.1.148,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-10T16:44:28.196Z,2026-02-10T13:19:02.999Z,NT AUTHORITY\SYSTEM
+IT-WS-048,10.10.1.148,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-19T03:03:43.877Z,2026-02-20T01:11:41.019Z,NT AUTHORITY\SYSTEM
+IT-WS-048,10.10.1.148,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-10T17:48:45.262Z,2026-02-12T11:18:22.491Z,ACME\svc_backup
+IT-WS-048,10.10.1.148,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-18T02:52:35.295Z,2026-02-14T11:47:48.053Z,ACME\svc_backup
+HR-WS-049,10.10.2.149,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-15T04:37:24.806Z,2026-02-10T11:16:11.052Z,NT AUTHORITY\SYSTEM
+HR-WS-049,10.10.2.149,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,False,2026-02-18T15:02:20.807Z,2026-02-13T13:06:36.614Z,NT AUTHORITY\SYSTEM
+HR-WS-049,10.10.2.149,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-14T09:52:11.777Z,2026-02-20T11:28:16.172Z,NT AUTHORITY\SYSTEM
+HR-WS-049,10.10.2.149,\ACME\Backup,C:\Tools\backup.ps1,False,2026-02-17T13:41:44.249Z,2026-02-18T10:32:22.995Z,ACME\svc_backup
+HR-WS-049,10.10.2.149,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-10T08:52:45.463Z,2026-02-19T07:54:06.248Z,ACME\svc_backup
+FIN-WS-050,10.10.3.150,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-20T01:27:24.175Z,2026-02-12T00:27:05.551Z,NT AUTHORITY\SYSTEM
+FIN-WS-050,10.10.3.150,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-18T05:29:47.321Z,2026-02-11T22:31:56.904Z,NT AUTHORITY\SYSTEM
+FIN-WS-050,10.10.3.150,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-14T02:23:17.798Z,2026-02-12T10:19:53.923Z,NT AUTHORITY\SYSTEM
+FIN-WS-050,10.10.3.150,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-15T02:07:34.737Z,2026-02-20T14:41:09.357Z,ACME\svc_backup
+FIN-WS-050,10.10.3.150,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-20T12:03:05.917Z,2026-02-11T02:15:28.141Z,ACME\svc_backup
+SLS-WS-051,10.10.1.151,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,False,2026-02-19T08:04:34.795Z,2026-02-18T02:19:39.654Z,NT AUTHORITY\SYSTEM
+SLS-WS-051,10.10.1.151,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-14T05:59:26.864Z,2026-02-13T08:09:26.358Z,NT AUTHORITY\SYSTEM
+SLS-WS-051,10.10.1.151,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-12T13:09:01.056Z,2026-02-10T14:13:12.308Z,NT AUTHORITY\SYSTEM
+SLS-WS-051,10.10.1.151,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-18T06:57:38.570Z,2026-02-15T06:36:07.347Z,ACME\svc_backup
+SLS-WS-051,10.10.1.151,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-11T12:53:38.656Z,2026-02-15T03:14:29.799Z,ACME\svc_backup
+ENG-WS-052,10.10.2.152,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-13T13:07:37.297Z,2026-02-10T12:55:55.898Z,NT AUTHORITY\SYSTEM
+ENG-WS-052,10.10.2.152,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-13T10:00:16.639Z,2026-02-16T03:46:49.138Z,NT AUTHORITY\SYSTEM
+ENG-WS-052,10.10.2.152,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,False,2026-02-13T02:19:57.856Z,2026-02-11T13:16:14.889Z,NT AUTHORITY\SYSTEM
+ENG-WS-052,10.10.2.152,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-10T10:22:57.217Z,2026-02-16T00:54:01.239Z,ACME\svc_backup
+ENG-WS-052,10.10.2.152,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-11T07:47:26.259Z,2026-02-11T17:00:25.634Z,ACME\svc_backup
+LEG-WS-053,10.10.3.153,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-12T15:39:26.774Z,2026-02-19T06:11:54.575Z,NT AUTHORITY\SYSTEM
+LEG-WS-053,10.10.3.153,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-13T04:10:39.301Z,2026-02-15T12:39:57.869Z,NT AUTHORITY\SYSTEM
+LEG-WS-053,10.10.3.153,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-11T09:45:50.659Z,2026-02-15T10:30:21.655Z,NT AUTHORITY\SYSTEM
+LEG-WS-053,10.10.3.153,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-16T23:36:22.191Z,2026-02-19T01:55:34.033Z,ACME\svc_backup
+LEG-WS-053,10.10.3.153,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-15T01:07:59.017Z,2026-02-11T10:08:48.989Z,ACME\svc_backup
+MKT-WS-054,10.10.1.154,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-14T06:56:32.106Z,2026-02-16T04:16:55.893Z,NT AUTHORITY\SYSTEM
+MKT-WS-054,10.10.1.154,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,False,2026-02-17T13:40:54.674Z,2026-02-15T20:03:49.632Z,NT AUTHORITY\SYSTEM
+MKT-WS-054,10.10.1.154,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-19T21:42:16.371Z,2026-02-12T07:23:59.445Z,NT AUTHORITY\SYSTEM
+MKT-WS-054,10.10.1.154,\ACME\Backup,C:\Tools\backup.ps1,False,2026-02-17T08:29:32.052Z,2026-02-19T11:31:12.681Z,ACME\svc_backup
+MKT-WS-054,10.10.1.154,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-14T23:18:47.119Z,2026-02-14T10:16:53.168Z,ACME\svc_backup
+EXEC-WS-055,10.10.2.155,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-18T19:03:18.814Z,2026-02-13T08:28:03.971Z,NT AUTHORITY\SYSTEM
+EXEC-WS-055,10.10.2.155,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,False,2026-02-12T13:51:42.917Z,2026-02-14T01:57:38.173Z,NT AUTHORITY\SYSTEM
+EXEC-WS-055,10.10.2.155,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-17T03:52:50.143Z,2026-02-20T13:49:39.549Z,NT AUTHORITY\SYSTEM
+EXEC-WS-055,10.10.2.155,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-11T19:17:28.469Z,2026-02-17T04:25:41.385Z,ACME\svc_backup
+EXEC-WS-055,10.10.2.155,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-13T01:38:12.857Z,2026-02-17T09:11:12.721Z,ACME\svc_backup
+IT-WS-056,10.10.3.156,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-11T16:17:49.377Z,2026-02-12T07:49:48.497Z,NT AUTHORITY\SYSTEM
+IT-WS-056,10.10.3.156,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-16T08:10:22.467Z,2026-02-12T19:09:24.082Z,NT AUTHORITY\SYSTEM
+IT-WS-056,10.10.3.156,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-11T04:59:44.480Z,2026-02-16T07:05:23.990Z,NT AUTHORITY\SYSTEM
+IT-WS-056,10.10.3.156,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-13T03:53:39.130Z,2026-02-17T22:35:46.400Z,ACME\svc_backup
+IT-WS-056,10.10.3.156,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-13T20:11:02.708Z,2026-02-20T08:46:24.560Z,ACME\svc_backup
+HR-WS-057,10.10.1.157,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-20T10:39:54.324Z,2026-02-14T02:12:25.423Z,NT AUTHORITY\SYSTEM
+HR-WS-057,10.10.1.157,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-13T00:56:51.206Z,2026-02-11T20:57:13.260Z,NT AUTHORITY\SYSTEM
+HR-WS-057,10.10.1.157,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-10T09:07:51.265Z,2026-02-10T17:23:37.684Z,NT AUTHORITY\SYSTEM
+HR-WS-057,10.10.1.157,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-15T14:05:45.700Z,2026-02-17T06:33:21.076Z,ACME\svc_backup
+HR-WS-057,10.10.1.157,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-16T21:53:43.467Z,2026-02-11T02:12:27.885Z,ACME\svc_backup
+FIN-WS-058,10.10.2.158,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,False,2026-02-10T13:32:35.479Z,2026-02-13T08:00:30.042Z,NT AUTHORITY\SYSTEM
+FIN-WS-058,10.10.2.158,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-11T00:40:20.335Z,2026-02-20T07:03:07.506Z,NT AUTHORITY\SYSTEM
+FIN-WS-058,10.10.2.158,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-18T17:07:22.065Z,2026-02-10T09:32:20.210Z,NT AUTHORITY\SYSTEM
+FIN-WS-058,10.10.2.158,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-14T13:48:44.200Z,2026-02-15T09:17:02.922Z,ACME\svc_backup
+FIN-WS-058,10.10.2.158,\ACME\Inventory,C:\Tools\inventory.exe --scan,False,2026-02-14T00:25:04.919Z,2026-02-11T04:12:54.828Z,ACME\svc_backup
+SLS-WS-059,10.10.3.159,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-15T19:33:58.088Z,2026-02-16T01:48:28.014Z,NT AUTHORITY\SYSTEM
+SLS-WS-059,10.10.3.159,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-13T10:53:44.931Z,2026-02-13T22:45:45.235Z,NT AUTHORITY\SYSTEM
+SLS-WS-059,10.10.3.159,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-17T16:54:07.752Z,2026-02-20T03:15:07.125Z,NT AUTHORITY\SYSTEM
+SLS-WS-059,10.10.3.159,\ACME\Backup,C:\Tools\backup.ps1,False,2026-02-18T19:11:20.798Z,2026-02-12T05:42:12.676Z,ACME\svc_backup
+SLS-WS-059,10.10.3.159,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-20T06:10:59.244Z,2026-02-17T00:50:19.553Z,ACME\svc_backup
+ENG-WS-060,10.10.1.160,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-13T06:48:10.401Z,2026-02-11T07:39:25.302Z,NT AUTHORITY\SYSTEM
+ENG-WS-060,10.10.1.160,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-10T12:25:18.134Z,2026-02-20T08:51:20.161Z,NT AUTHORITY\SYSTEM
+ENG-WS-060,10.10.1.160,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,False,2026-02-15T12:28:09.879Z,2026-02-16T14:08:21.881Z,NT AUTHORITY\SYSTEM
+ENG-WS-060,10.10.1.160,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-16T19:00:48.687Z,2026-02-17T14:29:52.896Z,ACME\svc_backup
+ENG-WS-060,10.10.1.160,\ACME\Inventory,C:\Tools\inventory.exe --scan,False,2026-02-18T04:30:53.688Z,2026-02-19T00:51:38.463Z,ACME\svc_backup
+LEG-WS-061,10.10.2.161,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,False,2026-02-20T15:20:33.774Z,2026-02-19T00:18:06.091Z,NT AUTHORITY\SYSTEM
+LEG-WS-061,10.10.2.161,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-17T09:53:01.370Z,2026-02-17T01:31:51.621Z,NT AUTHORITY\SYSTEM
+LEG-WS-061,10.10.2.161,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-17T18:43:59.956Z,2026-02-13T19:36:16.733Z,NT AUTHORITY\SYSTEM
+LEG-WS-061,10.10.2.161,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-20T04:44:49.801Z,2026-02-16T22:10:39.417Z,ACME\svc_backup
+LEG-WS-061,10.10.2.161,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-11T04:39:19.292Z,2026-02-19T11:07:42.571Z,ACME\svc_backup
+MKT-WS-062,10.10.3.162,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-10T21:35:44.844Z,2026-02-15T04:09:40.629Z,NT AUTHORITY\SYSTEM
+MKT-WS-062,10.10.3.162,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-10T17:57:20.101Z,2026-02-15T18:15:52.409Z,NT AUTHORITY\SYSTEM
+MKT-WS-062,10.10.3.162,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-17T11:46:28.196Z,2026-02-14T23:39:55.119Z,NT AUTHORITY\SYSTEM
+MKT-WS-062,10.10.3.162,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-15T03:32:12.866Z,2026-02-12T22:09:54.245Z,ACME\svc_backup
+MKT-WS-062,10.10.3.162,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-14T02:29:09.217Z,2026-02-12T13:19:08.503Z,ACME\svc_backup
+EXEC-WS-063,10.10.1.163,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-15T03:00:42.244Z,2026-02-17T22:26:46.243Z,NT AUTHORITY\SYSTEM
+EXEC-WS-063,10.10.1.163,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-16T03:37:31.456Z,2026-02-11T22:59:47.615Z,NT AUTHORITY\SYSTEM
+EXEC-WS-063,10.10.1.163,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,False,2026-02-18T06:38:56.200Z,2026-02-12T00:19:22.109Z,NT AUTHORITY\SYSTEM
+EXEC-WS-063,10.10.1.163,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-13T20:19:30.773Z,2026-02-14T18:24:24.789Z,ACME\svc_backup
+EXEC-WS-063,10.10.1.163,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-13T12:01:11.381Z,2026-02-12T12:43:38.922Z,ACME\svc_backup
+IT-WS-064,10.10.2.164,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-19T17:21:12.376Z,2026-02-17T10:02:16.368Z,NT AUTHORITY\SYSTEM
+IT-WS-064,10.10.2.164,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-19T15:50:42.011Z,2026-02-12T17:58:19.048Z,NT AUTHORITY\SYSTEM
+IT-WS-064,10.10.2.164,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-11T01:49:38.430Z,2026-02-19T15:56:40.756Z,NT AUTHORITY\SYSTEM
+IT-WS-064,10.10.2.164,\ACME\Backup,C:\Tools\backup.ps1,False,2026-02-13T00:09:09.866Z,2026-02-15T08:41:11.447Z,ACME\svc_backup
+IT-WS-064,10.10.2.164,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-12T22:14:29.236Z,2026-02-10T22:02:56.979Z,ACME\svc_backup
+HR-WS-065,10.10.3.165,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-18T00:54:39.768Z,2026-02-19T16:47:40.687Z,NT AUTHORITY\SYSTEM
+HR-WS-065,10.10.3.165,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-15T23:21:31.438Z,2026-02-17T13:46:56.603Z,NT AUTHORITY\SYSTEM
+HR-WS-065,10.10.3.165,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-12T13:01:23.505Z,2026-02-15T11:44:53.742Z,NT AUTHORITY\SYSTEM
+HR-WS-065,10.10.3.165,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-18T19:31:04.992Z,2026-02-11T14:13:49.636Z,ACME\svc_backup
+HR-WS-065,10.10.3.165,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-13T05:03:45.358Z,2026-02-13T03:36:04.167Z,ACME\svc_backup
+FIN-WS-066,10.10.1.166,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-10T16:57:48.753Z,2026-02-18T06:52:33.511Z,NT AUTHORITY\SYSTEM
+FIN-WS-066,10.10.1.166,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-18T20:24:17.462Z,2026-02-16T10:51:51.126Z,NT AUTHORITY\SYSTEM
+FIN-WS-066,10.10.1.166,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-18T20:59:12.352Z,2026-02-10T18:15:22.831Z,NT AUTHORITY\SYSTEM
+FIN-WS-066,10.10.1.166,\ACME\Backup,C:\Tools\backup.ps1,False,2026-02-17T14:13:08.229Z,2026-02-10T21:42:39.121Z,ACME\svc_backup
+FIN-WS-066,10.10.1.166,\ACME\Inventory,C:\Tools\inventory.exe --scan,False,2026-02-19T11:17:12.330Z,2026-02-14T13:02:38.561Z,ACME\svc_backup
+SLS-WS-067,10.10.2.167,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-17T06:44:14.817Z,2026-02-14T10:04:24.351Z,NT AUTHORITY\SYSTEM
+SLS-WS-067,10.10.2.167,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-15T18:21:16.370Z,2026-02-13T11:47:39.420Z,NT AUTHORITY\SYSTEM
+SLS-WS-067,10.10.2.167,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-13T23:53:09.292Z,2026-02-19T04:22:51.709Z,NT AUTHORITY\SYSTEM
+SLS-WS-067,10.10.2.167,\ACME\Backup,C:\Tools\backup.ps1,False,2026-02-14T09:32:14.262Z,2026-02-13T23:55:00.827Z,ACME\svc_backup
+SLS-WS-067,10.10.2.167,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-14T03:33:11.712Z,2026-02-14T20:40:52.915Z,ACME\svc_backup
+ENG-WS-068,10.10.3.168,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-13T13:55:46.181Z,2026-02-11T19:23:09.804Z,NT AUTHORITY\SYSTEM
+ENG-WS-068,10.10.3.168,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-15T11:33:54.705Z,2026-02-13T21:19:09.081Z,NT AUTHORITY\SYSTEM
+ENG-WS-068,10.10.3.168,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-16T14:45:02.469Z,2026-02-11T20:36:25.115Z,NT AUTHORITY\SYSTEM
+ENG-WS-068,10.10.3.168,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-11T16:37:23.228Z,2026-02-14T13:57:15.793Z,ACME\svc_backup
+ENG-WS-068,10.10.3.168,\ACME\Inventory,C:\Tools\inventory.exe --scan,False,2026-02-13T14:02:01.808Z,2026-02-13T05:49:47.398Z,ACME\svc_backup
+LEG-WS-069,10.10.1.169,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-18T06:45:29.345Z,2026-02-12T03:16:18.194Z,NT AUTHORITY\SYSTEM
+LEG-WS-069,10.10.1.169,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,False,2026-02-14T08:20:40.685Z,2026-02-16T17:16:42.022Z,NT AUTHORITY\SYSTEM
+LEG-WS-069,10.10.1.169,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-12T03:40:20.934Z,2026-02-15T15:18:01.003Z,NT AUTHORITY\SYSTEM
+LEG-WS-069,10.10.1.169,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-20T11:52:48.196Z,2026-02-16T16:16:13.339Z,ACME\svc_backup
+LEG-WS-069,10.10.1.169,\ACME\Inventory,C:\Tools\inventory.exe --scan,False,2026-02-11T02:55:43.227Z,2026-02-13T07:56:11.915Z,ACME\svc_backup
+MKT-WS-070,10.10.2.170,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-17T22:47:31.958Z,2026-02-17T15:06:34.912Z,NT AUTHORITY\SYSTEM
+MKT-WS-070,10.10.2.170,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-15T02:08:07.289Z,2026-02-15T12:41:06.092Z,NT AUTHORITY\SYSTEM
+MKT-WS-070,10.10.2.170,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-11T14:03:06.009Z,2026-02-12T23:21:43.664Z,NT AUTHORITY\SYSTEM
+MKT-WS-070,10.10.2.170,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-16T11:23:49.725Z,2026-02-15T17:20:03.103Z,ACME\svc_backup
+MKT-WS-070,10.10.2.170,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-14T05:45:14.665Z,2026-02-18T04:36:05.218Z,ACME\svc_backup
+EXEC-WS-071,10.10.3.171,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-19T21:58:07.627Z,2026-02-13T20:29:02.208Z,NT AUTHORITY\SYSTEM
+EXEC-WS-071,10.10.3.171,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-12T11:01:14.918Z,2026-02-17T22:49:52.939Z,NT AUTHORITY\SYSTEM
+EXEC-WS-071,10.10.3.171,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-16T21:55:41.932Z,2026-02-19T20:13:09.894Z,NT AUTHORITY\SYSTEM
+EXEC-WS-071,10.10.3.171,\ACME\Backup,C:\Tools\backup.ps1,False,2026-02-17T02:32:40.833Z,2026-02-12T14:25:25.075Z,ACME\svc_backup
+EXEC-WS-071,10.10.3.171,\ACME\Inventory,C:\Tools\inventory.exe --scan,False,2026-02-13T16:04:12.865Z,2026-02-15T22:04:39.245Z,ACME\svc_backup
+IT-WS-072,10.10.1.172,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-15T01:30:34.938Z,2026-02-18T16:57:52.320Z,NT AUTHORITY\SYSTEM
+IT-WS-072,10.10.1.172,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-13T11:00:21.112Z,2026-02-18T18:39:21.915Z,NT AUTHORITY\SYSTEM
+IT-WS-072,10.10.1.172,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,False,2026-02-19T06:06:35.027Z,2026-02-19T19:07:43.006Z,NT AUTHORITY\SYSTEM
+IT-WS-072,10.10.1.172,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-13T22:19:29.987Z,2026-02-16T23:11:40.491Z,ACME\svc_backup
+IT-WS-072,10.10.1.172,\ACME\Inventory,C:\Tools\inventory.exe --scan,False,2026-02-12T14:46:23.485Z,2026-02-10T15:07:59.419Z,ACME\svc_backup
+HR-WS-073,10.10.2.173,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-17T18:06:47.797Z,2026-02-18T04:18:01.534Z,NT AUTHORITY\SYSTEM
+HR-WS-073,10.10.2.173,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-20T17:51:58.761Z,2026-02-20T00:44:00.041Z,NT AUTHORITY\SYSTEM
+HR-WS-073,10.10.2.173,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-17T07:20:04.569Z,2026-02-17T09:06:03.744Z,NT AUTHORITY\SYSTEM
+HR-WS-073,10.10.2.173,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-16T23:23:12.970Z,2026-02-11T15:43:15.739Z,ACME\svc_backup
+HR-WS-073,10.10.2.173,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-14T14:03:31.039Z,2026-02-15T04:51:55.591Z,ACME\svc_backup
+FIN-WS-074,10.10.3.174,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-16T20:00:55.479Z,2026-02-15T02:59:46.886Z,NT AUTHORITY\SYSTEM
+FIN-WS-074,10.10.3.174,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-13T15:12:39.650Z,2026-02-11T03:38:35.784Z,NT AUTHORITY\SYSTEM
+FIN-WS-074,10.10.3.174,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-20T04:55:05.330Z,2026-02-14T00:15:48.376Z,NT AUTHORITY\SYSTEM
+FIN-WS-074,10.10.3.174,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-10T18:50:31.495Z,2026-02-20T00:42:34.849Z,ACME\svc_backup
+FIN-WS-074,10.10.3.174,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-16T04:36:02.677Z,2026-02-14T12:21:16.058Z,ACME\svc_backup
+SLS-WS-075,10.10.1.175,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,False,2026-02-19T13:23:32.622Z,2026-02-11T05:35:54.700Z,NT AUTHORITY\SYSTEM
+SLS-WS-075,10.10.1.175,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-11T00:02:00.028Z,2026-02-11T01:58:38.127Z,NT AUTHORITY\SYSTEM
+SLS-WS-075,10.10.1.175,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,False,2026-02-19T00:28:03.739Z,2026-02-16T12:10:17.803Z,NT AUTHORITY\SYSTEM
+SLS-WS-075,10.10.1.175,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-18T21:54:47.101Z,2026-02-17T22:18:28.826Z,ACME\svc_backup
+SLS-WS-075,10.10.1.175,\ACME\Inventory,C:\Tools\inventory.exe --scan,False,2026-02-15T14:45:11.098Z,2026-02-17T00:26:03.139Z,ACME\svc_backup
+DC-01,10.10.1.10,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-18T05:34:55.315Z,2026-02-12T02:10:11.753Z,NT AUTHORITY\SYSTEM
+DC-01,10.10.1.10,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-12T06:31:45.770Z,2026-02-14T09:35:12.337Z,NT AUTHORITY\SYSTEM
+DC-01,10.10.1.10,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-16T23:45:01.815Z,2026-02-20T12:20:04.033Z,NT AUTHORITY\SYSTEM
+DC-01,10.10.1.10,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-14T12:56:42.532Z,2026-02-18T08:03:44.533Z,ACME\svc_backup
+DC-01,10.10.1.10,\ACME\Inventory,C:\Tools\inventory.exe --scan,False,2026-02-14T16:21:55.199Z,2026-02-10T10:37:33.447Z,ACME\svc_backup
+DC-02,10.10.2.10,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-12T21:41:33.305Z,2026-02-18T06:57:25.169Z,NT AUTHORITY\SYSTEM
+DC-02,10.10.2.10,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,False,2026-02-19T11:04:47.035Z,2026-02-18T12:48:33.666Z,NT AUTHORITY\SYSTEM
+DC-02,10.10.2.10,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-16T15:09:33.108Z,2026-02-19T13:21:17.011Z,NT AUTHORITY\SYSTEM
+DC-02,10.10.2.10,\ACME\Backup,C:\Tools\backup.ps1,False,2026-02-11T04:53:25.476Z,2026-02-17T23:33:55.502Z,ACME\svc_backup
+DC-02,10.10.2.10,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-17T06:32:00.675Z,2026-02-12T03:16:42.034Z,ACME\svc_backup
+FILE-01,10.10.1.11,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-10T16:02:30.187Z,2026-02-18T19:56:12.599Z,NT AUTHORITY\SYSTEM
+FILE-01,10.10.1.11,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,False,2026-02-18T11:25:10.160Z,2026-02-11T15:30:06.173Z,NT AUTHORITY\SYSTEM
+FILE-01,10.10.1.11,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,False,2026-02-14T03:21:46.273Z,2026-02-18T23:56:47.836Z,NT AUTHORITY\SYSTEM
+FILE-01,10.10.1.11,\ACME\Backup,C:\Tools\backup.ps1,True,2026-02-20T02:34:57.371Z,2026-02-12T20:01:23.947Z,ACME\svc_backup
+FILE-01,10.10.1.11,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-18T17:43:39.979Z,2026-02-12T10:42:19.061Z,ACME\svc_backup
+EXCH-01,10.10.1.12,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-15T15:10:43.406Z,2026-02-16T04:55:20.434Z,NT AUTHORITY\SYSTEM
+EXCH-01,10.10.1.12,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-13T17:09:26.090Z,2026-02-17T18:12:23.822Z,NT AUTHORITY\SYSTEM
+EXCH-01,10.10.1.12,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-20T16:29:42.205Z,2026-02-19T10:49:11.222Z,NT AUTHORITY\SYSTEM
+EXCH-01,10.10.1.12,\ACME\Backup,C:\Tools\backup.ps1,False,2026-02-11T18:25:07.936Z,2026-02-20T04:19:26.786Z,ACME\svc_backup
+EXCH-01,10.10.1.12,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-17T01:30:28.460Z,2026-02-13T05:57:34.175Z,ACME\svc_backup
+WEB-01,10.10.3.10,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,False,2026-02-12T12:22:58.456Z,2026-02-18T19:15:11.541Z,NT AUTHORITY\SYSTEM
+WEB-01,10.10.3.10,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-15T19:15:16.733Z,2026-02-14T08:34:13.004Z,NT AUTHORITY\SYSTEM
+WEB-01,10.10.3.10,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,False,2026-02-19T09:53:12.372Z,2026-02-17T02:59:14.291Z,NT AUTHORITY\SYSTEM
+WEB-01,10.10.3.10,\ACME\Backup,C:\Tools\backup.ps1,False,2026-02-15T21:38:04.019Z,2026-02-19T04:43:09.645Z,ACME\svc_backup
+WEB-01,10.10.3.10,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-10T12:59:56.574Z,2026-02-13T15:51:55.193Z,ACME\svc_backup
+SQL-01,10.10.2.11,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-14T02:24:22.229Z,2026-02-12T07:23:21.046Z,NT AUTHORITY\SYSTEM
+SQL-01,10.10.2.11,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-12T15:35:11.480Z,2026-02-11T07:46:47.657Z,NT AUTHORITY\SYSTEM
+SQL-01,10.10.2.11,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-13T09:04:33.741Z,2026-02-14T22:48:34.137Z,NT AUTHORITY\SYSTEM
+SQL-01,10.10.2.11,\ACME\Backup,C:\Tools\backup.ps1,False,2026-02-12T08:16:22.617Z,2026-02-18T21:46:16.878Z,ACME\svc_backup
+SQL-01,10.10.2.11,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-14T01:28:09.989Z,2026-02-19T03:38:03.534Z,ACME\svc_backup
+PROXY-01,10.10.1.13,\Microsoft\Windows\UpdateOrchestrator\Schedule Scan,C:\Windows\System32\usoclient.exe StartScan,True,2026-02-20T01:06:00.970Z,2026-02-13T05:34:29.899Z,NT AUTHORITY\SYSTEM
+PROXY-01,10.10.1.13,\Microsoft\Windows\Defrag\ScheduledDefrag,C:\Windows\System32\defrag.exe -c -h -o,True,2026-02-15T00:23:40.261Z,2026-02-19T05:33:16.704Z,NT AUTHORITY\SYSTEM
+PROXY-01,10.10.1.13,\Microsoft\Windows\WindowsUpdate\Automatic App Update,C:\Windows\System32\UsoClient.exe,True,2026-02-18T03:48:10.799Z,2026-02-15T08:41:54.461Z,NT AUTHORITY\SYSTEM
+PROXY-01,10.10.1.13,\ACME\Backup,C:\Tools\backup.ps1,False,2026-02-17T12:57:02.701Z,2026-02-16T21:29:03.726Z,ACME\svc_backup
+PROXY-01,10.10.1.13,\ACME\Inventory,C:\Tools\inventory.exe --scan,True,2026-02-12T07:58:03.576Z,2026-02-16T01:04:54.799Z,ACME\svc_backup

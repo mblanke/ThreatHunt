@@ -45,8 +45,20 @@ async def get_db() -> AsyncSession:  # type: ignore[misc]
 
 async def init_db() -> None:
     """Create all tables (for dev / first-run). In production use Alembic."""
+    from sqlalchemy import inspect as sa_inspect
+
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+        # Only create tables that don't already exist (safe alongside Alembic)
+        def _create_missing(sync_conn):
+            inspector = sa_inspect(sync_conn)
+            existing = set(inspector.get_table_names())
+            tables_to_create = [
+                t for t in Base.metadata.sorted_tables
+                if t.name not in existing
+            ]
+            Base.metadata.create_all(sync_conn, tables=tables_to_create)
+
+        await conn.run_sync(_create_missing)
 
 
 async def dispose_db() -> None:

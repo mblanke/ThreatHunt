@@ -1,774 +1,903 @@
 /**
- * NetworkMap — interactive hunt-scoped force-directed network graph.
+ * NetworkMap - interactive hunt-scoped network graph powered by Cytoscape.js.
  *
- * • Select a hunt → loads only that hunt's datasets
- * • Nodes = unique IPs / hostnames / domains pulled from IOC columns
- * • Edges = "seen together in the same row" co-occurrence
- * • Click a node → popover showing hostname, IP, OS, dataset sources, connections
- * • Responsive canvas with ResizeObserver
- * • Zero extra npm dependencies
+ * Graph model:
+ *  - Host nodes (green) - one per unique hostname, labeled with hostname + local IP
+ *  - Remote IP nodes (blue) - external IPs that hosts connect to
+ *  - Internal IP nodes (cyan) - internal IPs hosts connect to (lateral movement)
+ *  - Domain nodes (yellow) - domains from DNS / proxy / sysmon logs
+ *  - URL nodes (purple) - URLs from browser / proxy logs
+ *  - Edges = observed connection/co-occurrence between a host and a remote entity
+ *
+ * Layout: cytoscape-cola (constraint-based, non-overlapping)
  */
 
-import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   Box, Typography, Paper, Stack, Alert, Chip, Button, TextField,
   LinearProgress, FormControl, InputLabel, Select, MenuItem,
-  Popover, Divider, IconButton,
+  Divider, IconButton,
 } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import CloseIcon from '@mui/icons-material/Close';
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import ZoomOutIcon from '@mui/icons-material/ZoomOut';
 import CenterFocusStrongIcon from '@mui/icons-material/CenterFocusStrong';
+import cytoscape, { type Core, type ElementDefinition, type StylesheetStyle } from 'cytoscape';
+import cola from 'cytoscape-cola';
 import { datasets, hunts, type Hunt, type DatasetSummary } from '../api/client';
 
-// ── Graph primitives ─────────────────────────────────────────────────
+// Register cola layout once
+try { cytoscape.use(cola); } catch { /* already registered */ }
 
-type NodeType = 'ip' | 'hostname' | 'domain' | 'url';
+// -- Types --
 
-interface NodeMeta {
-  hostnames: Set<string>;
-  ips: Set<string>;
-  os: Set<string>;
+type NodeKind = 'host' | 'internal_ip' | 'external_ip' | 'domain' | 'url';
+
+interface HostInfo {
+  hostname: string;
+  localIp: string;
+  os: string;
   datasets: Set<string>;
-  type: NodeType;
+  remoteIps: Map<string, number>;   // remoteIp -> weight
+  domains: Map<string, number>;
+  urls: Map<string, number>;
+  internalIps: Map<string, number>; // lateral connections to other internal IPs
 }
 
-interface GNode {
-  id: string; label: string; x: number; y: number;
-  vx: number; vy: number; radius: number; color: string; count: number;
-  meta: { hostnames: string[]; ips: string[]; os: string[]; datasets: string[]; type: NodeType };
-}
-interface GEdge { source: string; target: string; weight: number }
-interface Graph { nodes: GNode[]; edges: GEdge[] }
-
-const TYPE_COLORS: Record<NodeType, string> = {
-  ip: '#3b82f6', hostname: '#22c55e', domain: '#eab308', url: '#8b5cf6',
+const KIND_COLORS: Record<NodeKind, string> = {
+  host: '#22c55e',
+  internal_ip: '#06b6d4',
+  external_ip: '#3b82f6',
+  domain: '#eab308',
+  url: '#8b5cf6',
 };
 
-// ── Helpers: find context columns from dataset schema ────────────────
+const _JUNK = new Set(['', '-', '0.0.0.0', '::', '0', '127.0.0.1', '::1', 'localhost', 'unknown', 'n/a', 'none']);
+function clean(v: any): string {
+  const s = (v ?? '').toString().trim();
+  return _JUNK.has(s.toLowerCase()) ? '' : s;
+}
 
-/** Best-effort detection of hostname, IP, and OS columns from raw column names + normalized mapping. */
-function findContextColumns(ds: DatasetSummary) {
+function isInternalIp(ip: string): boolean {
+  return /^(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.)/.test(ip);
+}
+
+// -- Build graph data from API rows --
+
+interface RowBatch {
+  rows: Record<string, any>[];
+  ds: DatasetSummary;
+}
+
+function findColumns(ds: DatasetSummary) {
   const norm = ds.normalized_columns || {};
   const schema = ds.column_schema || {};
   const rawCols = Object.keys(schema).length > 0 ? Object.keys(schema) : Object.keys(norm);
 
   const hostCols: string[] = [];
-  const ipCols: string[] = [];
+  const srcIpCols: string[] = [];
+  const dstIpCols: string[] = [];
+  const domainCols: string[] = [];
+  const urlCols: string[] = [];
   const osCols: string[] = [];
 
   for (const raw of rawCols) {
-    const canonical = norm[raw] || '';
-    const lower = raw.toLowerCase();
-    // Hostname columns
-    if (canonical === 'hostname' || /^(hostname|host|fqdn|computer_?name|system_?name|machinename)$/i.test(lower)) {
+    const canon = norm[raw] || '';
+    const lc = raw.toLowerCase();
+    if (canon === 'hostname' || /^(hostname|host|fqdn|computer_?name|system_?name)$/i.test(lc))
       hostCols.push(raw);
-    }
-    // IP columns
-    if (['src_ip', 'dst_ip', 'ip_address'].includes(canonical) || /^(ip|ip_?address|src_?ip|dst_?ip|source_?ip|dest_?ip)$/i.test(lower)) {
-      ipCols.push(raw);
-    }
-    // OS columns (best-effort — raw name scan + normalized canonical)
-    if (canonical === 'os' || /^(os|operating_?system|os_?version|os_?name|platform|os_?type)$/i.test(lower)) {
+    if (canon === 'src_ip' || /^(source_?ip|src_?ip|laddr\.?ip|local_?address|sourceip)$/i.test(lc))
+      srcIpCols.push(raw);
+    if (canon === 'dst_ip' || /^(dest_?ip|dst_?ip|raddr\.?ip|remote_?address|destination_?ip|destinationip)$/i.test(lc))
+      dstIpCols.push(raw);
+    if (canon === 'ip_address' || /^(ip_?address|ip|sourceaddress)$/i.test(lc))
+      srcIpCols.push(raw); // generic IP -> treat as source
+    if (canon === 'domain' || /^(domain|dns_?name|query_?name|queriedname|destinationhostname)$/i.test(lc))
+      domainCols.push(raw);
+    if (canon === 'url' || /^(url|uri|request_?url)$/i.test(lc))
+      urlCols.push(raw);
+    if (canon === 'os' || /^(os|operating_?system)$/i.test(lc))
       osCols.push(raw);
-    }
   }
-  return { hostCols, ipCols, osCols };
+  return { hostCols, srcIpCols, dstIpCols, domainCols, urlCols, osCols };
 }
 
-function cleanVal(v: any): string {
-  const s = (v ?? '').toString().trim();
-  return (s && s !== '-' && s !== '0.0.0.0' && s !== '::') ? s : '';
-}
+function buildGraphData(batches: RowBatch[]) {
+  // Collect host-centric data
+  const hostMap = new Map<string, HostInfo>();
 
-// ── Build graph with per-node metadata ───────────────────────────────
+  // Also build a map of IP -> hostname for resolving internal connections
+  const ipToHost = new Map<string, string>();
 
-interface RowBatch {
-  rows: Record<string, any>[];
-  iocColumns: Record<string, any>;
-  dsName: string;
-  ds: DatasetSummary;
-}
-
-function buildGraph(allBatches: RowBatch[], canvasW: number, canvasH: number): Graph {
-  const countMap = new Map<string, number>();
-  const edgeMap = new Map<string, number>();
-  const metaMap = new Map<string, NodeMeta>();
-
-  const getOrCreateMeta = (id: string, type: NodeType): NodeMeta => {
-    let m = metaMap.get(id);
-    if (!m) { m = { hostnames: new Set(), ips: new Set(), os: new Set(), datasets: new Set(), type }; metaMap.set(id, m); }
-    return m;
-  };
-
-  for (const { rows, iocColumns, dsName, ds } of allBatches) {
-    // IOC columns that produce graph nodes
-    const iocEntries = Object.entries(iocColumns).filter(([, t]) => {
-      const typ = Array.isArray(t) ? t[0] : t;
-      return typ === 'ip' || typ === 'hostname' || typ === 'domain' || typ === 'url';
-    }).map(([col, t]) => {
-      const typ = (Array.isArray(t) ? t[0] : t) as NodeType;
-      return { col, typ };
-    });
-
-    if (iocEntries.length === 0) continue;
-
-    // Context columns for enrichment
-    const ctx = findContextColumns(ds);
+  for (const { rows, ds } of batches) {
+    const cols = findColumns(ds);
+    if (cols.hostCols.length === 0 && cols.srcIpCols.length === 0) continue;
 
     for (const row of rows) {
-      // Collect IOC values for this row (nodes + edges)
-      const vals: { v: string; typ: NodeType }[] = [];
-      for (const { col, typ } of iocEntries) {
-        const v = cleanVal(row[col]);
-        if (v) vals.push({ v, typ });
+      // Resolve hostname
+      let hostname = '';
+      for (const c of cols.hostCols) { hostname = clean(row[c]); if (hostname) break; }
+
+      // Resolve source IP
+      let srcIp = '';
+      for (const c of cols.srcIpCols) { srcIp = clean(row[c]); if (srcIp) break; }
+
+      // If no hostname but have srcIp, use IP as hostname
+      if (!hostname && srcIp) hostname = srcIp;
+      if (!hostname) continue;
+
+      // Get or create host
+      let host = hostMap.get(hostname);
+      if (!host) {
+        host = {
+          hostname, localIp: srcIp || '', os: '',
+          datasets: new Set(), remoteIps: new Map(),
+          domains: new Map(), urls: new Map(), internalIps: new Map(),
+        };
+        hostMap.set(hostname, host);
       }
-      const unique = [...new Map(vals.map(x => [x.v, x])).values()];
+      host.datasets.add(ds.name);
+      if (srcIp && !host.localIp) host.localIp = srcIp;
 
-      // Count occurrences
-      for (const { v } of unique) countMap.set(v, (countMap.get(v) ?? 0) + 1);
+      // Register IP->hostname mapping
+      if (srcIp && isInternalIp(srcIp)) ipToHost.set(srcIp, hostname);
 
-      // Create edges (co-occurrence)
-      for (let i = 0; i < unique.length; i++) {
-        for (let j = i + 1; j < unique.length; j++) {
-          const key = [unique[i].v, unique[j].v].sort().join('||');
-          edgeMap.set(key, (edgeMap.get(key) ?? 0) + 1);
+      // OS
+      for (const c of cols.osCols) {
+        const os = clean(row[c]);
+        if (os) host.os = os;
+      }
+
+      // Destination IPs
+      for (const c of cols.dstIpCols) {
+        const dstIp = clean(row[c]);
+        if (!dstIp) continue;
+        if (dstIp === srcIp) continue; // skip self
+        if (isInternalIp(dstIp)) {
+          host.internalIps.set(dstIp, (host.internalIps.get(dstIp) || 0) + 1);
+        } else {
+          host.remoteIps.set(dstIp, (host.remoteIps.get(dstIp) || 0) + 1);
         }
       }
 
-      // Extract context values from this row
-      const rowHosts = ctx.hostCols.map(c => cleanVal(row[c])).filter(Boolean);
-      const rowIps = ctx.ipCols.map(c => cleanVal(row[c])).filter(Boolean);
-      const rowOs = ctx.osCols.map(c => cleanVal(row[c])).filter(Boolean);
+      // Domains
+      for (const c of cols.domainCols) {
+        const d = clean(row[c]);
+        if (d) host.domains.set(d, (host.domains.get(d) || 0) + 1);
+      }
 
-      // Attach context to each node in this row
-      for (const { v, typ } of unique) {
-        const meta = getOrCreateMeta(v, typ);
-        meta.datasets.add(dsName);
-        for (const h of rowHosts) meta.hostnames.add(h);
-        for (const ip of rowIps) meta.ips.add(ip);
-        for (const o of rowOs) meta.os.add(o);
+      // URLs
+      for (const c of cols.urlCols) {
+        const u = clean(row[c]);
+        if (u) host.urls.set(u, (host.urls.get(u) || 0) + 1);
       }
     }
   }
 
-  const nodes: GNode[] = [...countMap.entries()].map(([id, count]) => {
-    const raw = metaMap.get(id);
-    const type: NodeType = raw?.type || 'ip';
-    return {
-      id, label: id, count,
-      x: canvasW / 2 + (Math.random() - 0.5) * canvasW * 0.75,
-      y: canvasH / 2 + (Math.random() - 0.5) * canvasH * 0.65,
-      vx: 0, vy: 0,
-      radius: Math.max(5, Math.min(18, 4 + Math.sqrt(count) * 1.6)),
-      color: TYPE_COLORS[type],
-      meta: {
-        hostnames: [...(raw?.hostnames ?? [])],
-        ips: [...(raw?.ips ?? [])],
-        os: [...(raw?.os ?? [])],
-        datasets: [...(raw?.datasets ?? [])],
-        type,
-      },
-    };
-  });
+  // Now build Cytoscape elements
+  const elements: ElementDefinition[] = [];
+  const addedNodes = new Set<string>();
 
-  const edges: GEdge[] = [...edgeMap.entries()].map(([key, weight]) => {
-    const [source, target] = key.split('||');
-    return { source, target, weight };
-  });
+  const addNode = (id: string, label: string, kind: NodeKind, extra: Record<string, any> = {}) => {
+    if (addedNodes.has(id)) return;
+    addedNodes.add(id);
+    elements.push({
+      data: { id, label, kind, ...extra },
+    });
+  };
 
-  return { nodes, edges };
-}
+  const edgeSet = new Set<string>();
+  const addEdge = (src: string, tgt: string, weight: number, edgeKind: string) => {
+    const key = `${src}->${tgt}`;
+    if (edgeSet.has(key)) return;
+    edgeSet.add(key);
+    elements.push({
+      data: { source: src, target: tgt, weight, edgeKind },
+    });
+  };
 
-// ── Force simulation ─────────────────────────────────────────────────
+  // Cap: top 200 hosts by activity level
+  const MAX_HOSTS = 200;
+  const sortedHosts = [...hostMap.values()]
+    .sort((a, b) => {
+      const aScore = a.remoteIps.size + a.domains.size + a.urls.size + a.internalIps.size;
+      const bScore = b.remoteIps.size + b.domains.size + b.urls.size + b.internalIps.size;
+      return bScore - aScore;
+    })
+    .slice(0, MAX_HOSTS);
 
-function simulate(graph: Graph, cx: number, cy: number, steps = 120) {
-  const { nodes, edges } = graph;
-  const nodeMap = new Map(nodes.map(n => [n.id, n]));
-  const k = 80;
-  const repulsion = 6000;
-  const damping = 0.85;
+  const keptHostnames = new Set(sortedHosts.map(h => h.hostname));
 
-  for (let step = 0; step < steps; step++) {
-    for (let i = 0; i < nodes.length; i++) {
-      for (let j = i + 1; j < nodes.length; j++) {
-        const a = nodes[i], b = nodes[j];
-        const dx = b.x - a.x, dy = b.y - a.y;
-        const dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
-        const force = repulsion / (dist * dist);
-        const fx = (dx / dist) * force, fy = (dy / dist) * force;
-        a.vx -= fx; a.vy -= fy;
-        b.vx += fx; b.vy += fy;
+  // Per-host: cap connections to top N by frequency
+  const MAX_REMOTE_PER_HOST = 15;
+  const MAX_DOMAIN_PER_HOST = 10;
+  const MAX_URL_PER_HOST = 5;
+
+  const stats = { hosts: 0, internalIps: 0, externalIps: 0, domains: 0, urls: 0, edges: 0 };
+
+  for (const host of sortedHosts) {
+    const hostId = `host::${host.hostname}`;
+    addNode(hostId, host.localIp
+      ? `${host.hostname}\n${host.localIp}`
+      : host.hostname, 'host', {
+      hostname: host.hostname,
+      localIp: host.localIp,
+      os: host.os,
+      dsNames: [...host.datasets],
+      connectionCount: host.remoteIps.size + host.internalIps.size + host.domains.size + host.urls.size,
+    });
+    stats.hosts++;
+
+    // Remote IPs - top N
+    const topRemote = [...host.remoteIps.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, MAX_REMOTE_PER_HOST);
+    for (const [ip, w] of topRemote) {
+      const nid = `extip::${ip}`;
+      addNode(nid, ip, 'external_ip');
+      addEdge(hostId, nid, w, 'remote');
+      stats.externalIps++;
+      stats.edges++;
+    }
+
+    // Internal IP connections (lateral movement) - resolve to host if possible
+    const topInternal = [...host.internalIps.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, MAX_REMOTE_PER_HOST);
+    for (const [ip, w] of topInternal) {
+      const remoteHostname = ipToHost.get(ip);
+      if (remoteHostname && keptHostnames.has(remoteHostname) && remoteHostname !== host.hostname) {
+        // Link host-to-host (lateral)
+        addEdge(hostId, `host::${remoteHostname}`, w, 'lateral');
+      } else {
+        const nid = `intip::${ip}`;
+        addNode(nid, ip, 'internal_ip');
+        addEdge(hostId, nid, w, 'internal');
+        stats.internalIps++;
       }
+      stats.edges++;
     }
-    for (const e of edges) {
-      const a = nodeMap.get(e.source), b = nodeMap.get(e.target);
-      if (!a || !b) continue;
-      const dx = b.x - a.x, dy = b.y - a.y;
-      const dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
-      const force = (dist - k) * 0.05;
-      const fx = (dx / dist) * force, fy = (dy / dist) * force;
-      a.vx += fx; a.vy += fy;
-      b.vx -= fx; b.vy -= fy;
+
+    // Domains - top N
+    const topDomains = [...host.domains.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, MAX_DOMAIN_PER_HOST);
+    for (const [dom, w] of topDomains) {
+      const nid = `domain::${dom}`;
+      addNode(nid, dom, 'domain');
+      addEdge(hostId, nid, w, 'dns');
+      stats.domains++;
+      stats.edges++;
     }
-    for (const n of nodes) {
-      n.vx += (cx - n.x) * 0.001;
-      n.vy += (cy - n.y) * 0.001;
-      n.vx *= damping; n.vy *= damping;
-      n.x += n.vx; n.y += n.vy;
+
+    // URLs - top N
+    const topUrls = [...host.urls.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, MAX_URL_PER_HOST);
+    for (const [url, w] of topUrls) {
+      // Shorten URL label
+      let label = url;
+      try { const u = new URL(url.startsWith('http') ? url : `https://${url}`); label = u.hostname + u.pathname.slice(0, 30); } catch {}
+      const nid = `url::${url}`;
+      addNode(nid, label, 'url');
+      addEdge(hostId, nid, w, 'url');
+      stats.urls++;
+      stats.edges++;
     }
   }
+
+  return { elements, stats, hostCount: hostMap.size };
 }
 
-// ── Viewport (zoom / pan) ────────────────────────────────────────────
+// -- Cytoscape styles --
 
-interface Viewport { x: number; y: number; scale: number }
+const CY_STYLES: StylesheetStyle[] = [
+  {
+    selector: 'node',
+    style: {
+      label: 'data(label)',
+      'text-valign': 'bottom' as any,
+      'text-halign': 'center' as any,
+      'font-size': '9px',
+      color: '#94a3b8',
+      'text-margin-y': 4,
+      'background-opacity': 0.9,
+      'border-width': 1,
+      'border-color': '#1e293b',
+      'text-wrap': 'wrap' as any,
+      'text-max-width': '120px',
+    },
+  },
+  {
+    selector: 'node[kind="host"]',
+    style: {
+      'background-color': KIND_COLORS.host,
+      shape: 'round-rectangle' as any,
+      width: 140,
+      height: 60,
+      'font-size': '14px',
+      'font-weight': 'bold' as any,
+      color: '#e2e8f0',
+      'text-valign': 'center' as any,
+      'text-halign': 'center' as any,
+      'text-margin-y': 0,
+      'text-wrap': 'wrap' as any,
+      'text-max-width': '130px',
+      'padding': '8px',
+    } as any,
+  },
+  {
+    selector: 'node[kind="external_ip"]',
+    style: {
+      'background-color': KIND_COLORS.external_ip,
+      width: 50,
+      height: 50,
+    },
+  },
+  {
+    selector: 'node[kind="internal_ip"]',
+    style: {
+      'background-color': KIND_COLORS.internal_ip,
+      width: 50,
+      height: 50,
+    },
+  },
+  {
+    selector: 'node[kind="domain"]',
+    style: {
+      'background-color': KIND_COLORS.domain,
+      shape: 'diamond' as any,
+      width: 55,
+      height: 55,
+    },
+  },
+  {
+    selector: 'node[kind="url"]',
+    style: {
+      'background-color': KIND_COLORS.url,
+      shape: 'triangle' as any,
+      width: 45,
+      height: 45,
+      'font-size': '8px',
+    },
+  },
+  {
+    selector: 'edge',
+    style: {
+      width: 2,
+      'line-color': '#334155',
+      'curve-style': 'bezier' as any,
+      opacity: 0.5,
+    } as any,
+  },
+  {
+    selector: 'edge[edgeKind="lateral"]',
+    style: {
+      'line-color': '#f59e0b',
+      'line-style': 'dashed' as any,
+      width: 4,
+      opacity: 0.8,
+    } as any,
+  },
+  {
+    selector: 'edge[edgeKind="remote"]',
+    style: {
+      'line-color': '#3b82f6',
+      opacity: 0.4,
+    } as any,
+  },
+  {
+    selector: 'edge[edgeKind="dns"]',
+    style: {
+      'line-color': '#eab308',
+      opacity: 0.35,
+    } as any,
+  },
+  {
+    selector: 'node:selected',
+    style: {
+      'border-width': 3,
+      'border-color': '#f1f5f9',
+      'background-opacity': 1,
+    },
+  },
+  {
+    selector: 'node.highlighted',
+    style: {
+      'border-width': 3,
+      'border-color': '#60a5fa',
+      'font-size': '11px',
+      color: '#f1f5f9',
+      'z-index': 999,
+    } as any,
+  },
+  {
+    selector: 'edge.highlighted',
+    style: {
+      width: 2.5,
+      opacity: 0.9,
+      'z-index': 998,
+    } as any,
+  },
+  {
+    selector: 'node.dimmed',
+    style: {
+      opacity: 0.12,
+    },
+  },
+  {
+    selector: 'edge.dimmed',
+    style: {
+      opacity: 0.05,
+    },
+  },
+];
 
-const MIN_ZOOM = 0.1;
-const MAX_ZOOM = 8;
+// -- Component --
 
-// ── Canvas renderer ──────────────────────────────────────────────────
-
-function drawGraph(
-  ctx: CanvasRenderingContext2D, graph: Graph,
-  hovered: string | null, selected: string | null, search: string,
-  vp: Viewport,
-) {
-  const { nodes, edges } = graph;
-  const nodeMap = new Map(nodes.map(n => [n.id, n]));
-  const matchSet = new Set<string>();
-  if (search) {
-    const lc = search.toLowerCase();
-    for (const n of nodes) if (n.label.toLowerCase().includes(lc)) matchSet.add(n.id);
-  }
-
-  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-  ctx.save();
-  ctx.translate(vp.x, vp.y);
-  ctx.scale(vp.scale, vp.scale);
-
-  // Edges
-  for (const e of edges) {
-    const a = nodeMap.get(e.source), b = nodeMap.get(e.target);
-    if (!a || !b) continue;
-    const isActive = (hovered && (e.source === hovered || e.target === hovered))
-      || (selected && (e.source === selected || e.target === selected));
-    ctx.beginPath();
-    ctx.strokeStyle = isActive ? 'rgba(96,165,250,0.7)' : 'rgba(100,116,139,0.25)';
-    ctx.lineWidth = Math.min(4, 0.5 + e.weight * 0.3) / vp.scale;
-    ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
-  }
-
-  // Nodes
-  for (const n of nodes) {
-    const highlighted = hovered === n.id || selected === n.id || (search && matchSet.has(n.id));
-    ctx.beginPath();
-    ctx.arc(n.x, n.y, n.radius, 0, Math.PI * 2);
-    ctx.fillStyle = highlighted ? '#fff' : n.color;
-    ctx.globalAlpha = (search && !matchSet.has(n.id)) ? 0.15 : 1;
-    ctx.fill();
-    ctx.globalAlpha = 1;
-    if (highlighted) { ctx.strokeStyle = n.color; ctx.lineWidth = 2.5 / vp.scale; ctx.stroke(); }
-  }
-
-  // Labels — show more labels when zoomed in
-  const labelThreshold = Math.max(1, Math.round(3 / vp.scale));
-  const fontSize = Math.max(8, Math.round(11 / vp.scale));
-  ctx.font = `${fontSize}px Inter, sans-serif`;
-  ctx.textAlign = 'center';
-  for (const n of nodes) {
-    const show = hovered === n.id || selected === n.id
-      || (search && matchSet.has(n.id)) || n.count >= labelThreshold;
-    if (!show) continue;
-    ctx.fillStyle = (search && !matchSet.has(n.id)) ? 'rgba(241,245,249,0.15)' : '#f1f5f9';
-    ctx.fillText(n.label, n.x, n.y - n.radius - 5);
-  }
-
-  ctx.restore();
+interface NodeDetail {
+  id: string;
+  label: string;
+  kind: NodeKind;
+  hostname?: string;
+  localIp?: string;
+  os?: string;
+  dsNames?: string[];
+  connectionCount?: number;
+  neighbors: { id: string; label: string; kind: NodeKind }[];
 }
-
-// ── Hit-test helper (viewport-aware) ─────────────────────────────────
-
-function screenToWorld(
-  canvas: HTMLCanvasElement, clientX: number, clientY: number, vp: Viewport,
-): { wx: number; wy: number } {
-  const rect = canvas.getBoundingClientRect();
-  const cssToCanvas_x = canvas.width / rect.width;
-  const cssToCanvas_y = canvas.height / rect.height;
-  const cx = (clientX - rect.left) * cssToCanvas_x;
-  const cy = (clientY - rect.top) * cssToCanvas_y;
-  return { wx: (cx - vp.x) / vp.scale, wy: (cy - vp.y) / vp.scale };
-}
-
-function hitTest(
-  graph: Graph, canvas: HTMLCanvasElement, clientX: number, clientY: number,
-  vp: Viewport,
-): GNode | null {
-  const { wx, wy } = screenToWorld(canvas, clientX, clientY, vp);
-  for (const n of graph.nodes) {
-    const dx = n.x - wx, dy = n.y - wy;
-    if (dx * dx + dy * dy < (n.radius + 4) ** 2) return n;
-  }
-  return null;
-}
-
-// ── Component ────────────────────────────────────────────────────────
 
 export default function NetworkMap() {
-  // Hunt selector
   const [huntList, setHuntList] = useState<Hunt[]>([]);
   const [selectedHuntId, setSelectedHuntId] = useState('');
-
-  // Graph state
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState('');
   const [error, setError] = useState('');
-  const [graph, setGraph] = useState<Graph | null>(null);
-  const [hovered, setHovered] = useState<string | null>(null);
-  const [selectedNode, setSelectedNode] = useState<GNode | null>(null);
   const [search, setSearch] = useState('');
+  const [detail, setDetail] = useState<NodeDetail | null>(null);
+  const [stats, setStats] = useState<{ hosts: number; internalIps: number; externalIps: number; domains: number; urls: number; edges: number } | null>(null);
   const [dsCount, setDsCount] = useState(0);
   const [totalRows, setTotalRows] = useState(0);
+  const [layoutRunning, setLayoutRunning] = useState(false);
+  const [hiddenKinds, setHiddenKinds] = useState<Set<NodeKind>>(new Set());
 
-  // Node type filters
-  const [visibleTypes, setVisibleTypes] = useState<Set<NodeType>>(
-    new Set<NodeType>(['ip', 'hostname', 'domain', 'url']),
-  );
+  const containerRef = useRef<HTMLDivElement>(null);
+  const cyRef = useRef<Core | null>(null);
 
-  // Canvas sizing
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const [canvasSize, setCanvasSize] = useState({ w: 900, h: 600 });
-
-  // Viewport (zoom / pan)
-  const vpRef = useRef<Viewport>({ x: 0, y: 0, scale: 1 });
-  const [vpScale, setVpScale] = useState(1);  // for UI display only
-  const isPanning = useRef(false);
-  const panStart = useRef({ x: 0, y: 0 });
-
-  // Popover anchor
-  const [popoverAnchor, setPopoverAnchor] = useState<{ top: number; left: number } | null>(null);
-
-  // ── Load hunts on mount ────────────────────────────────────────────
+  // Load hunts
   useEffect(() => {
     hunts.list(0, 200).then(r => setHuntList(r.hunts)).catch(() => {});
   }, []);
 
-  // ── Resize observer ────────────────────────────────────────────────
+  // Initialize cytoscape
   useEffect(() => {
-    const el = wrapperRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        const w = Math.round(entry.contentRect.width);
-        if (w > 100) setCanvasSize({ w, h: Math.max(450, Math.round(w * 0.55)) });
+    if (!containerRef.current) return;
+    const container = containerRef.current;
+    const cy = cytoscape({
+      container,
+      elements: [],
+      style: CY_STYLES,
+      layout: { name: 'preset' },
+      minZoom: 0.05,
+      maxZoom: 5,
+      wheelSensitivity: 0.3,
+    });
+
+    // Expose for debugging
+    (window as any).__cy = cy;
+
+    // Keep Cytoscape in sync with container size at all times
+    const ro = new ResizeObserver(() => { cy.resize(); });
+    ro.observe(container);
+    // Also force an initial resize after a frame
+    requestAnimationFrame(() => { cy.resize(); });
+
+    // Single unified tap handler — avoids any race between two handlers
+    // Helper: select and show detail for a node
+    const selectNode = (node: any) => {
+      const data = node.data();
+      const neighbors = node.neighborhood('node').map((n: any) => ({
+        id: n.id(),
+        label: n.data('label'),
+        kind: n.data('kind'),
+      }));
+      setDetail({
+        id: node.id(),
+        label: data.label,
+        kind: data.kind,
+        hostname: data.hostname,
+        localIp: data.localIp,
+        os: data.os,
+        dsNames: data.dsNames,
+        connectionCount: data.connectionCount,
+        neighbors,
+      });
+      cy.elements().removeClass('highlighted dimmed');
+      const connected = node.closedNeighborhood();
+      connected.addClass('highlighted');
+      cy.elements().difference(connected).addClass('dimmed');
+    };
+
+    cy.on('tap', (evt: any) => {
+      if (evt.target === cy) {
+        // Tapped background — try to find nearest node within 30 rendered px
+        const pos = evt.renderedPosition || evt.position;
+        if (pos) {
+          let bestNode: any = null;
+          let bestDist = 30; // max snap distance in rendered pixels
+          cy.nodes(':visible').forEach((n: any) => {
+            const rp = n.renderedPosition();
+            const dx = rp.x - pos.x;
+            const dy = rp.y - pos.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < bestDist) {
+              bestDist = dist;
+              bestNode = n;
+            }
+          });
+          if (bestNode) {
+            selectNode(bestNode);
+            return;
+          }
+        }
+        setDetail(null);
+        cy.elements().removeClass('highlighted dimmed');
+        return;
+      }
+      if (evt.target.isNode && evt.target.isNode()) {
+        selectNode(evt.target);
       }
     });
-    ro.observe(el);
-    return () => ro.disconnect();
+
+    cyRef.current = cy;
+    return () => { ro.disconnect(); cy.destroy(); cyRef.current = null; };
   }, []);
 
-  // ── Load graph for selected hunt ──────────────────────────────────
+  // Search effect
+  useEffect(() => {
+    const cy = cyRef.current;
+    if (!cy || cy.elements().length === 0) return;
+    cy.elements().removeClass('highlighted dimmed');
+    if (!search) return;
+    const lc = search.toLowerCase();
+    const matched = cy.nodes().filter((n: any) => n.data('label').toLowerCase().includes(lc));
+    if (matched.length > 0) {
+      const connected = matched.closedNeighborhood();
+      connected.addClass('highlighted');
+      cy.elements().difference(connected).addClass('dimmed');
+      cy.animate({ fit: { eles: matched, padding: 80 } } as any, { duration: 400 });
+    }
+  }, [search]);
+
+  // Load graph
   const loadGraph = useCallback(async (huntId: string) => {
-    if (!huntId) return;
-    setLoading(true); setError(''); setGraph(null);
-    setSelectedNode(null); setPopoverAnchor(null);
+    if (!huntId || !cyRef.current) return;
+    const cy = cyRef.current;
+    setLoading(true); setError(''); setDetail(null); setStats(null);
+    cy.elements().remove();
+    // Ensure Cytoscape knows the container dimensions (fixes click detection
+    // when container was previously hidden or resized)
+    cy.resize();
+
     try {
-      setProgress('Fetching datasets for hunt…');
+      setProgress('Fetching datasets...');
       const dsRes = await datasets.list(0, 500, huntId);
       const dsList = dsRes.datasets;
       setDsCount(dsList.length);
-
       if (dsList.length === 0) {
-        setError('This hunt has no datasets. Upload CSV files to this hunt first.');
-        setLoading(false); setProgress('');
-        return;
+        setError('This hunt has no datasets.'); setLoading(false); setProgress(''); return;
       }
 
-      const allBatches: RowBatch[] = [];
+      const batches: RowBatch[] = [];
       let rowTotal = 0;
-
       for (let i = 0; i < dsList.length; i++) {
         const ds = dsList[i];
-        setProgress(`Loading ${ds.name} (${i + 1}/${dsList.length})…`);
+        setProgress(`Loading ${ds.name} (${i + 1}/${dsList.length})...`);
         try {
           const detail = await datasets.get(ds.id);
-          const ioc = detail.ioc_columns || {};
-          const hasIoc = Object.values(ioc).some(t => {
-            const typ = Array.isArray(t) ? t[0] : t;
-            return typ === 'ip' || typ === 'hostname' || typ === 'domain' || typ === 'url';
-          });
-          if (hasIoc) {
-            const r = await datasets.rows(ds.id, 0, 5000);
-            allBatches.push({ rows: r.rows, iocColumns: ioc, dsName: ds.name, ds: detail });
-            rowTotal += r.rows.length;
-          }
-        } catch { /* skip failed datasets */ }
+          const r = await datasets.rows(ds.id, 0, 5000);
+          batches.push({ rows: r.rows, ds: detail });
+          rowTotal += r.rows.length;
+        } catch { /* skip */ }
       }
-
       setTotalRows(rowTotal);
 
-      if (allBatches.length === 0) {
-        setError('No datasets in this hunt contain IP/hostname/domain IOC columns.');
-        setLoading(false); setProgress('');
-        return;
+      if (batches.length === 0) {
+        setError('No datasets could be loaded.'); setLoading(false); setProgress(''); return;
       }
 
-      setProgress('Building graph…');
-      const g = buildGraph(allBatches, canvasSize.w, canvasSize.h);
-      if (g.nodes.length === 0) {
-        setError('No network nodes found in the data.');
-      } else {
-        simulate(g, canvasSize.w / 2, canvasSize.h / 2);
-        setGraph(g);
+      setProgress('Building graph model...');
+      await new Promise(r => setTimeout(r, 30));
+      const { elements, stats: s } = buildGraphData(batches);
+      setStats(s);
+
+      if (elements.length === 0) {
+        setError('No network data found.'); setLoading(false); setProgress(''); return;
       }
+
+      setProgress(`Laying out ${s.hosts} hosts, ${s.edges} edges...`);
+      cy.add(elements);
+      cy.resize(); // Ensure hit-testing coordinates are in sync
+
+      // Run layout
+      setLayoutRunning(true);
+      const layout = cy.layout({
+        name: 'cola',
+        animate: true,
+        maxSimulationTime: 4000,
+        nodeSpacing: 25,
+        edgeLength: (edge: any) => {
+          const kind = edge.data('edgeKind');
+          if (kind === 'lateral') return 100;
+          if (kind === 'remote') return 180;
+          return 150;
+        },
+        fit: true,
+        padding: 40,
+        randomize: true,
+        convergenceThreshold: 0.01,
+      } as any);
+
+      layout.on('layoutstop', () => {
+        setLayoutRunning(false);
+        cy.resize();
+        cy.fit(undefined, 50);
+      });
+      layout.run();
+
     } catch (e: any) { setError(e.message); }
     setLoading(false); setProgress('');
-  }, [canvasSize]);
+  }, []);
 
-  // When hunt changes, load graph
   useEffect(() => {
     if (selectedHuntId) loadGraph(selectedHuntId);
   }, [selectedHuntId, loadGraph]);
 
-  // Reset viewport when graph changes
-  useEffect(() => {
-    vpRef.current = { x: 0, y: 0, scale: 1 };
-    setVpScale(1);
-  }, [graph]);
+  const zoomBy = useCallback((factor: number) => {
+    const cy = cyRef.current;
+    if (cy) cy.zoom({ level: cy.zoom() * factor, renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 } });
+  }, []);
 
-  // Filtered graph — only visible node types + edges between them
-  const filteredGraph = useMemo<Graph | null>(() => {
-    if (!graph) return null;
-    const nodes = graph.nodes.filter(n => visibleTypes.has(n.meta.type));
-    const nodeIds = new Set(nodes.map(n => n.id));
-    const edges = graph.edges.filter(e => nodeIds.has(e.source) && nodeIds.has(e.target));
-    return { nodes, edges };
-  }, [graph, visibleTypes]);
+  const fitView = useCallback(() => {
+    cyRef.current?.fit(undefined, 50);
+  }, []);
 
-  // Toggle a node type filter
-  const toggleType = useCallback((t: NodeType) => {
-    setVisibleTypes(prev => {
+  // Toggle node kind visibility
+  const toggleKind = useCallback((kind: NodeKind) => {
+    setHiddenKinds(prev => {
       const next = new Set(prev);
-      if (next.has(t)) {
-        // Don't allow all to be hidden
-        if (next.size > 1) next.delete(t);
-      } else {
-        next.add(t);
-      }
+      if (next.has(kind)) next.delete(kind); else next.add(kind);
       return next;
     });
   }, []);
 
-  // Redraw helper — uses filteredGraph
-  const redraw = useCallback(() => {
-    if (!filteredGraph || !canvasRef.current) return;
-    const ctx = canvasRef.current.getContext('2d');
-    if (ctx) drawGraph(ctx, filteredGraph, hovered, selectedNode?.id ?? null, search, vpRef.current);
-  }, [filteredGraph, hovered, selectedNode, search]);
-
-  // Redraw on every render-affecting state change
-  useEffect(() => { redraw(); }, [redraw]);
-
-  // ── Mouse wheel → zoom ─────────────────────────────────────────────
+  // Apply hidden kinds to cytoscape
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const onWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      const vp = vpRef.current;
-      const rect = canvas.getBoundingClientRect();
-      const cssToCanvasX = canvas.width / rect.width;
-      const cssToCanvasY = canvas.height / rect.height;
-      // Mouse position in canvas pixel coords
-      const mx = (e.clientX - rect.left) * cssToCanvasX;
-      const my = (e.clientY - rect.top) * cssToCanvasY;
-
-      const zoomFactor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
-      const newScale = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, vp.scale * zoomFactor));
-      // Zoom toward cursor: adjust offset so world-point under cursor stays fixed
-      vp.x = mx - (mx - vp.x) * (newScale / vp.scale);
-      vp.y = my - (my - vp.y) * (newScale / vp.scale);
-      vp.scale = newScale;
-      setVpScale(newScale);
-      // Immediate redraw (bypass React state for smoothness)
-      const ctx = canvas.getContext('2d');
-      if (ctx && filteredGraph) drawGraph(ctx, filteredGraph, hovered, selectedNode?.id ?? null, search, vp);
-    };
-    canvas.addEventListener('wheel', onWheel, { passive: false });
-    return () => canvas.removeEventListener('wheel', onWheel);
-  }, [filteredGraph, hovered, selectedNode, search]);
-
-  // ── Mouse drag → pan ───────────────────────────────────────────────
-  const onMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!filteredGraph || !canvasRef.current) return;
-    const node = hitTest(filteredGraph, canvasRef.current, e.clientX, e.clientY, vpRef.current);
-    if (!node) {
-      isPanning.current = true;
-      panStart.current = { x: e.clientX, y: e.clientY };
+    const cy = cyRef.current;
+    if (!cy) return;
+    const allKinds: NodeKind[] = ['host', 'internal_ip', 'external_ip', 'domain', 'url'];
+    for (const k of allKinds) {
+      const sel = cy.nodes(`[kind="${k}"]`);
+      if (hiddenKinds.has(k)) {
+        sel.style('display', 'none');
+        // Also hide edges connected only to hidden nodes
+        sel.connectedEdges().forEach((edge: any) => {
+          const srcKind = edge.source().data('kind');
+          const tgtKind = edge.target().data('kind');
+          if (hiddenKinds.has(srcKind) || hiddenKinds.has(tgtKind)) {
+            edge.style('display', 'none');
+          }
+        });
+      } else {
+        sel.style('display', 'element');
+        sel.connectedEdges().forEach((edge: any) => {
+          const srcKind = edge.source().data('kind');
+          const tgtKind = edge.target().data('kind');
+          if (!hiddenKinds.has(srcKind) && !hiddenKinds.has(tgtKind)) {
+            edge.style('display', 'element');
+          }
+        });
+      }
     }
-  }, [filteredGraph]);
+  }, [hiddenKinds]);
 
-  const onMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!filteredGraph || !canvasRef.current) return;
+  // Resize Cytoscape when the detail panel opens/closes (changes flex width)
+  useEffect(() => {
+    const cy = cyRef.current;
+    if (!cy) return;
+    const timer = setTimeout(() => { cy.resize(); }, 50);
+    return () => clearTimeout(timer);
+  }, [detail]);
 
-    if (isPanning.current) {
-      const vp = vpRef.current;
-      const rect = canvasRef.current.getBoundingClientRect();
-      const cssToCanvasX = canvasRef.current.width / rect.width;
-      const cssToCanvasY = canvasRef.current.height / rect.height;
-      vp.x += (e.clientX - panStart.current.x) * cssToCanvasX;
-      vp.y += (e.clientY - panStart.current.y) * cssToCanvasY;
-      panStart.current = { x: e.clientX, y: e.clientY };
-      redraw();
-      return;
-    }
-
-    const node = hitTest(filteredGraph, canvasRef.current, e.clientX, e.clientY, vpRef.current);
-    setHovered(node?.id ?? null);
-  }, [filteredGraph, redraw]);
-
-  const onMouseUp = useCallback(() => {
-    isPanning.current = false;
-  }, []);
-
-  // ── Mouse click → select node + show popover ─────────────────────
-  const onClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!filteredGraph || !canvasRef.current) return;
-    const node = hitTest(filteredGraph, canvasRef.current, e.clientX, e.clientY, vpRef.current);
-    if (node) {
-      setSelectedNode(node);
-      setPopoverAnchor({ top: e.clientY, left: e.clientX });
-    } else {
-      setSelectedNode(null);
-      setPopoverAnchor(null);
-    }
-  }, [filteredGraph]);
-
-  const closePopover = () => { setSelectedNode(null); setPopoverAnchor(null); };
-
-  // ── Zoom controls ──────────────────────────────────────────────────
-  const zoomBy = useCallback((factor: number) => {
-    const vp = vpRef.current;
-    const cw = canvasSize.w, ch = canvasSize.h;
-    const newScale = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, vp.scale * factor));
-    // Zoom toward canvas center
-    vp.x = cw / 2 - (cw / 2 - vp.x) * (newScale / vp.scale);
-    vp.y = ch / 2 - (ch / 2 - vp.y) * (newScale / vp.scale);
-    vp.scale = newScale;
-    setVpScale(newScale);
-    redraw();
-  }, [canvasSize, redraw]);
-
-  const resetView = useCallback(() => {
-    vpRef.current = { x: 0, y: 0, scale: 1 };
-    setVpScale(1);
-    redraw();
-  }, [redraw]);
-
-  // Count connections for selected node
-  const connectionCount = selectedNode && filteredGraph
-    ? filteredGraph.edges.filter(e => e.source === selectedNode.id || e.target === selectedNode.id).length
-    : 0;
-
-  // ── Render ─────────────────────────────────────────────────────────
   return (
     <Box>
-      {/* Header row */}
+      {/* Header */}
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }} flexWrap="wrap" gap={1}>
         <Typography variant="h5">Network Map</Typography>
         <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
           <FormControl size="small" sx={{ minWidth: 220 }}>
-            <InputLabel id="hunt-selector-label">Hunt</InputLabel>
-            <Select
-              labelId="hunt-selector-label"
-              value={selectedHuntId}
-              label="Hunt"
-              onChange={e => setSelectedHuntId(e.target.value)}
-            >
+            <InputLabel id="hunt-sel">Hunt</InputLabel>
+            <Select labelId="hunt-sel" value={selectedHuntId} label="Hunt"
+              onChange={e => setSelectedHuntId(e.target.value)}>
               {huntList.map(h => (
-                <MenuItem key={h.id} value={h.id}>
-                  {h.name} ({h.dataset_count} datasets)
-                </MenuItem>
+                <MenuItem key={h.id} value={h.id}>{h.name} ({h.dataset_count} datasets)</MenuItem>
               ))}
             </Select>
           </FormControl>
-          <TextField size="small" placeholder="Search node…" value={search}
+          <TextField size="small" placeholder="Search node..." value={search}
             onChange={e => setSearch(e.target.value)} sx={{ width: 200 }} />
           <Button variant="outlined" startIcon={<RefreshIcon />}
-            onClick={() => loadGraph(selectedHuntId)}
-            disabled={loading || !selectedHuntId} size="small">
+            onClick={() => loadGraph(selectedHuntId)} disabled={loading || !selectedHuntId} size="small">
             Refresh
           </Button>
         </Stack>
       </Stack>
 
-      {/* Loading indicator */}
-      {loading && (
+      {/* Loading */}
+      {(loading || layoutRunning) && (
         <Paper sx={{ p: 2, mb: 2 }}>
-          <Typography variant="body2" color="text.secondary" gutterBottom>{progress}</Typography>
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            {layoutRunning ? 'Running layout...' : progress}
+          </Typography>
           <LinearProgress />
         </Paper>
       )}
-
       {error && <Alert severity="warning" sx={{ mb: 2 }}>{error}</Alert>}
 
-      {/* Legend — clickable type filters */}
-      {graph && filteredGraph && (
+      {/* Stats bar */}
+      {stats && (
         <Stack direction="row" spacing={1} sx={{ mb: 1 }} flexWrap="wrap" gap={0.5} alignItems="center">
           <Chip label={`${dsCount} datasets`} size="small" variant="outlined" />
           <Chip label={`${totalRows.toLocaleString()} rows`} size="small" variant="outlined" />
-          <Chip label={`${filteredGraph.nodes.length} nodes`} size="small" color="primary" variant="outlined" />
-          <Chip label={`${filteredGraph.edges.length} edges`} size="small" color="secondary" variant="outlined" />
           <Divider orientation="vertical" flexItem />
-          {([['ip', 'IP'], ['hostname', 'Host'], ['domain', 'Domain'], ['url', 'URL']] as [NodeType, string][]).map(([type, label]) => {
-            const active = visibleTypes.has(type);
-            const count = graph.nodes.filter(n => n.meta.type === type).length;
-            return (
-              <Chip
-                key={type}
-                label={`${label} (${count})`}
-                size="small"
-                onClick={() => toggleType(type)}
-                sx={{
-                  bgcolor: active ? TYPE_COLORS[type] : 'transparent',
-                  color: active ? '#fff' : TYPE_COLORS[type],
-                  border: `2px solid ${TYPE_COLORS[type]}`,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  opacity: active ? 1 : 0.5,
-                  transition: 'all 0.15s ease',
-                  '&:hover': { opacity: 1 },
-                }}
-              />
-            );
-          })}
+          <Chip label={`Hosts: ${stats.hosts}`} size="small" clickable
+            onClick={() => toggleKind('host')}
+            sx={{ bgcolor: hiddenKinds.has('host') ? 'transparent' : KIND_COLORS.host, color: '#fff', fontWeight: 600,
+              border: hiddenKinds.has('host') ? `2px solid ${KIND_COLORS.host}` : 'none', opacity: hiddenKinds.has('host') ? 0.5 : 1, cursor: 'pointer' }} />
+          <Chip label={`Internal: ${stats.internalIps}`} size="small" clickable
+            onClick={() => toggleKind('internal_ip')}
+            sx={{ bgcolor: hiddenKinds.has('internal_ip') ? 'transparent' : KIND_COLORS.internal_ip, color: '#fff', fontWeight: 600,
+              border: hiddenKinds.has('internal_ip') ? `2px solid ${KIND_COLORS.internal_ip}` : 'none', opacity: hiddenKinds.has('internal_ip') ? 0.5 : 1, cursor: 'pointer' }} />
+          <Chip label={`External: ${stats.externalIps}`} size="small" clickable
+            onClick={() => toggleKind('external_ip')}
+            sx={{ bgcolor: hiddenKinds.has('external_ip') ? 'transparent' : KIND_COLORS.external_ip, color: '#fff', fontWeight: 600,
+              border: hiddenKinds.has('external_ip') ? `2px solid ${KIND_COLORS.external_ip}` : 'none', opacity: hiddenKinds.has('external_ip') ? 0.5 : 1, cursor: 'pointer' }} />
+          <Chip label={`Domains: ${stats.domains}`} size="small" clickable
+            onClick={() => toggleKind('domain')}
+            sx={{ bgcolor: hiddenKinds.has('domain') ? 'transparent' : KIND_COLORS.domain, color: hiddenKinds.has('domain') ? '#fff' : '#000', fontWeight: 600,
+              border: hiddenKinds.has('domain') ? `2px solid ${KIND_COLORS.domain}` : 'none', opacity: hiddenKinds.has('domain') ? 0.5 : 1, cursor: 'pointer' }} />
+          <Chip label={`URLs: ${stats.urls}`} size="small" clickable
+            onClick={() => toggleKind('url')}
+            sx={{ bgcolor: hiddenKinds.has('url') ? 'transparent' : KIND_COLORS.url, color: '#fff', fontWeight: 600,
+              border: hiddenKinds.has('url') ? `2px solid ${KIND_COLORS.url}` : 'none', opacity: hiddenKinds.has('url') ? 0.5 : 1, cursor: 'pointer' }} />
+          <Chip label={`${stats.edges} edges`} size="small" variant="outlined" />
         </Stack>
       )}
 
-      {/* Canvas */}
-      {filteredGraph && (
-        <Paper ref={wrapperRef} sx={{ p: 1, position: 'relative', backgroundColor: '#0f172a' }}>
-          <canvas
-            ref={canvasRef}
-            width={canvasSize.w} height={canvasSize.h}
-            style={{
-              width: '100%', height: canvasSize.h,
-              cursor: isPanning.current ? 'grabbing' : hovered ? 'pointer' : 'grab',
-            }}
-            onMouseDown={onMouseDown}
-            onMouseMove={onMouseMove}
-            onMouseUp={onMouseUp}
-            onMouseLeave={() => { isPanning.current = false; setHovered(null); }}
-            onClick={onClick}
-          />
-          {/* Zoom controls overlay */}
-          <Stack
-            direction="column" spacing={0.5}
-            sx={{ position: 'absolute', top: 12, right: 12, zIndex: 2 }}
-          >
-            <IconButton size="small" onClick={() => zoomBy(1.3)}
-              sx={{ bgcolor: 'rgba(30,41,59,0.85)', color: '#f1f5f9', '&:hover': { bgcolor: 'rgba(51,65,85,0.95)' } }}
-              aria-label="Zoom in"><ZoomInIcon fontSize="small" /></IconButton>
-            <IconButton size="small" onClick={() => zoomBy(1 / 1.3)}
-              sx={{ bgcolor: 'rgba(30,41,59,0.85)', color: '#f1f5f9', '&:hover': { bgcolor: 'rgba(51,65,85,0.95)' } }}
-              aria-label="Zoom out"><ZoomOutIcon fontSize="small" /></IconButton>
-            <IconButton size="small" onClick={resetView}
-              sx={{ bgcolor: 'rgba(30,41,59,0.85)', color: '#f1f5f9', '&:hover': { bgcolor: 'rgba(51,65,85,0.95)' } }}
-              aria-label="Reset view"><CenterFocusStrongIcon fontSize="small" /></IconButton>
-            <Chip label={`${Math.round(vpScale * 100)}%`} size="small"
-              sx={{ bgcolor: 'rgba(30,41,59,0.85)', color: '#94a3b8', fontSize: 11, height: 22 }} />
+      {/* Graph container + detail panel side-by-side */}
+      <Stack direction="row" spacing={2} sx={{ position: 'relative' }}>
+        {/* Cytoscape canvas */}
+        <Paper sx={{
+          flex: 1, minHeight: 550, position: 'relative',
+          bgcolor: '#0f172a', overflow: 'hidden',
+        }}>
+          <Box ref={containerRef} sx={{ width: '100%', height: 550 }} />
+          {/* Zoom controls */}
+          <Stack direction="column" spacing={0.5}
+            sx={{ position: 'absolute', top: 12, right: 12, zIndex: 2 }}>
+            <IconButton size="small" onClick={() => zoomBy(1.4)} aria-label="Zoom in"
+              sx={{ bgcolor: 'rgba(30,41,59,0.9)', color: '#f1f5f9', '&:hover': { bgcolor: 'rgba(51,65,85,0.95)' } }}>
+              <ZoomInIcon fontSize="small" />
+            </IconButton>
+            <IconButton size="small" onClick={() => zoomBy(1 / 1.4)} aria-label="Zoom out"
+              sx={{ bgcolor: 'rgba(30,41,59,0.9)', color: '#f1f5f9', '&:hover': { bgcolor: 'rgba(51,65,85,0.95)' } }}>
+              <ZoomOutIcon fontSize="small" />
+            </IconButton>
+            <IconButton size="small" onClick={fitView} aria-label="Fit view"
+              sx={{ bgcolor: 'rgba(30,41,59,0.9)', color: '#f1f5f9', '&:hover': { bgcolor: 'rgba(51,65,85,0.95)' } }}>
+              <CenterFocusStrongIcon fontSize="small" />
+            </IconButton>
+          </Stack>
+
+          {/* Legend */}
+          <Stack direction="row" spacing={1} sx={{ position: 'absolute', bottom: 10, left: 12, zIndex: 2 }}>
+            {([
+              ['Host', KIND_COLORS.host, String.fromCharCode(9632)],
+              ['Internal IP', KIND_COLORS.internal_ip, String.fromCharCode(9679)],
+              ['External IP', KIND_COLORS.external_ip, String.fromCharCode(9679)],
+              ['Domain', KIND_COLORS.domain, String.fromCharCode(9670)],
+              ['URL', KIND_COLORS.url, String.fromCharCode(9650)],
+              ['Lateral', '#f59e0b', '- -'],
+            ] as [string, string, string][]).map(([label, color, icon]) => (
+              <Typography key={label} variant="caption" sx={{ color, fontWeight: 600, opacity: 0.8 }}>
+                {icon} {label}
+              </Typography>
+            ))}
           </Stack>
         </Paper>
-      )}
 
-      {/* Node detail popover */}
-      <Popover
-        open={Boolean(selectedNode && popoverAnchor)}
-        anchorReference="anchorPosition"
-        anchorPosition={popoverAnchor ?? undefined}
-        onClose={closePopover}
-        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-        slotProps={{ paper: { sx: { p: 2, minWidth: 280, maxWidth: 400 } } }}
-      >
-        {selectedNode && (
-          <Box>
-            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <Typography variant="subtitle1" fontWeight={700}>{selectedNode.label}</Typography>
-                <Chip label={selectedNode.meta.type.toUpperCase()} size="small"
-                  sx={{ bgcolor: TYPE_COLORS[selectedNode.meta.type], color: '#fff', fontWeight: 600, fontSize: 11 }} />
-              </Stack>
-              <IconButton size="small" onClick={closePopover} aria-label="close"><CloseIcon fontSize="small" /></IconButton>
-            </Stack>
-            <Divider sx={{ mb: 1.5 }} />
-
-            {/* Hostnames */}
-            <Typography variant="caption" color="text.secondary" fontWeight={600}>Hostname</Typography>
-            <Typography variant="body2" sx={{ mb: 1 }}>
-              {selectedNode.meta.hostnames.length > 0
-                ? selectedNode.meta.hostnames.join(', ')
-                : <em>Unknown</em>}
-            </Typography>
-
-            {/* IPs */}
-            <Typography variant="caption" color="text.secondary" fontWeight={600}>IP Address</Typography>
-            <Typography variant="body2" sx={{ mb: 1, fontFamily: 'monospace' }}>
-              {selectedNode.meta.ips.length > 0
-                ? selectedNode.meta.ips.join(', ')
-                : (selectedNode.meta.type === 'ip' ? selectedNode.label : <em>Unknown</em>)}
-            </Typography>
-
-            {/* OS */}
-            <Typography variant="caption" color="text.secondary" fontWeight={600}>Operating System</Typography>
-            <Typography variant="body2" sx={{ mb: 1 }}>
-              {selectedNode.meta.os.length > 0
-                ? selectedNode.meta.os.join(', ')
-                : <em>Unknown</em>}
-            </Typography>
-
-            <Divider sx={{ my: 1 }} />
-
-            {/* Stats */}
-            <Stack direction="row" spacing={1} flexWrap="wrap" gap={0.5}>
-              <Chip label={`${selectedNode.count} occurrences`} size="small" variant="outlined" />
-              <Chip label={`${connectionCount} connections`} size="small" variant="outlined" />
+        {/* Detail panel */}
+        {detail && (
+          <Paper sx={{ width: 300, p: 2, flexShrink: 0, maxHeight: 550, overflow: 'auto' }}>
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+              <Chip label={detail.kind.replace('_', ' ').toUpperCase()} size="small"
+                sx={{ bgcolor: KIND_COLORS[detail.kind], color: detail.kind === 'domain' ? '#000' : '#fff', fontWeight: 700, fontSize: 11 }} />
+              <IconButton size="small" onClick={() => { setDetail(null); cyRef.current?.elements().removeClass('highlighted dimmed'); }}>
+                <Typography variant="caption" color="text.secondary">X</Typography>
+              </IconButton>
             </Stack>
 
-            {/* Datasets */}
-            {selectedNode.meta.datasets.length > 0 && (
-              <Box sx={{ mt: 1.5 }}>
+            <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1, wordBreak: 'break-all' }}>
+              {detail.hostname || detail.label}
+            </Typography>
+
+            {detail.localIp && (
+              <>
+                <Typography variant="caption" color="text.secondary" fontWeight={600}>IP Address</Typography>
+                <Typography variant="body2" sx={{ mb: 1, fontFamily: 'monospace' }}>{detail.localIp}</Typography>
+              </>
+            )}
+
+            {detail.os && (
+              <>
+                <Typography variant="caption" color="text.secondary" fontWeight={600}>Operating System</Typography>
+                <Typography variant="body2" sx={{ mb: 1 }}>{detail.os}</Typography>
+              </>
+            )}
+
+            {detail.connectionCount != null && (
+              <>
+                <Typography variant="caption" color="text.secondary" fontWeight={600}>Total Connections</Typography>
+                <Typography variant="body2" sx={{ mb: 1 }}>{detail.connectionCount}</Typography>
+              </>
+            )}
+
+            {detail.dsNames && detail.dsNames.length > 0 && (
+              <Box sx={{ mb: 1.5 }}>
                 <Typography variant="caption" color="text.secondary" fontWeight={600}>Seen in datasets</Typography>
                 <Stack direction="row" spacing={0.5} flexWrap="wrap" gap={0.5} sx={{ mt: 0.5 }}>
-                  {selectedNode.meta.datasets.map(d => (
-                    <Chip key={d} label={d} size="small" variant="outlined" />
-                  ))}
+                  {detail.dsNames.map(d => <Chip key={d} label={d} size="small" variant="outlined" />)}
                 </Stack>
               </Box>
             )}
-          </Box>
-        )}
-      </Popover>
 
-      {/* Empty states */}
+            {detail.neighbors.length > 0 && (
+              <>
+                <Divider sx={{ my: 1 }} />
+                <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                  Connections ({detail.neighbors.length})
+                </Typography>
+                <Box sx={{ mt: 0.5, maxHeight: 250, overflow: 'auto' }}>
+                  {detail.neighbors.slice(0, 50).map(n => (
+                    <Stack key={n.id} direction="row" spacing={0.5} alignItems="center" sx={{ py: 0.3 }}>
+                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: KIND_COLORS[n.kind], flexShrink: 0 }} />
+                      <Typography variant="caption" sx={{ wordBreak: 'break-all', fontFamily: 'monospace' }}>
+                        {n.label.split('\n')[0]}
+                      </Typography>
+                    </Stack>
+                  ))}
+                  {detail.neighbors.length > 50 && (
+                    <Typography variant="caption" color="text.secondary">
+                      ...and {detail.neighbors.length - 50} more
+                    </Typography>
+                  )}
+                </Box>
+              </>
+            )}
+          </Paper>
+        )}
+      </Stack>
+
+      {/* Empty state */}
       {!selectedHuntId && !loading && (
-        <Paper ref={wrapperRef} sx={{ p: 6, textAlign: 'center' }}>
+        <Paper sx={{ p: 6, textAlign: 'center' }}>
           <Typography variant="h6" color="text.secondary" gutterBottom>
             Select a hunt to visualize its network
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Choose a hunt from the dropdown above. The map will display IP addresses,
-            hostnames, and domains found across the hunt's datasets, with connections
-            showing co-occurrence in the same log rows.
-          </Typography>
-        </Paper>
-      )}
-
-      {selectedHuntId && !graph && !loading && !error && (
-        <Paper sx={{ p: 6, textAlign: 'center' }}>
-          <Typography color="text.secondary">
-            No network data to display. Upload datasets with IP/hostname columns to this hunt.
+            Choose a hunt from the dropdown above. The map shows hosts as green rectangles
+            connected to external IPs (blue), internal IPs (cyan), domains (yellow), and URLs (purple).
+            Lateral connections between hosts are shown as dashed amber lines.
           </Typography>
         </Paper>
       )}
