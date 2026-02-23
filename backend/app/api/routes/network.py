@@ -1,20 +1,34 @@
+<<<<<<< HEAD
 """Network topology API - host inventory endpoint with background caching."""
+=======
+"""API routes for Network Picture — deduplicated host inventory."""
+>>>>>>> 7c454036c7ef6a3d6517f98cbee643fd0238e0b2
 
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+<<<<<<< HEAD
 from fastapi.responses import JSONResponse
+=======
+from pydantic import BaseModel, Field
+>>>>>>> 7c454036c7ef6a3d6517f98cbee643fd0238e0b2
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.db import get_db
+<<<<<<< HEAD
 from app.services.host_inventory import build_host_inventory, inventory_cache
 from app.services.job_queue import job_queue, JobType
+=======
+from app.services.network_inventory import build_network_picture
+>>>>>>> 7c454036c7ef6a3d6517f98cbee643fd0238e0b2
 
 logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/api/network", tags=["network"])
 
 
+<<<<<<< HEAD
 @router.get("/host-inventory")
 async def get_host_inventory(
     hunt_id: str = Query(..., description="Hunt ID to build inventory for"),
@@ -173,3 +187,58 @@ async def trigger_rebuild(
     inventory_cache.invalidate(hunt_id)
     job = job_queue.submit(JobType.HOST_INVENTORY, hunt_id=hunt_id)
     return {"job_id": job.id, "status": "queued"}
+=======
+# ── Response models ───────────────────────────────────────────────────
+
+
+class HostEntry(BaseModel):
+    hostname: str
+    ips: list[str] = Field(default_factory=list)
+    users: list[str] = Field(default_factory=list)
+    os: list[str] = Field(default_factory=list)
+    mac_addresses: list[str] = Field(default_factory=list)
+    protocols: list[str] = Field(default_factory=list)
+    open_ports: list[str] = Field(default_factory=list)
+    remote_targets: list[str] = Field(default_factory=list)
+    datasets: list[str] = Field(default_factory=list)
+    connection_count: int = 0
+    first_seen: str | None = None
+    last_seen: str | None = None
+
+
+class PictureSummary(BaseModel):
+    total_hosts: int = 0
+    total_connections: int = 0
+    total_unique_ips: int = 0
+    datasets_scanned: int = 0
+
+
+class NetworkPictureResponse(BaseModel):
+    hosts: list[HostEntry]
+    summary: PictureSummary
+
+
+# ── Routes ────────────────────────────────────────────────────────────
+
+
+@router.get(
+    "/picture",
+    response_model=NetworkPictureResponse,
+    summary="Build deduplicated host inventory for a hunt",
+    description=(
+        "Scans all datasets in the specified hunt, extracts host-identifying "
+        "fields (hostname, IP, username, OS, MAC, ports), deduplicates by "
+        "hostname, and returns a clean one-row-per-host network picture."
+    ),
+)
+async def get_network_picture(
+    hunt_id: str = Query(..., description="Hunt ID to scan"),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return a deduplicated network picture for a hunt."""
+    if not hunt_id:
+        raise HTTPException(status_code=400, detail="hunt_id is required")
+
+    result = await build_network_picture(db, hunt_id)
+    return result
+>>>>>>> 7c454036c7ef6a3d6517f98cbee643fd0238e0b2

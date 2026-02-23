@@ -1,11 +1,11 @@
 /* ====================================================================
-   ThreatHunt API Client -- mirrors every backend endpoint.
+   ThreatHunt API Client — mirrors every backend endpoint.
    All requests go through the CRA proxy (see package.json "proxy").
    ==================================================================== */
 
 const BASE = '';  // proxied to http://localhost:8000 by CRA
 
-// -- Helpers --
+// ── Helpers ──────────────────────────────────────────────────────────
 
 let authToken: string | null = localStorage.getItem('th_token');
 
@@ -36,7 +36,7 @@ async function api<T = any>(
   return res.text() as unknown as T;
 }
 
-// -- Auth --
+// ── Auth ─────────────────────────────────────────────────────────────
 
 export interface UserPayload {
   id: string; username: string; email: string;
@@ -63,7 +63,7 @@ export const auth = {
   me: () => api<UserPayload>('/api/auth/me'),
 };
 
-// -- Hunts --
+// ── Hunts ────────────────────────────────────────────────────────────
 
 export interface Hunt {
   id: string; name: string; description: string | null; status: string;
@@ -71,6 +71,7 @@ export interface Hunt {
   dataset_count: number; hypothesis_count: number;
 }
 
+<<<<<<< HEAD
 export interface HuntProgress {
   hunt_id: string;
   status: 'idle' | 'processing' | 'ready';
@@ -84,6 +85,10 @@ export interface HuntProgress {
   network_status: 'none' | 'building' | 'ready';
   stages: Record<string, any>;
 }
+=======
+/** Alias kept for backward-compat with components that import HuntOut */
+export type HuntOut = Hunt;
+>>>>>>> 7c454036c7ef6a3d6517f98cbee643fd0238e0b2
 
 export const hunts = {
   list: (skip = 0, limit = 50) =>
@@ -97,7 +102,7 @@ export const hunts = {
   progress: (id: string) => api<HuntProgress>(`/api/hunts/${id}/progress`),
 };
 
-// -- Datasets --
+// ── Datasets ─────────────────────────────────────────────────────────
 
 export interface DatasetSummary {
   id: string; name: string; filename: string; source_tool: string | null;
@@ -107,8 +112,6 @@ export interface DatasetSummary {
   file_size_bytes: number; encoding: string | null; delimiter: string | null;
   time_range_start: string | null; time_range_end: string | null;
   hunt_id: string | null; created_at: string;
-  processing_status?: string; artifact_type?: string | null;
-  error_message?: string | null; file_path?: string | null;
 }
 
 export interface UploadResult {
@@ -172,7 +175,7 @@ export const datasets = {
   delete: (id: string) => api(`/api/datasets/${id}`, { method: 'DELETE' }),
 };
 
-// -- Agent --
+// ── Agent ────────────────────────────────────────────────────────────
 
 export interface AssistRequest {
   query: string;
@@ -226,7 +229,7 @@ export const agent = {
   },
 };
 
-// -- Annotations --
+// ── Annotations ──────────────────────────────────────────────────────
 
 export interface AnnotationData {
   id: string; row_id: number | null; dataset_id: string | null;
@@ -252,7 +255,7 @@ export const annotations = {
   delete: (id: string) => api(`/api/annotations/${id}`, { method: 'DELETE' }),
 };
 
-// -- Hypotheses --
+// ── Hypotheses ───────────────────────────────────────────────────────
 
 export interface HypothesisData {
   id: string; hunt_id: string | null; title: string; description: string | null;
@@ -277,7 +280,7 @@ export const hypotheses = {
   delete: (id: string) => api(`/api/hypotheses/${id}`, { method: 'DELETE' }),
 };
 
-// -- Enrichment --
+// ── Enrichment ───────────────────────────────────────────────────────
 
 export interface EnrichmentResult {
   ioc_value: string; ioc_type: string; source: string; verdict: string;
@@ -302,7 +305,7 @@ export const enrichment = {
   status: () => api<Record<string, any>>('/api/enrichment/status'),
 };
 
-// -- Correlation --
+// ── Correlation ──────────────────────────────────────────────────────
 
 export interface CorrelationResult {
   hunt_ids: string[]; summary: string; total_correlations: number;
@@ -320,7 +323,7 @@ export const correlation = {
     api<{ ioc_value: string; occurrences: any[]; total: number }>(`/api/correlation/ioc/${encodeURIComponent(ioc_value)}`),
 };
 
-// -- Reports --
+// ── Reports ──────────────────────────────────────────────────────────
 
 export const reports = {
   json: (huntId: string) =>
@@ -333,13 +336,256 @@ export const reports = {
     api<Record<string, any>>(`/api/reports/hunt/${huntId}/summary`),
 };
 
-// -- Root / misc --
+// ── Root / misc ──────────────────────────────────────────────────────
 
 export const misc = {
   root: () => api<{ name: string; version: string; status: string }>('/'),
 };
 
-// -- AUP Keywords --
+// ── Network Picture ──────────────────────────────────────────────────
+
+export interface HostEntry {
+  hostname: string;
+  ips: string[];
+  users: string[];
+  os: string[];
+  mac_addresses: string[];
+  protocols: string[];
+  open_ports: string[];
+  remote_targets: string[];
+  datasets: string[];
+  connection_count: number;
+  first_seen: string | null;
+  last_seen: string | null;
+}
+
+export interface PictureSummary {
+  total_hosts: number;
+  total_connections: number;
+  total_unique_ips: number;
+  datasets_scanned: number;
+}
+
+export interface NetworkPictureResponse {
+  hosts: HostEntry[];
+  summary: PictureSummary;
+}
+
+export const network = {
+  picture: (huntId: string) =>
+    api<NetworkPictureResponse>(`/api/network/picture?hunt_id=${encodeURIComponent(huntId)}`),
+};
+
+// ── Analysis (Process Tree / Storyline / Risk) ───────────────────────
+
+export interface ProcessNodeData {
+  pid: string; ppid: string; name: string; command_line: string;
+  username: string; hostname: string; timestamp: string;
+  dataset_name: string; row_index: number;
+  children: ProcessNodeData[]; extra: Record<string, string>;
+}
+
+export interface ProcessTreeResponse {
+  trees: ProcessNodeData[];
+  total_processes: number;
+}
+
+export interface StorylineNode {
+  data: {
+    id: string; label: string; event_type: string; hostname: string;
+    timestamp: string; pid: string; ppid: string; process_name: string;
+    command_line: string; username: string; src_ip: string; dst_ip: string;
+    dst_port: string; file_path: string; severity: string;
+    dataset_id: string; row_index: number;
+  };
+}
+
+export interface StorylineEdge {
+  data: {
+    id: string; source: string; target: string; relationship: string;
+  };
+}
+
+export interface StorylineResponse {
+  nodes: StorylineNode[];
+  edges: StorylineEdge[];
+  summary: {
+    total_events: number; total_edges: number;
+    hosts: string[]; event_types: Record<string, number>;
+  };
+}
+
+export interface RiskHost {
+  hostname: string; score: number; signals: string[];
+  event_count: number; process_count: number;
+  network_count: number; file_count: number;
+}
+
+export interface RiskSummaryResponse {
+  hosts: RiskHost[];
+  overall_score: number;
+  total_events: number;
+  severity_breakdown: Record<string, number>;
+}
+
+export const analysis = {
+  processTree: (params: { dataset_id?: string; hunt_id?: string; hostname?: string }) => {
+    const q = new URLSearchParams();
+    if (params.dataset_id) q.set('dataset_id', params.dataset_id);
+    if (params.hunt_id) q.set('hunt_id', params.hunt_id);
+    if (params.hostname) q.set('hostname', params.hostname);
+    return api<ProcessTreeResponse>(`/api/analysis/process-tree?${q}`);
+  },
+  storyline: (params: { dataset_id?: string; hunt_id?: string; hostname?: string }) => {
+    const q = new URLSearchParams();
+    if (params.dataset_id) q.set('dataset_id', params.dataset_id);
+    if (params.hunt_id) q.set('hunt_id', params.hunt_id);
+    if (params.hostname) q.set('hostname', params.hostname);
+    return api<StorylineResponse>(`/api/analysis/storyline?${q}`);
+  },
+  riskSummary: (huntId?: string) => {
+    const q = huntId ? `?hunt_id=${encodeURIComponent(huntId)}` : '';
+    return api<RiskSummaryResponse>(`/api/analysis/risk-summary${q}`);
+  },
+  llmAnalyze: (params: {
+    dataset_id?: string; hunt_id?: string; question?: string;
+    mode?: 'quick' | 'deep'; focus?: string;
+  }) =>
+    api<LLMAnalysisResult>('/api/analysis/llm-analyze', {
+      method: 'POST', body: JSON.stringify(params),
+    }),
+
+  // Timeline & Search
+  timeline: (params: { dataset_id?: string; hunt_id?: string; bins?: number }) => {
+    const q = new URLSearchParams();
+    if (params.dataset_id) q.set('dataset_id', params.dataset_id);
+    if (params.hunt_id) q.set('hunt_id', params.hunt_id);
+    if (params.bins) q.set('bins', String(params.bins));
+    return api<TimelineBinsResponse>(`/api/analysis/timeline?${q}`);
+  },
+  fieldStats: (params: { dataset_id?: string; hunt_id?: string; fields?: string; top_n?: number }) => {
+    const q = new URLSearchParams();
+    if (params.dataset_id) q.set('dataset_id', params.dataset_id);
+    if (params.hunt_id) q.set('hunt_id', params.hunt_id);
+    if (params.fields) q.set('fields', params.fields);
+    if (params.top_n) q.set('top_n', String(params.top_n));
+    return api<FieldStatsResponse>(`/api/analysis/field-stats?${q}`);
+  },
+  searchRows: (params: SearchRowsRequest) =>
+    api<SearchRowsResponse>('/api/analysis/search', {
+      method: 'POST', body: JSON.stringify(params),
+    }),
+
+  // MITRE ATT&CK
+  mitreMap: (params: { dataset_id?: string; hunt_id?: string }) => {
+    const q = new URLSearchParams();
+    if (params.dataset_id) q.set('dataset_id', params.dataset_id);
+    if (params.hunt_id) q.set('hunt_id', params.hunt_id);
+    return api<MitreMapResponse>(`/api/analysis/mitre-map?${q}`);
+  },
+  knowledgeGraph: (params: { dataset_id?: string; hunt_id?: string }) => {
+    const q = new URLSearchParams();
+    if (params.dataset_id) q.set('dataset_id', params.dataset_id);
+    if (params.hunt_id) q.set('hunt_id', params.hunt_id);
+    return api<KnowledgeGraphResponse>(`/api/analysis/knowledge-graph?${q}`);
+  },
+};
+
+// ── LLM Analysis types ───────────────────────────────────────────────
+
+export interface LLMAnalysisResult {
+  analysis: string;
+  confidence: number;
+  key_findings: string[];
+  iocs_identified: { type: string; value: string; context: string }[];
+  recommended_actions: string[];
+  mitre_techniques: string[];
+  risk_score: number;
+  model_used: string;
+  node_used: string;
+  latency_ms: number;
+  rows_analyzed: number;
+  dataset_summary: string;
+}
+
+// ── Timeline & Search types ──────────────────────────────────────────
+
+export interface TimelineBin {
+  start: string;
+  end: string;
+  count: number;
+  types: Record<string, number>;
+}
+export interface TimelineBinsResponse {
+  bins: TimelineBin[];
+  total: number;
+  time_range: { start: string; end: string };
+}
+
+export interface FieldStatEntry {
+  value: string;
+  count: number;
+  pct: number;
+}
+export interface FieldStatsResponse {
+  fields: Record<string, { total: number; unique: number; top: FieldStatEntry[] }>;
+  total_rows: number;
+}
+
+export interface SearchRowsRequest {
+  dataset_id?: string;
+  hunt_id?: string;
+  query?: string;
+  filters?: Record<string, string>;
+  time_start?: string;
+  time_end?: string;
+  limit?: number;
+  offset?: number;
+}
+export interface SearchRowsResponse {
+  rows: Record<string, any>[];
+  total: number;
+  offset: number;
+  limit: number;
+}
+
+// ── MITRE ATT&CK types ──────────────────────────────────────────────
+
+export interface MitreTechnique {
+  id: string;
+  name: string;
+  count: number;
+  evidence: { row_index: number; field: string; value: string; pattern: string }[];
+}
+export interface MitreTactic {
+  id: string;
+  name: string;
+  techniques: MitreTechnique[];
+  total_hits: number;
+}
+export interface MitreMapResponse {
+  tactics: MitreTactic[];
+  coverage: {
+    tactics_covered: number;
+    tactics_total: number;
+    techniques_matched: number;
+    total_evidence: number;
+  };
+  total_rows: number;
+}
+
+export interface KnowledgeGraphResponse {
+  nodes: { data: { id: string; label: string; type: string; color: string; shape: string; tactic?: string } }[];
+  edges: { data: { source: string; target: string; weight: number; label: string } }[];
+  stats: {
+    total_nodes: number;
+    total_edges: number;
+    entity_counts: Record<string, number>;
+    techniques_found: number;
+  };
+}
+
+// ── AUP Keywords ─────────────────────────────────────────────────────
 
 export interface KeywordOut {
   id: number; theme_id: string; value: string; is_regex: boolean; created_at: string;
@@ -400,208 +646,257 @@ export const keywords = {
     api<ScanResponse>(`/api/keywords/scan/quick?dataset_id=${encodeURIComponent(datasetId)}`),
 };
 
+// ── Case Management ──────────────────────────────────────────────────
 
-// -- Analysis (Phase 2+) --
+// ── Alerts & Analyzers ───────────────────────────────────────────────
 
-export interface TriageResultData {
-  id: string; dataset_id: string; row_start: number; row_end: number;
-  risk_score: number; verdict: string;
-  findings: any[] | null; suspicious_indicators: any[] | null;
-  mitre_techniques: any[] | null;
-  model_used: string | null; node_used: string | null;
-}
-
-export interface HostProfileData {
-  id: string; hunt_id: string; hostname: string; fqdn: string | null;
-  risk_score: number; risk_level: string;
-  artifact_summary: Record<string, any> | null;
-  timeline_summary: string | null;
-  suspicious_findings: any[] | null;
-  mitre_techniques: any[] | null;
-  llm_analysis: string | null;
-  model_used: string | null;
-}
-
-export interface HuntReportData {
-  id: string; hunt_id: string; status: string;
-  exec_summary: string | null; full_report: string | null;
-  findings: any[] | null; recommendations: any[] | null;
-  mitre_mapping: Record<string, any> | null;
-  ioc_table: any[] | null; host_risk_summary: any[] | null;
-  models_used: any[] | null; generation_time_ms: number | null;
-}
-
-export interface AnomalyResultData {
-  id: string; dataset_id: string; row_id: number | null;
-  anomaly_score: number; distance_from_centroid: number | null;
-  cluster_id: number | null; is_outlier: boolean;
-  explanation: string | null;
-}
-
-export interface HostGroupData {
-  hostname: string;
-  dataset_count: number;
-  total_rows: number;
-  artifact_types: string[];
-  first_seen: string | null;
-  last_seen: string | null;
-  risk_score: number | null;
-}
-
-// -- Job queue types (Phase 10) --
-
-export interface JobData {
+export interface AlertData {
   id: string;
-  job_type: string;
-  status: 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
-  progress: number;
-  message: string;
-  error: string | null;
-  created_at: number;
-  started_at: number | null;
-  completed_at: number | null;
-  elapsed_ms: number;
-  params: Record<string, any>;
+  title: string;
+  description: string | null;
+  severity: string;
+  status: string;
+  analyzer: string;
+  score: number;
+  evidence: Record<string, any>[];
+  mitre_technique: string | null;
+  tags: string[];
+  hunt_id: string | null;
+  dataset_id: string | null;
+  case_id: string | null;
+  assignee: string | null;
+  acknowledged_at: string | null;
+  resolved_at: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
-export interface JobStats {
+export interface AlertStats {
   total: number;
-  queued: number;
-  by_status: Record<string, number>;
-  workers: number;
-  active_workers: number;
+  severity_counts: Record<string, number>;
+  status_counts: Record<string, number>;
+  analyzer_counts: Record<string, number>;
+  top_mitre: { technique: string; count: number }[];
 }
 
-export interface LBNodeStatus {
-  healthy: boolean;
-  active_jobs: number;
-  total_completed: number;
-  total_errors: number;
-  avg_latency_ms: number;
-  last_check: number;
+export interface AlertRuleData {
+  id: string;
+  name: string;
+  description: string | null;
+  analyzer: string;
+  config: Record<string, any> | null;
+  severity_override: string | null;
+  enabled: boolean;
+  hunt_id: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
-export const analysis = {
-  // Triage
-  triageResults: (datasetId: string, minRisk = 0) =>
-    api<TriageResultData[]>(`/api/analysis/triage/${datasetId}?min_risk=${minRisk}`),
-  triggerTriage: (datasetId: string) =>
-    api<{ status: string; dataset_id: string }>(`/api/analysis/triage/${datasetId}`, { method: 'POST' }),
+export interface AnalyzerInfo {
+  name: string;
+  description: string;
+}
 
-  // Host profiles
-  hostProfiles: (huntId: string, minRisk = 0) =>
-    api<HostProfileData[]>(`/api/analysis/profiles/${huntId}?min_risk=${minRisk}`),
-  triggerAllProfiles: (huntId: string) =>
-    api<{ status: string; hunt_id: string }>(`/api/analysis/profiles/${huntId}`, { method: 'POST' }),
-  triggerHostProfile: (huntId: string, hostname: string) =>
-    api<{ status: string }>(`/api/analysis/profiles/${huntId}/${encodeURIComponent(hostname)}`, { method: 'POST' }),
+export interface AnalyzeResult {
+  candidates_found: number;
+  alerts_created: number;
+  alerts: AlertData[];
+  summary: {
+    by_severity: Record<string, number>;
+    by_analyzer: Record<string, number>;
+    rows_analyzed: number;
+  };
+}
 
-  // Reports
-  listReports: (huntId: string) =>
-    api<HuntReportData[]>(`/api/analysis/reports/${huntId}`),
-  getReport: (huntId: string, reportId: string) =>
-    api<HuntReportData>(`/api/analysis/reports/${huntId}/${reportId}`),
-  generateReport: (huntId: string) =>
-    api<{ status: string; hunt_id: string }>(`/api/analysis/reports/${huntId}/generate`, { method: 'POST' }),
-
-  // Anomaly detection
-  anomalies: (datasetId: string, outliersOnly = false) =>
-    api<AnomalyResultData[]>(`/api/analysis/anomalies/${datasetId}?outliers_only=${outliersOnly}`),
-  triggerAnomalyDetection: (datasetId: string, k = 3, threshold = 0.35) =>
-    api<{ status: string; dataset_id: string }>(
-      `/api/analysis/anomalies/${datasetId}?k=${k}&threshold=${threshold}`, { method: 'POST' },
-    ),
-
-  // IOC extraction
-  extractIocs: (datasetId: string) =>
-    api<{ dataset_id: string; iocs: Record<string, string[]>; total: number }>(
-      `/api/analysis/iocs/${datasetId}`,
-    ),
-
-  // Host grouping
-  hostGroups: (huntId: string) =>
-    api<{ hunt_id: string; hosts: HostGroupData[] }>(
-      `/api/analysis/hosts/${huntId}`,
-    ),
-
-  // Data query (Phase 9) - SSE streaming
-  queryStream: async (datasetId: string, question: string, mode: string = 'quick'): Promise<Response> => {
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
-    return fetch(`${BASE}/api/analysis/query/${datasetId}`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ question, mode }),
-    });
-  },
-
-  // Data query (Phase 9) - sync
-  querySync: (datasetId: string, question: string, mode: string = 'quick') =>
-    api<{ dataset_id: string; question: string; answer: string; mode: string }>(
-      `/api/analysis/query/${datasetId}/sync`, {
-        method: 'POST',
-        body: JSON.stringify({ question, mode }),
-      },
-    ),
-
-  // Job queue (Phase 10)
-  listJobs: (status?: string, jobType?: string, limit = 50) => {
+export const alerts = {
+  list: (opts?: { status?: string; severity?: string; analyzer?: string; hunt_id?: string; dataset_id?: string; limit?: number; offset?: number }) => {
     const q = new URLSearchParams();
-    if (status) q.set('status', status);
-    if (jobType) q.set('job_type', jobType);
-    q.set('limit', String(limit));
-    return api<{ jobs: JobData[]; stats: JobStats }>(`/api/analysis/jobs?${q}`);
+    if (opts?.status) q.set('status', opts.status);
+    if (opts?.severity) q.set('severity', opts.severity);
+    if (opts?.analyzer) q.set('analyzer', opts.analyzer);
+    if (opts?.hunt_id) q.set('hunt_id', opts.hunt_id);
+    if (opts?.dataset_id) q.set('dataset_id', opts.dataset_id);
+    if (opts?.limit) q.set('limit', String(opts.limit));
+    if (opts?.offset) q.set('offset', String(opts.offset));
+    return api<{ alerts: AlertData[]; total: number }>(`/api/alerts?${q}`);
   },
-  getJob: (jobId: string) =>
-    api<JobData>(`/api/analysis/jobs/${jobId}`),
-  cancelJob: (jobId: string) =>
-    api<{ status: string; job_id: string }>(`/api/analysis/jobs/${jobId}`, { method: 'DELETE' }),
-  submitJob: (jobType: string, params: Record<string, any> = {}) =>
-    api<{ job_id: string; status: string; job_type: string }>(
-      `/api/analysis/jobs/submit/${jobType}`, {
-        method: 'POST',
-        body: JSON.stringify(params),
-      },
-    ),
-
-  // Load balancer (Phase 10)
-  lbStatus: () =>
-    api<Record<string, LBNodeStatus>>('/api/analysis/lb/status'),
-  lbCheck: () =>
-    api<Record<string, LBNodeStatus>>('/api/analysis/lb/check', { method: 'POST' }),
+  stats: (huntId?: string) => {
+    const q = huntId ? `?hunt_id=${encodeURIComponent(huntId)}` : '';
+    return api<AlertStats>(`/api/alerts/stats${q}`);
+  },
+  get: (id: string) => api<AlertData>(`/api/alerts/${id}`),
+  update: (id: string, data: { status?: string; severity?: string; assignee?: string; case_id?: string; tags?: string[] }) =>
+    api<AlertData>(`/api/alerts/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id: string) =>
+    api(`/api/alerts/${id}`, { method: 'DELETE' }),
+  bulkUpdate: (alertIds: string[], status: string) =>
+    api<{ updated: number }>(`/api/alerts/bulk-update?status=${encodeURIComponent(status)}`, {
+      method: 'POST', body: JSON.stringify(alertIds),
+    }),
+  analyzers: () =>
+    api<{ analyzers: AnalyzerInfo[] }>('/api/alerts/analyzers/list'),
+  analyze: (params: { dataset_id?: string; hunt_id?: string; analyzers?: string[]; config?: Record<string, any>; auto_create?: boolean }) =>
+    api<AnalyzeResult>('/api/alerts/analyze', {
+      method: 'POST', body: JSON.stringify(params),
+    }),
+  listRules: (enabled?: boolean) => {
+    const q = enabled !== undefined ? `?enabled=${enabled}` : '';
+    return api<{ rules: AlertRuleData[] }>(`/api/alerts/rules/list${q}`);
+  },
+  createRule: (data: { name: string; description?: string; analyzer: string; config?: Record<string, any>; severity_override?: string; enabled?: boolean; hunt_id?: string }) =>
+    api<AlertRuleData>('/api/alerts/rules', { method: 'POST', body: JSON.stringify(data) }),
+  updateRule: (id: string, data: Partial<AlertRuleData>) =>
+    api<AlertRuleData>(`/api/alerts/rules/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteRule: (id: string) =>
+    api(`/api/alerts/rules/${id}`, { method: 'DELETE' }),
 };
 
-// -- Network Topology --
+// ── Case Management (continued) ──────────────────────────────────────
 
-export interface InventoryHost {
+export interface CaseData {
   id: string;
-  hostname: string;
-  fqdn: string;
-  client_id: string;
-  ips: string[];
-  os: string;
-  users: string[];
-  datasets: string[];
-  row_count: number;
+  title: string;
+  description: string | null;
+  severity: string;
+  tlp: string;
+  pap: string;
+  status: string;
+  priority: number;
+  assignee: string | null;
+  tags: string[];
+  hunt_id: string | null;
+  owner_id: string | null;
+  mitre_techniques: string[];
+  iocs: { type: string; value: string; description?: string }[];
+  started_at: string | null;
+  resolved_at: string | null;
+  created_at: string;
+  updated_at: string;
+  tasks: CaseTaskData[];
+}
+export interface CaseTaskData {
+  id: string;
+  case_id: string;
+  title: string;
+  description: string | null;
+  status: string;
+  assignee: string | null;
+  order: number;
+  created_at: string;
+  updated_at: string;
+}
+export interface ActivityLogEntry {
+  id: number;
+  action: string;
+  details: Record<string, any> | null;
+  user_id: string | null;
+  created_at: string;
 }
 
-export interface InventoryConnection {
+export const cases = {
+  list: (opts?: { status?: string; hunt_id?: string; limit?: number; offset?: number }) => {
+    const q = new URLSearchParams();
+    if (opts?.status) q.set('status', opts.status);
+    if (opts?.hunt_id) q.set('hunt_id', opts.hunt_id);
+    if (opts?.limit) q.set('limit', String(opts.limit));
+    if (opts?.offset) q.set('offset', String(opts.offset));
+    return api<{ cases: CaseData[]; total: number }>(`/api/cases?${q}`);
+  },
+  get: (id: string) => api<CaseData>(`/api/cases/${id}`),
+  create: (data: Partial<CaseData>) =>
+    api<CaseData>('/api/cases', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: Partial<CaseData>) =>
+    api<CaseData>(`/api/cases/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id: string) =>
+    api(`/api/cases/${id}`, { method: 'DELETE' }),
+  addTask: (caseId: string, data: { title: string; description?: string; assignee?: string }) =>
+    api<CaseTaskData>(`/api/cases/${caseId}/tasks`, { method: 'POST', body: JSON.stringify(data) }),
+  updateTask: (caseId: string, taskId: string, data: Partial<CaseTaskData>) =>
+    api<CaseTaskData>(`/api/cases/${caseId}/tasks/${taskId}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteTask: (caseId: string, taskId: string) =>
+    api(`/api/cases/${caseId}/tasks/${taskId}`, { method: 'DELETE' }),
+  activity: (caseId: string, limit = 50) =>
+    api<{ logs: ActivityLogEntry[] }>(`/api/cases/${caseId}/activity?limit=${limit}`),
+};
+
+// ── Notebooks & Playbooks ────────────────────────────────────────────
+
+export interface NotebookCell {
+  id: string;
+  cell_type: string;
   source: string;
-  target: string;
-  target_ip: string;
-  port: string;
-  count: number;
+  output: string | null;
+  metadata: Record<string, any>;
+}
+export interface NotebookData {
+  id: string;
+  title: string;
+  description: string | null;
+  cells: NotebookCell[];
+  hunt_id: string | null;
+  case_id: string | null;
+  owner_id: string | null;
+  tags: string[];
+  cell_count: number;
+  created_at: string;
+  updated_at: string;
+}
+export interface PlaybookTemplate {
+  name: string;
+  description: string;
+  category: string;
+  tags: string[];
+  step_count: number;
+}
+export interface PlaybookStep {
+  order: number;
+  title: string;
+  description: string;
+  action: string;
+  action_config: Record<string, any>;
+  expected_outcome: string;
+}
+export interface PlaybookTemplateDetail extends PlaybookTemplate {
+  steps: PlaybookStep[];
+}
+export interface PlaybookRunData {
+  id: string;
+  playbook_name: string;
+  status: string;
+  current_step: number;
+  total_steps: number;
+  step_results: { step: number; status: string; notes: string | null; completed_at: string }[];
+  hunt_id: string | null;
+  case_id: string | null;
+  started_by: string | null;
+  created_at: string;
+  updated_at: string;
+  completed_at: string | null;
+  steps?: PlaybookStep[];
 }
 
-export interface InventoryStats {
-  total_hosts: number;
-  total_datasets_scanned: number;
-  datasets_with_hosts: number;
-  total_rows_scanned: number;
-  hosts_with_ips: number;
-  hosts_with_users: number;
-}
+export const notebooks = {
+  list: (opts?: { hunt_id?: string; limit?: number; offset?: number }) => {
+    const q = new URLSearchParams();
+    if (opts?.hunt_id) q.set('hunt_id', opts.hunt_id);
+    if (opts?.limit) q.set('limit', String(opts.limit));
+    if (opts?.offset) q.set('offset', String(opts.offset));
+    return api<{ notebooks: NotebookData[]; total: number }>(`/api/notebooks?${q}`);
+  },
+  get: (id: string) => api<NotebookData>(`/api/notebooks/${id}`),
+  create: (data: { title: string; description?: string; cells?: Partial<NotebookCell>[]; hunt_id?: string; case_id?: string; tags?: string[] }) =>
+    api<NotebookData>('/api/notebooks', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: { title?: string; description?: string; cells?: Partial<NotebookCell>[]; tags?: string[] }) =>
+    api<NotebookData>(`/api/notebooks/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  upsertCell: (notebookId: string, cell: { cell_id: string; cell_type?: string; source?: string; output?: string; metadata?: Record<string, any> }) =>
+    api<NotebookData>(`/api/notebooks/${notebookId}/cells`, { method: 'POST', body: JSON.stringify(cell) }),
+  deleteCell: (notebookId: string, cellId: string) =>
+    api(`/api/notebooks/${notebookId}/cells/${cellId}`, { method: 'DELETE' }),
+  delete: (id: string) =>
+    api(`/api/notebooks/${id}`, { method: 'DELETE' }),
+};
 
+<<<<<<< HEAD
 export interface HostInventory {
   hosts: InventoryHost[];
   connections: InventoryConnection[];
@@ -818,3 +1113,27 @@ export const stixExport = {
   },
 };
 
+=======
+export const playbooks = {
+  templates: () =>
+    api<{ templates: PlaybookTemplate[] }>('/api/notebooks/playbooks/templates'),
+  templateDetail: (name: string) =>
+    api<PlaybookTemplateDetail>(`/api/notebooks/playbooks/templates/${encodeURIComponent(name)}`),
+  start: (data: { playbook_name: string; hunt_id?: string; case_id?: string; started_by?: string }) =>
+    api<PlaybookRunData>('/api/notebooks/playbooks/start', { method: 'POST', body: JSON.stringify(data) }),
+  listRuns: (opts?: { status?: string; hunt_id?: string }) => {
+    const q = new URLSearchParams();
+    if (opts?.status) q.set('status', opts.status);
+    if (opts?.hunt_id) q.set('hunt_id', opts.hunt_id);
+    return api<{ runs: PlaybookRunData[] }>(`/api/notebooks/playbooks/runs?${q}`);
+  },
+  getRun: (runId: string) =>
+    api<PlaybookRunData>(`/api/notebooks/playbooks/runs/${runId}`),
+  completeStep: (runId: string, data: { notes?: string; status?: string }) =>
+    api<PlaybookRunData>(`/api/notebooks/playbooks/runs/${runId}/complete-step`, {
+      method: 'POST', body: JSON.stringify(data),
+    }),
+  abortRun: (runId: string) =>
+    api<PlaybookRunData>(`/api/notebooks/playbooks/runs/${runId}/abort`, { method: 'POST' }),
+};
+>>>>>>> 7c454036c7ef6a3d6517f98cbee643fd0238e0b2

@@ -1,12 +1,10 @@
 """ThreatHunt backend application.
 
 Wires together: database, CORS, agent routes, dataset routes, hunt routes,
-annotation/hypothesis routes, analysis routes, network routes, job queue,
-load balancer. DB tables are auto-created on startup.
+annotation/hypothesis routes.  DB tables are auto-created on startup.
 """
 
 import logging
-import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -23,13 +21,19 @@ from app.api.routes.correlation import router as correlation_router
 from app.api.routes.reports import router as reports_router
 from app.api.routes.auth import router as auth_router
 from app.api.routes.keywords import router as keywords_router
-from app.api.routes.analysis import router as analysis_router
 from app.api.routes.network import router as network_router
+<<<<<<< HEAD
 from app.api.routes.mitre import router as mitre_router
 from app.api.routes.timeline import router as timeline_router
 from app.api.routes.playbooks import router as playbooks_router
 from app.api.routes.saved_searches import router as searches_router
 from app.api.routes.stix_export import router as stix_router
+=======
+from app.api.routes.analysis import router as analysis_router
+from app.api.routes.cases import router as cases_router
+from app.api.routes.alerts import router as alerts_router
+from app.api.routes.notebooks import router as notebooks_router
+>>>>>>> 7c454036c7ef6a3d6517f98cbee643fd0238e0b2
 
 logger = logging.getLogger(__name__)
 
@@ -37,20 +41,16 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup / shutdown lifecycle."""
-    logger.info("Starting ThreatHunt API ...")
+    logger.info("Starting ThreatHunt API …")
     await init_db()
     logger.info("Database initialised")
-
-    # Ensure uploads directory exists
-    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
-    logger.info("Upload dir: %s", os.path.abspath(settings.UPLOAD_DIR))
-
     # Seed default AUP keyword themes
     from app.db import async_session_factory
     from app.services.keyword_defaults import seed_defaults
     async with async_session_factory() as seed_db:
         await seed_defaults(seed_db)
     logger.info("AUP keyword defaults checked")
+<<<<<<< HEAD
 
     # Start job queue
     from app.services.job_queue import (
@@ -141,6 +141,10 @@ async def lifespan(app: FastAPI):
     await _lb.stop_health_loop()
     logger.info("Load balancer stopped")
 
+=======
+    yield
+    logger.info("Shutting down …")
+>>>>>>> 7c454036c7ef6a3d6517f98cbee643fd0238e0b2
     from app.agents.providers_v2 import cleanup_client
     from app.services.enrichment import enrichment_engine
     await cleanup_client()
@@ -148,13 +152,15 @@ async def lifespan(app: FastAPI):
     await dispose_db()
 
 
+# Create FastAPI application
 app = FastAPI(
     title="ThreatHunt API",
     description="Analyst-assist threat hunting platform powered by Wile & Roadrunner LLM cluster",
-    version=settings.APP_VERSION,
+    version="0.3.0",
     lifespan=lifespan,
 )
 
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
@@ -174,17 +180,24 @@ app.include_router(enrichment_router)
 app.include_router(correlation_router)
 app.include_router(reports_router)
 app.include_router(keywords_router)
-app.include_router(analysis_router)
 app.include_router(network_router)
+<<<<<<< HEAD
 app.include_router(mitre_router)
 app.include_router(timeline_router)
 app.include_router(playbooks_router)
 app.include_router(searches_router)
 app.include_router(stix_router)
+=======
+app.include_router(analysis_router)
+app.include_router(cases_router)
+app.include_router(alerts_router)
+app.include_router(notebooks_router)
+>>>>>>> 7c454036c7ef6a3d6517f98cbee643fd0238e0b2
 
 
 @app.get("/", tags=["health"])
 async def root():
+    """API health check."""
     return {
         "service": "ThreatHunt API",
         "version": settings.APP_VERSION,
@@ -196,6 +209,7 @@ async def root():
             "openwebui": settings.OPENWEBUI_URL,
         },
     }
+<<<<<<< HEAD
 
 
 @app.get("/health", tags=["health"])
@@ -205,3 +219,5 @@ async def health():
         "version": settings.APP_VERSION,
         "status": "ok",
     }
+=======
+>>>>>>> 7c454036c7ef6a3d6517f98cbee643fd0238e0b2

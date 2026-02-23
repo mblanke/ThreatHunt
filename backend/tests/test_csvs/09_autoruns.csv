@@ -1,0 +1,343 @@
+Hostname,IP,EntryName,EntryPath,Category,Enabled,Signer,MD5,Timestamp
+HR-WS-001,10.10.2.101,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,f9476077f731904faca4ce51e8223280,2026-02-18T16:38:01.691Z
+HR-WS-001,10.10.2.101,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,22b9787216ab4bcc3e837fe83e56de08,2026-02-14T21:40:24.163Z
+HR-WS-001,10.10.2.101,OneDrive,C:\Users\gwhite\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,e12c4d94832bcfc10ea719ab8c7a1e99,2026-02-10T10:35:43.190Z
+HR-WS-001,10.10.2.101,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,c9b8d71ffc7f6ba6815406168fe0e504,2026-02-19T20:45:28.448Z
+HR-WS-001,10.10.2.101,Spotify,C:\Users\gwhite\AppData\Roaming\Spotify\Spotify.exe /minimized,Logon,True,(Not Signed),4a4348e3d4e5abb139eb31a3b3ab4a37,2026-02-12T07:14:11.363Z
+FIN-WS-002,10.10.3.102,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,9784945d50c553a038ce9d31f138eeb9,2026-02-16T01:53:59.986Z
+FIN-WS-002,10.10.3.102,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,51c836ed0b3c7aac59187f2703ba3d95,2026-02-19T12:05:46.600Z
+FIN-WS-002,10.10.3.102,OneDrive,C:\Users\emartinez\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,68f003e65e14be3f618ede037c9f3492,2026-02-10T13:54:22.852Z
+FIN-WS-002,10.10.3.102,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,3ee5bb60071f8c1235df6330912221a3,2026-02-13T13:21:36.604Z
+SLS-WS-003,10.10.1.103,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,f43330733bd73bdc0e2abaca445c0a67,2026-02-12T17:21:14.744Z
+SLS-WS-003,10.10.1.103,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,4584172477b2fe74ddbd894fcdaa90f3,2026-02-16T01:51:57.062Z
+SLS-WS-003,10.10.1.103,OneDrive,C:\Users\jsmith\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,6db277775cf2f8a3e0ee4f3f7ea19fde,2026-02-14T11:36:04.076Z
+SLS-WS-003,10.10.1.103,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,b340a11b84628d2589af707554dc54bf,2026-02-14T14:31:28.902Z
+ENG-WS-004,10.10.2.104,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,ee50eb7054466553636e1747152ebde2,2026-02-18T21:02:30.826Z
+ENG-WS-004,10.10.2.104,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,3c3e4d576f1dcb57dda69452d46826e2,2026-02-15T16:11:07.434Z
+ENG-WS-004,10.10.2.104,OneDrive,C:\Users\hbrown\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,4199e0bd2a0aba2a5b54f21e0f733fc1,2026-02-15T00:36:10.306Z
+ENG-WS-004,10.10.2.104,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,17409f9956b4cc3de140c4eb9bcb8821,2026-02-10T19:23:50.518Z
+LEG-WS-005,10.10.3.105,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,a6965636c44cb10326a6726a5cc7ef7c,2026-02-14T06:39:11.997Z
+LEG-WS-005,10.10.3.105,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,3efd102a59a6bb9659854dbe62960882,2026-02-18T00:05:24.622Z
+LEG-WS-005,10.10.3.105,OneDrive,C:\Users\idavis\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,a892151ba200fd042e6d747af87a58be,2026-02-14T21:09:26.910Z
+LEG-WS-005,10.10.3.105,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,2382aea96e53966d77f67564e8bb9a0a,2026-02-20T14:37:35.078Z
+MKT-WS-006,10.10.1.106,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,64b4fba1f06924f821641be3be48af45,2026-02-19T15:12:25.834Z
+MKT-WS-006,10.10.1.106,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,009b84037a7d13ccd7129ff2dcac4145,2026-02-16T08:31:47.006Z
+MKT-WS-006,10.10.1.106,OneDrive,C:\Users\svc_backup\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,c6bcda73bfffe297bfa33ac91aceb351,2026-02-15T13:56:06.927Z
+MKT-WS-006,10.10.1.106,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,a02b5071684ff75768995fb47ce19b3b,2026-02-13T10:48:36.068Z
+EXEC-WS-007,10.10.2.107,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,3d52771382b18b1ba9f65b5dadf05410,2026-02-14T21:11:18.000Z
+EXEC-WS-007,10.10.2.107,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,3611b573b586e247bd6e2a507ca21683,2026-02-11T07:26:19.949Z
+EXEC-WS-007,10.10.2.107,OneDrive,C:\Users\cjohnson\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,d9903e5eded038b3dc3c91f427409805,2026-02-20T10:29:46.612Z
+EXEC-WS-007,10.10.2.107,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,5a667b764bf6c0b500b45c7b66be2022,2026-02-18T19:47:32.890Z
+IT-WS-008,10.10.3.108,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,d4856492b7a3b2f2a6df99c73467a7df,2026-02-11T00:15:04.254Z
+IT-WS-008,10.10.3.108,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,bba6882e5e4c691a6be948be2bdb49ba,2026-02-11T05:06:51.041Z
+IT-WS-008,10.10.3.108,OneDrive,C:\Users\svc_sql\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,e949a1d4c52013b98db0e82670c20b0f,2026-02-19T09:36:16.769Z
+IT-WS-008,10.10.3.108,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,19a1662d7a261f7c569de3dae84e3e46,2026-02-18T16:19:52.827Z
+HR-WS-009,10.10.1.109,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,035b97369bb068c1071c07fe79ed9db8,2026-02-13T18:48:23.256Z
+HR-WS-009,10.10.1.109,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,9192c986a04555c62ac2d111bae41dbf,2026-02-19T22:18:31.770Z
+HR-WS-009,10.10.1.109,OneDrive,C:\Users\idavis\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,07696f6a549fd643671fd3e7988b6c3a,2026-02-15T03:59:27.784Z
+HR-WS-009,10.10.1.109,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,61ad70133a4061a53f1bb15189f42acd,2026-02-17T17:53:33.602Z
+FIN-WS-010,10.10.2.110,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,7837891a3a1aa04f5b173d764d77c58c,2026-02-14T20:46:38.165Z
+FIN-WS-010,10.10.2.110,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,3d18d4bcf63d3d6616ba37dc0e04533e,2026-02-13T11:38:54.276Z
+FIN-WS-010,10.10.2.110,OneDrive,C:\Users\dlee\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,890d634cefc9a5575c6c916c2f4a9cd5,2026-02-11T03:52:37.756Z
+FIN-WS-010,10.10.2.110,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,184c45767f22c999e0c770716995e394,2026-02-17T17:38:37.540Z
+FIN-WS-010,10.10.2.110,uTorrent,C:\Users\dlee\AppData\Roaming\uTorrent\uTorrent.exe /minimized,Logon,True,(Not Signed),739ff4819dc765d9d1442fa9514ce5a3,2026-02-14T14:23:48.715Z
+SLS-WS-011,10.10.3.111,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,257302624c1d1b8ab6e41d64f386cd13,2026-02-14T14:18:31.992Z
+SLS-WS-011,10.10.3.111,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,2e7d979e1bbd4309ebfd30b771312520,2026-02-16T17:36:39.342Z
+SLS-WS-011,10.10.3.111,OneDrive,C:\Users\emartinez\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,25ab312343a9b0f8dc132bcf529668f1,2026-02-17T18:55:31.648Z
+SLS-WS-011,10.10.3.111,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,907e662386549f04314d877f821e0f09,2026-02-16T07:37:15.438Z
+ENG-WS-012,10.10.1.112,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,a78f9f4d22b8ad4f1649b9451157b62a,2026-02-16T20:53:05.090Z
+ENG-WS-012,10.10.1.112,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,b7bcf70be51bffb5954b31802880fb7e,2026-02-16T00:23:19.427Z
+ENG-WS-012,10.10.1.112,OneDrive,C:\Users\bwilson\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,33b121347f06281ed1f93461d317f81e,2026-02-20T10:49:15.804Z
+ENG-WS-012,10.10.1.112,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,3b03d2cb036d84e8e13b0cb450b4218b,2026-02-20T10:32:58.342Z
+LEG-WS-013,10.10.2.113,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,f2d290a90081df0d39fb81c567d04776,2026-02-19T10:54:08.806Z
+LEG-WS-013,10.10.2.113,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,643804513444b466873e04fbb8c1e6b1,2026-02-13T09:02:59.760Z
+LEG-WS-013,10.10.2.113,OneDrive,C:\Users\cjohnson\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,7d019fd8a888bc50e95abdacdc9826d3,2026-02-16T03:01:45.895Z
+LEG-WS-013,10.10.2.113,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,08cae97b7813a4e56a551834a3acd593,2026-02-16T03:49:14.877Z
+LEG-WS-013,10.10.2.113,Discord,C:\Users\cjohnson\AppData\Local\Discord\Update.exe --processStart Discord.exe,Logon,True,(Not Signed),3f649a21c880cb1707c300cdf0cafc80,2026-02-18T00:57:58.524Z
+MKT-WS-014,10.10.3.114,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,13b2e547b818c31f445ef03f60c0f03f,2026-02-15T00:32:17.270Z
+MKT-WS-014,10.10.3.114,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,020100b29f3cef7e0d20805b2f6dcf6f,2026-02-16T04:50:18.379Z
+MKT-WS-014,10.10.3.114,OneDrive,C:\Users\emartinez\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,104cbbea37b078846fb0ada324e071eb,2026-02-11T05:05:09.008Z
+MKT-WS-014,10.10.3.114,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,68be1255a2a881356089dca5b17f0235,2026-02-16T15:36:41.385Z
+MKT-WS-014,10.10.3.114,Steam,C:\Program Files (x86)\Steam\steam.exe -silent,Logon,True,(Not Signed),66cfdcdf2da7e2052a07ff85a398d38a,2026-02-14T22:28:49.877Z
+EXEC-WS-015,10.10.1.115,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,8a93b2a9ee834d7338c7190c5812b03d,2026-02-15T06:04:00.601Z
+EXEC-WS-015,10.10.1.115,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,5247e43ce576b5d8be2896d5352b3f2a,2026-02-16T13:10:55.685Z
+EXEC-WS-015,10.10.1.115,OneDrive,C:\Users\emartinez\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,81f9a00e9e20223db4d10663bae6bed3,2026-02-17T08:00:37.595Z
+EXEC-WS-015,10.10.1.115,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,c735750ce48018ac577220efd90ae398,2026-02-11T12:26:22.399Z
+IT-WS-016,10.10.2.116,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,8deb9721364b822d96adf74e6b8a42d0,2026-02-19T01:58:36.892Z
+IT-WS-016,10.10.2.116,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,2365ad5ec8604ccf407870b6fc86f489,2026-02-11T15:03:21.222Z
+IT-WS-016,10.10.2.116,OneDrive,C:\Users\svc_backup\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,82b746aee8dc8483e0d14b477c0bf2e2,2026-02-18T20:43:58.890Z
+IT-WS-016,10.10.2.116,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,9709479b27d768d502a0f945c29b8f5e,2026-02-11T08:10:28.465Z
+HR-WS-017,10.10.3.117,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,f11b2989e26d037388b3ae21ec50adb9,2026-02-11T00:31:37.655Z
+HR-WS-017,10.10.3.117,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,7ed41cd93f60a8667d4462fecef78b37,2026-02-12T22:22:11.343Z
+HR-WS-017,10.10.3.117,OneDrive,C:\Users\agarcia\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,19725dbc721037a8d3ec93c5809f695e,2026-02-19T08:33:19.727Z
+HR-WS-017,10.10.3.117,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,e883d2362914c58532c69935075e2bbe,2026-02-20T02:29:55.060Z
+FIN-WS-018,10.10.1.118,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,b524a6ee7c336102b59fa2c02a6c871b,2026-02-14T21:17:01.353Z
+FIN-WS-018,10.10.1.118,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,64c8ce48ce5252706848a4523fa92126,2026-02-11T10:03:09.619Z
+FIN-WS-018,10.10.1.118,OneDrive,C:\Users\hbrown\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,05cc51d03c884751bcc4a123b0e7ce7f,2026-02-15T06:12:23.669Z
+FIN-WS-018,10.10.1.118,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,356ef7d8cfc147e714b76c36c3fac9f5,2026-02-16T03:23:24.079Z
+SLS-WS-019,10.10.2.119,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,49286eb5be41056b8597acc51222df6a,2026-02-14T09:14:46.487Z
+SLS-WS-019,10.10.2.119,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,0872ebbf4f5530d12a54f7cdec48a438,2026-02-17T10:58:19.296Z
+SLS-WS-019,10.10.2.119,OneDrive,C:\Users\svc_backup\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,abd58a27994096e52591b6ffea3783f9,2026-02-14T23:34:37.781Z
+SLS-WS-019,10.10.2.119,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,4527ee4ad703e9ec0d5e82564b6ef158,2026-02-17T04:34:55.933Z
+ENG-WS-020,10.10.3.120,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,4dfaca00b0e6732e8b04b2eb21c15db3,2026-02-15T17:58:58.872Z
+ENG-WS-020,10.10.3.120,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,1f6e64f67e4ecdb0449fda62aa787352,2026-02-19T21:29:34.931Z
+ENG-WS-020,10.10.3.120,OneDrive,C:\Users\gwhite\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,6bdc5c8a846721d4a76e895c67561df0,2026-02-18T19:36:32.427Z
+ENG-WS-020,10.10.3.120,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,1d20b62a8f705ab66986598430c174bc,2026-02-15T16:55:52.609Z
+LEG-WS-021,10.10.1.121,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,e4d41589137b6a96abc2f55a3791be8d,2026-02-13T15:30:33.773Z
+LEG-WS-021,10.10.1.121,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,147dc74ec0816e16bf7529e6ae7e5a53,2026-02-14T15:22:57.108Z
+LEG-WS-021,10.10.1.121,OneDrive,C:\Users\gwhite\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,bd4587b48ec4020debbbddaf7f89ea7a,2026-02-11T01:41:27.194Z
+LEG-WS-021,10.10.1.121,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,46917a79cff1dce33a17344c2027cc9b,2026-02-16T17:33:36.432Z
+MKT-WS-022,10.10.2.122,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,def371c941305a046248395d2a30760d,2026-02-14T08:04:10.599Z
+MKT-WS-022,10.10.2.122,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,d1ab02535208f9bb6a16ffdf9b6728f0,2026-02-20T08:11:56.232Z
+MKT-WS-022,10.10.2.122,OneDrive,C:\Users\idavis\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,86abf68ccbc0b4c3108763e003389b6c,2026-02-10T12:34:22.389Z
+MKT-WS-022,10.10.2.122,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,1d5541e9a0ae2ad772e57e5c7e14f5e7,2026-02-12T13:16:19.289Z
+EXEC-WS-023,10.10.3.123,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,71d6f451ec0ec214188617f3bde4684e,2026-02-13T16:17:00.055Z
+EXEC-WS-023,10.10.3.123,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,2153c162cc3012bc15e9cb60abd2beb1,2026-02-13T06:32:25.842Z
+EXEC-WS-023,10.10.3.123,OneDrive,C:\Users\svc_sql\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,4b5aea314b7dcbf04e795bd961078683,2026-02-11T16:12:54.402Z
+EXEC-WS-023,10.10.3.123,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,e092c0fb7c52dce19b3d8dc3f33e3901,2026-02-14T16:32:21.336Z
+IT-WS-024,10.10.1.124,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,b6c7015c4dcbfacc3b0e1340c92d172a,2026-02-18T10:19:58.467Z
+IT-WS-024,10.10.1.124,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,00ac31fa29b3dff35072cafe76371b15,2026-02-19T15:14:39.012Z
+IT-WS-024,10.10.1.124,OneDrive,C:\Users\idavis\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,33b765b545fd45a83d19f0dc116303c8,2026-02-19T01:39:36.343Z
+IT-WS-024,10.10.1.124,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,2718bc3830483edb17e989e08f9c8fb5,2026-02-17T02:17:18.372Z
+HR-WS-025,10.10.2.125,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,56e53b7a62821a55258af76761ea1966,2026-02-14T18:40:44.549Z
+HR-WS-025,10.10.2.125,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,e4232abc36e81b10073bec33bb56d386,2026-02-15T23:11:54.823Z
+HR-WS-025,10.10.2.125,OneDrive,C:\Users\gwhite\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,a402172a3ed4174b2fdafc567666b6da,2026-02-11T15:31:11.832Z
+HR-WS-025,10.10.2.125,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,c10c0af42f088f6b7357acbc09775fa8,2026-02-18T08:17:27.400Z
+FIN-WS-026,10.10.3.126,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,2fbbc6877d622feef68ffc65f1b497b8,2026-02-10T23:54:22.663Z
+FIN-WS-026,10.10.3.126,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,53d4cca3eda03f21675f3851158dc65b,2026-02-13T23:13:33.694Z
+FIN-WS-026,10.10.3.126,OneDrive,C:\Users\bwilson\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,ac6bf1769af34c99f27c717ef5af0d40,2026-02-17T18:50:56.934Z
+FIN-WS-026,10.10.3.126,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,7c6a48b9eb64fba9537361bf03f48476,2026-02-19T13:08:39.543Z
+FIN-WS-026,10.10.3.126,uTorrent,C:\Users\bwilson\AppData\Roaming\uTorrent\uTorrent.exe /minimized,Logon,True,(Not Signed),d62e227614d0b1c5ece4ae2285bca535,2026-02-15T02:40:04.600Z
+SLS-WS-027,10.10.1.127,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,314a1fa1648cf1937bba36649ac71406,2026-02-16T16:59:40.073Z
+SLS-WS-027,10.10.1.127,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,71f4848f3579531726169015b8fe25d8,2026-02-11T17:18:52.433Z
+SLS-WS-027,10.10.1.127,OneDrive,C:\Users\jsmith\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,bcfd766327e1b751c75678cb49a947a5,2026-02-18T02:46:31.650Z
+SLS-WS-027,10.10.1.127,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,3e86a3eab1378f974b78dca84c9b8d61,2026-02-13T07:47:34.502Z
+ENG-WS-028,10.10.2.128,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,334d2603842c94b82319a2f73e628825,2026-02-14T20:37:13.140Z
+ENG-WS-028,10.10.2.128,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,ad5f1aa1f564391827db75bdc0470b91,2026-02-16T01:05:12.568Z
+ENG-WS-028,10.10.2.128,OneDrive,C:\Users\fthompson\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,fed764abbda0a135fefbf3d0f4336932,2026-02-15T06:23:54.909Z
+ENG-WS-028,10.10.2.128,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,836b3596ccf5e97afb6ea50600828378,2026-02-19T19:21:30.616Z
+LEG-WS-029,10.10.3.129,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,29a32d4dbadce2590aa2ec00ecb9a3e8,2026-02-17T23:00:03.452Z
+LEG-WS-029,10.10.3.129,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,806e0d560c68c0d16c00bdeb38237f60,2026-02-20T04:19:14.893Z
+LEG-WS-029,10.10.3.129,OneDrive,C:\Users\emartinez\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,b47af555bb8f26a514017faba2811633,2026-02-13T03:45:42.890Z
+LEG-WS-029,10.10.3.129,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,7c127e96cd46d111230479e3ad7ce00b,2026-02-13T07:14:54.166Z
+MKT-WS-030,10.10.1.130,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,1e72ddbb8a43a6338cd9292998369288,2026-02-18T01:53:46.382Z
+MKT-WS-030,10.10.1.130,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,b664ea6bdaae1a85803ff8384e1e22d3,2026-02-12T02:13:32.177Z
+MKT-WS-030,10.10.1.130,OneDrive,C:\Users\idavis\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,7a49d8ac591de6c1668c1a925cc87126,2026-02-11T09:16:29.394Z
+MKT-WS-030,10.10.1.130,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,425471ef3c40d97e8468dd87d12fb5fd,2026-02-16T06:17:51.666Z
+EXEC-WS-031,10.10.2.131,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,53802a9758578dd99ad67558e04a4d1e,2026-02-14T01:01:05.786Z
+EXEC-WS-031,10.10.2.131,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,c5809b61bf61d71f627cd3b9a8098bd9,2026-02-18T20:26:29.082Z
+EXEC-WS-031,10.10.2.131,OneDrive,C:\Users\fthompson\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,e9f839f0536cddb42725b33b51edfb0d,2026-02-14T17:13:26.254Z
+EXEC-WS-031,10.10.2.131,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,be25d2578c527a3a93c3d6d5512d4d99,2026-02-14T07:14:54.730Z
+IT-WS-032,10.10.3.132,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,573fbf0d2247b7cf6d1616ace82eadf6,2026-02-14T19:06:58.657Z
+IT-WS-032,10.10.3.132,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,a185649a31ae55760a8940c28c44adcc,2026-02-19T19:34:20.023Z
+IT-WS-032,10.10.3.132,OneDrive,C:\Users\svc_backup\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,3a940ae061d746f6e7d0d053be9d80fb,2026-02-17T01:03:18.593Z
+IT-WS-032,10.10.3.132,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,e9372174a9ee2f3b313b929f7aa873b8,2026-02-12T12:36:51.081Z
+HR-WS-033,10.10.1.133,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,049542cdf146c7b80e285b1d9b89598e,2026-02-20T10:01:35.399Z
+HR-WS-033,10.10.1.133,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,c04ec3ba6b7e7d5a7e3fbbc1413191d4,2026-02-20T08:36:26.722Z
+HR-WS-033,10.10.1.133,OneDrive,C:\Users\svc_web\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,cfe1493ac15585198b1b5ec006b76b7b,2026-02-19T02:06:29.224Z
+HR-WS-033,10.10.1.133,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,a09c06d692c5b5720bfeaea892164f48,2026-02-12T01:08:50.432Z
+FIN-WS-034,10.10.2.134,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,413c77401d948cf3caefd479307d5f34,2026-02-13T03:38:39.557Z
+FIN-WS-034,10.10.2.134,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,15ddf4d2f0cf6627eb77ef4469a9cdc1,2026-02-12T05:07:11.172Z
+FIN-WS-034,10.10.2.134,OneDrive,C:\Users\fthompson\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,d9cb45325fbbd6dd58b519a4b530dd29,2026-02-11T09:31:43.114Z
+FIN-WS-034,10.10.2.134,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,7f4260b664530f30a715023294e5ede6,2026-02-15T10:28:51.266Z
+SLS-WS-035,10.10.3.135,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,466275f3c677ad330f3405748012527c,2026-02-18T07:53:54.151Z
+SLS-WS-035,10.10.3.135,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,c7b8ec3f1db8662ed6ef334da37ed2b4,2026-02-10T12:38:49.511Z
+SLS-WS-035,10.10.3.135,OneDrive,C:\Users\fthompson\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,99dd178ae3e335f9cf10abf48551cd83,2026-02-13T11:33:10.057Z
+SLS-WS-035,10.10.3.135,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,f3c98d1e56fb4ae5c5127b93910393cb,2026-02-14T14:42:54.688Z
+ENG-WS-036,10.10.1.136,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,f335f5dee2b627ddd98ac77aef14493f,2026-02-19T14:14:30.311Z
+ENG-WS-036,10.10.1.136,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,e4e41f2c1e8c14009a5848d8d9325bd4,2026-02-19T15:52:22.084Z
+ENG-WS-036,10.10.1.136,OneDrive,C:\Users\svc_web\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,41df5e0402b7cf78ae7e9808827b18f0,2026-02-14T04:58:48.582Z
+ENG-WS-036,10.10.1.136,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,38ea68957c15ac8726ec5fd21a2ba7c1,2026-02-13T07:43:35.228Z
+LEG-WS-037,10.10.2.137,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,e7048b4e5ccce823b15a019ac56e231a,2026-02-17T15:19:52.037Z
+LEG-WS-037,10.10.2.137,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,368a1d6f2c21d1286a578fa8d0d8464d,2026-02-11T19:18:33.346Z
+LEG-WS-037,10.10.2.137,OneDrive,C:\Users\svc_backup\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,0ea7edfba739e329606025b79e278a5d,2026-02-11T14:38:55.720Z
+LEG-WS-037,10.10.2.137,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,3efd1a5f4bfe0d8e9c8f9386bd64ca9f,2026-02-14T10:06:13.090Z
+MKT-WS-038,10.10.3.138,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,cb8dcf4319fd39d7a85bcca0e7fbefb5,2026-02-16T10:16:07.373Z
+MKT-WS-038,10.10.3.138,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,982b2809524187b9ec74f543773e2764,2026-02-12T17:32:52.719Z
+MKT-WS-038,10.10.3.138,OneDrive,C:\Users\svc_backup\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,73819da1fee2c45962fe20f89c946299,2026-02-18T11:57:51.031Z
+MKT-WS-038,10.10.3.138,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,74dd81fe3a2d1ea0a482542378fb1048,2026-02-17T06:24:24.573Z
+MKT-WS-038,10.10.3.138,uTorrent,C:\Users\svc_backup\AppData\Roaming\uTorrent\uTorrent.exe /minimized,Logon,True,(Not Signed),e8920ccdcd86e6a50d2d7b62bdaa7a9c,2026-02-11T18:39:11.639Z
+EXEC-WS-039,10.10.1.139,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,ffc64af0d4ca8bd246ec913acaf3fb5e,2026-02-17T14:58:56.781Z
+EXEC-WS-039,10.10.1.139,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,7c3be0a36ee731522b38337911396c2c,2026-02-14T17:20:30.212Z
+EXEC-WS-039,10.10.1.139,OneDrive,C:\Users\svc_web\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,01a10918020665bcf838fbdfc4403437,2026-02-15T14:16:32.017Z
+EXEC-WS-039,10.10.1.139,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,250facb86fab9442299bc0e1abb659b5,2026-02-19T21:17:30.543Z
+IT-WS-040,10.10.2.140,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,6d209bc687694750e032c8db032fb3ff,2026-02-11T23:34:29.166Z
+IT-WS-040,10.10.2.140,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,8facdb1c57ff34148b820dab80f9e383,2026-02-10T23:23:33.944Z
+IT-WS-040,10.10.2.140,OneDrive,C:\Users\svc_backup\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,32f2c2bdb3ece1d25d9ff9b7dd75d281,2026-02-17T01:17:48.914Z
+IT-WS-040,10.10.2.140,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,c9e4d9ba6e9e9e5f89ebb925b2e748e4,2026-02-15T10:58:20.228Z
+HR-WS-041,10.10.3.141,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,32bf75f700df41e3d546e69a4b0cacfc,2026-02-17T21:08:02.897Z
+HR-WS-041,10.10.3.141,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,972852b0380734de6e92f320a28ff149,2026-02-20T16:59:40.093Z
+HR-WS-041,10.10.3.141,OneDrive,C:\Users\fthompson\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,2d84ee72f12e76ffe4f1dbae553e4ce5,2026-02-12T08:49:33.876Z
+HR-WS-041,10.10.3.141,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,076bf4dbffd9edb921ed3678461babac,2026-02-13T23:15:44.185Z
+FIN-WS-042,10.10.1.142,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,006f3d453ef6527412ad58ca63aa6ff4,2026-02-10T12:17:12.913Z
+FIN-WS-042,10.10.1.142,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,7df4e3ee708a19f4629c9dbe517a2e88,2026-02-11T06:59:53.755Z
+FIN-WS-042,10.10.1.142,OneDrive,C:\Users\fthompson\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,bb0060178f9a918c28213218121d2e26,2026-02-17T13:58:06.447Z
+FIN-WS-042,10.10.1.142,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,03845bd5e3d576b009a077818a0bf3f3,2026-02-19T08:29:17.982Z
+FIN-WS-042,10.10.1.142,Discord,C:\Users\fthompson\AppData\Local\Discord\Update.exe --processStart Discord.exe,Logon,True,(Not Signed),d3298e51be33515aeae92b10679c3276,2026-02-12T12:13:15.783Z
+SLS-WS-043,10.10.2.143,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,8f18a377b282e91cd1e173eee85f1169,2026-02-19T05:53:43.501Z
+SLS-WS-043,10.10.2.143,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,fe0a63d4d33b3d7b09f1a513cb3cf4bd,2026-02-12T07:09:06.629Z
+SLS-WS-043,10.10.2.143,OneDrive,C:\Users\dlee\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,7c3cbbb94c63c61b45d23df163cdacfa,2026-02-20T09:07:25.273Z
+SLS-WS-043,10.10.2.143,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,41a7e4e78ca47e38f2ae59fe95dbaa1f,2026-02-10T15:45:33.709Z
+ENG-WS-044,10.10.3.144,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,5c064bc2b3b12f1ba13adba76926666e,2026-02-19T14:53:50.194Z
+ENG-WS-044,10.10.3.144,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,e9c9d85d5fb0e0925e70aca2a5ebc14b,2026-02-15T00:21:57.235Z
+ENG-WS-044,10.10.3.144,OneDrive,C:\Users\admin\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,2e4da91d64ffbc3661df6c7732f27124,2026-02-13T11:34:37.418Z
+ENG-WS-044,10.10.3.144,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,a53afa45e3a5f0c5aa081a51a5c2cd9a,2026-02-11T12:55:15.217Z
+LEG-WS-045,10.10.1.145,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,daae08e18b96f0e17083b00dbbba43f3,2026-02-20T11:00:50.597Z
+LEG-WS-045,10.10.1.145,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,8000dfa77499f64504acd544c9ed2b44,2026-02-15T18:57:22.470Z
+LEG-WS-045,10.10.1.145,OneDrive,C:\Users\cjohnson\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,736de40e986b7001b9d51d9dfffc4393,2026-02-20T13:55:53.607Z
+LEG-WS-045,10.10.1.145,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,f5fe66325792c8ad14858cd514ef0c49,2026-02-18T16:15:00.214Z
+MKT-WS-046,10.10.2.146,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,98dd029b72034c677b77cbb4baba2f19,2026-02-16T23:41:33.531Z
+MKT-WS-046,10.10.2.146,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,51059e8db4e2ecaea0d9afec8ac888d6,2026-02-20T00:06:13.727Z
+MKT-WS-046,10.10.2.146,OneDrive,C:\Users\emartinez\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,2464332ad026b59fcf540a2df3c7563b,2026-02-14T21:01:25.203Z
+MKT-WS-046,10.10.2.146,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,0e7912a0ac8e8400841afe8e1d26c752,2026-02-12T07:16:24.517Z
+EXEC-WS-047,10.10.3.147,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,c27973488fa8d6ccc35b45bbcbfcf1ec,2026-02-17T02:00:33.402Z
+EXEC-WS-047,10.10.3.147,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,2af2cfa5d01a2ce0d8dd99daf73a3208,2026-02-12T03:02:45.368Z
+EXEC-WS-047,10.10.3.147,OneDrive,C:\Users\svc_backup\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,9e74515aa29a7b3e5d8bd16092755e08,2026-02-18T13:30:31.571Z
+EXEC-WS-047,10.10.3.147,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,69b94d10458fe7f56e5a1c48a610e441,2026-02-10T11:18:38.294Z
+IT-WS-048,10.10.1.148,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,c16b145ffc51ff16c7100a9ce1ed7145,2026-02-18T17:24:24.371Z
+IT-WS-048,10.10.1.148,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,8115abbff0e6ed6a8f0502c5d66a164b,2026-02-15T14:36:56.923Z
+IT-WS-048,10.10.1.148,OneDrive,C:\Users\svc_web\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,80ea42f5e586d1396b59ca4a4379980c,2026-02-17T19:47:20.951Z
+IT-WS-048,10.10.1.148,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,978aa10480ffe0c32e7928077dddee59,2026-02-12T15:47:32.226Z
+HR-WS-049,10.10.2.149,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,f18d6a9ca22157827344faad6edc3f43,2026-02-16T21:28:27.865Z
+HR-WS-049,10.10.2.149,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,ccc68355f8a4824c1f55304c7b9c1821,2026-02-18T17:48:34.613Z
+HR-WS-049,10.10.2.149,OneDrive,C:\Users\bwilson\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,7aec94942f186eb470473d02acca2c41,2026-02-10T10:53:46.013Z
+HR-WS-049,10.10.2.149,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,7f0644cea5e9d5e9074c241b5d305777,2026-02-15T16:24:04.628Z
+FIN-WS-050,10.10.3.150,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,e770d168aad26f9aa80dfccf1456b33e,2026-02-11T03:25:16.210Z
+FIN-WS-050,10.10.3.150,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,572f3c3ecbcd7e348201d540d845035a,2026-02-12T14:56:55.158Z
+FIN-WS-050,10.10.3.150,OneDrive,C:\Users\gwhite\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,9c5adbcd1738c3a86edebbf0973dfb5f,2026-02-17T11:15:30.182Z
+FIN-WS-050,10.10.3.150,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,0b272489c6c0815115c8bd238398a884,2026-02-16T01:22:35.399Z
+FIN-WS-050,10.10.3.150,Discord,C:\Users\gwhite\AppData\Local\Discord\Update.exe --processStart Discord.exe,Logon,True,(Not Signed),aa339164d7d31497cc642c6902451906,2026-02-16T07:27:26.567Z
+SLS-WS-051,10.10.1.151,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,e32cd3849f82c4860435fafa7dc815c2,2026-02-11T23:42:50.015Z
+SLS-WS-051,10.10.1.151,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,c87049028ccc42c31ceb5ce9453eb07d,2026-02-17T08:44:11.345Z
+SLS-WS-051,10.10.1.151,OneDrive,C:\Users\idavis\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,0d0a3a879f3a49cfb08f26177867d9e9,2026-02-15T11:26:48.618Z
+SLS-WS-051,10.10.1.151,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,05bb54baf4ce2358d13fcc4848aa33b6,2026-02-16T19:58:21.694Z
+ENG-WS-052,10.10.2.152,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,2f9ef5c9bcdffb9ef50fadb3fb7b3071,2026-02-13T05:29:22.387Z
+ENG-WS-052,10.10.2.152,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,8af8f892378d437d4d1c8a4a51be47d3,2026-02-10T12:34:37.519Z
+ENG-WS-052,10.10.2.152,OneDrive,C:\Users\bwilson\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,23f56f0691a732c5d268a503d0661c73,2026-02-14T17:20:11.430Z
+ENG-WS-052,10.10.2.152,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,488635a51a8db16a96ab5b2486b3e99b,2026-02-16T03:58:31.008Z
+LEG-WS-053,10.10.3.153,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,277f4ae42f54b415f5674f0399d48851,2026-02-19T01:02:29.576Z
+LEG-WS-053,10.10.3.153,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,7b6df8a41be6c0d22c967cc940696e09,2026-02-14T02:21:58.061Z
+LEG-WS-053,10.10.3.153,OneDrive,C:\Users\dlee\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,094b1cefcf394930bc9193a446c9c6d9,2026-02-12T23:39:58.180Z
+LEG-WS-053,10.10.3.153,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,6ee42997d46f4dc9d4266b1c8f182927,2026-02-20T06:43:48.545Z
+MKT-WS-054,10.10.1.154,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,987bbb22c8cdb20ab790c330bc961b58,2026-02-13T18:56:44.135Z
+MKT-WS-054,10.10.1.154,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,121570d56e4b522c211a5b0369ba8b38,2026-02-20T04:26:12.326Z
+MKT-WS-054,10.10.1.154,OneDrive,C:\Users\cjohnson\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,91537e600e667e639b1ec1ad951a5fd3,2026-02-18T09:14:35.557Z
+MKT-WS-054,10.10.1.154,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,92c9384f5a03393796327699fec5f20a,2026-02-17T00:58:48.519Z
+EXEC-WS-055,10.10.2.155,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,df44882927d4f15391536dfc26a8c0bd,2026-02-10T09:59:08.913Z
+EXEC-WS-055,10.10.2.155,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,e1081eb13daef772716fc648bc238c07,2026-02-19T21:26:09.314Z
+EXEC-WS-055,10.10.2.155,OneDrive,C:\Users\fthompson\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,1467e33b648b9abf5adf4a2ada8e387b,2026-02-15T16:27:13.551Z
+EXEC-WS-055,10.10.2.155,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,c18d8b93bd24e6cf73d50e22d9d78bb7,2026-02-10T20:40:35.229Z
+IT-WS-056,10.10.3.156,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,ca730f1d3a62ab91e55fd3dd4a600fb1,2026-02-18T03:17:40.085Z
+IT-WS-056,10.10.3.156,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,9eca3a6acefa22b5a0ee9f8d1d12b2b1,2026-02-18T04:32:03.354Z
+IT-WS-056,10.10.3.156,OneDrive,C:\Users\dlee\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,a3cbfa1a00b8118d5fe27a5794d8b5ee,2026-02-19T05:02:49.038Z
+IT-WS-056,10.10.3.156,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,6ea8ee29b08a081ebba72ec11b598d87,2026-02-10T17:29:22.882Z
+HR-WS-057,10.10.1.157,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,58ecaffac946cc370d322cba869edfe4,2026-02-13T11:35:42.464Z
+HR-WS-057,10.10.1.157,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,f56143391ddff8edfa9ccdfe51f476b2,2026-02-10T21:38:04.419Z
+HR-WS-057,10.10.1.157,OneDrive,C:\Users\svc_sql\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,d41b4fae62fe7a33a43582fff6d926c9,2026-02-14T18:22:05.932Z
+HR-WS-057,10.10.1.157,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,383a872eeb9de9cdc065257155cb4200,2026-02-14T06:09:45.704Z
+FIN-WS-058,10.10.2.158,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,a4a6a20b403b4fc19102305a6e4fd94e,2026-02-10T08:42:35.702Z
+FIN-WS-058,10.10.2.158,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,48143f42f576ae575ebfece272765c11,2026-02-19T04:41:14.049Z
+FIN-WS-058,10.10.2.158,OneDrive,C:\Users\cjohnson\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,d9bfc51ac72f1e6b21fa53b2bd2a02b0,2026-02-11T04:32:01.045Z
+FIN-WS-058,10.10.2.158,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,8d5a44fb24c3c11874008e77b825743f,2026-02-14T20:19:16.665Z
+FIN-WS-058,10.10.2.158,Discord,C:\Users\cjohnson\AppData\Local\Discord\Update.exe --processStart Discord.exe,Logon,True,(Not Signed),cf58eaed9e013bc38819bd998b969616,2026-02-10T12:16:52.144Z
+SLS-WS-059,10.10.3.159,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,e3c74c9e8c3492cae2b9a71a1e427585,2026-02-19T22:17:09.337Z
+SLS-WS-059,10.10.3.159,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,fe9249491447329754fa3ae5cc2050ac,2026-02-18T05:39:20.950Z
+SLS-WS-059,10.10.3.159,OneDrive,C:\Users\admin\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,b50cf05fc070879415afdff534325531,2026-02-13T15:09:06.895Z
+SLS-WS-059,10.10.3.159,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,a117e1a617bab8831ce6dd4e4fba6d67,2026-02-15T14:14:24.306Z
+SLS-WS-059,10.10.3.159,Discord,C:\Users\admin\AppData\Local\Discord\Update.exe --processStart Discord.exe,Logon,True,(Not Signed),f91869f509fdbce7a300cd698e9d3de8,2026-02-17T16:51:11.312Z
+ENG-WS-060,10.10.1.160,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,5e3fb72ba3dc555cc44077769be8ce5d,2026-02-10T15:01:52.042Z
+ENG-WS-060,10.10.1.160,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,25abfcfe6042e882f58b36d0ae662e30,2026-02-13T17:28:08.992Z
+ENG-WS-060,10.10.1.160,OneDrive,C:\Users\agarcia\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,ed45996c6ab270febf0e20503e0901f2,2026-02-14T14:08:35.251Z
+ENG-WS-060,10.10.1.160,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,25360d7653284e5ce57d014c5f5fa344,2026-02-19T19:59:32.408Z
+LEG-WS-061,10.10.2.161,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,5e9fabf85430c116dbe504e81ac3f79b,2026-02-17T10:28:34.683Z
+LEG-WS-061,10.10.2.161,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,a8be97cc47061d65abe719d11b4f0c85,2026-02-17T06:25:12.347Z
+LEG-WS-061,10.10.2.161,OneDrive,C:\Users\bwilson\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,74a40f54e3fe117be1c980697c2c37a3,2026-02-19T00:01:37.208Z
+LEG-WS-061,10.10.2.161,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,1dfe7db59f003be66178f993295bb56a,2026-02-12T03:43:03.285Z
+LEG-WS-061,10.10.2.161,Discord,C:\Users\bwilson\AppData\Local\Discord\Update.exe --processStart Discord.exe,Logon,True,(Not Signed),d1b0abd2bb61d4cd50f917b77257834f,2026-02-16T20:47:33.918Z
+MKT-WS-062,10.10.3.162,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,3138daa62a744df11adbc154d5643e7c,2026-02-19T22:15:20.157Z
+MKT-WS-062,10.10.3.162,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,2fa02cc9d22691833f64f4149a28e9a5,2026-02-14T09:26:09.982Z
+MKT-WS-062,10.10.3.162,OneDrive,C:\Users\cjohnson\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,6eb0f457f1f4c1308b994c881de7eaf8,2026-02-16T17:09:20.065Z
+MKT-WS-062,10.10.3.162,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,67609be7d4e999c1d5dfc3aa489274ec,2026-02-20T15:40:16.621Z
+EXEC-WS-063,10.10.1.163,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,ba697671060136ab33909c410f80e42c,2026-02-18T19:02:36.065Z
+EXEC-WS-063,10.10.1.163,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,a13556cef9f10cc12550f7c2620a5202,2026-02-11T05:27:32.442Z
+EXEC-WS-063,10.10.1.163,OneDrive,C:\Users\cjohnson\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,f677999b0375185656d9ef8ce716a578,2026-02-13T01:51:56.607Z
+EXEC-WS-063,10.10.1.163,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,ad61a6340315e733677af5c5780f5316,2026-02-17T14:44:49.088Z
+IT-WS-064,10.10.2.164,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,56c40e3fbf9bf2370cd8a93138fe9128,2026-02-17T06:05:14.098Z
+IT-WS-064,10.10.2.164,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,ee030cf6ceb536c1fbca61f2fa340b4f,2026-02-11T10:37:43.803Z
+IT-WS-064,10.10.2.164,OneDrive,C:\Users\svc_backup\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,38ed7f369c3d7f3d5c89d4cae1e8f56c,2026-02-15T07:49:13.007Z
+IT-WS-064,10.10.2.164,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,736cb1859c8110049369075c36cd11f7,2026-02-13T08:14:54.300Z
+HR-WS-065,10.10.3.165,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,795538f956cdef5781af357031304dbd,2026-02-11T14:15:29.330Z
+HR-WS-065,10.10.3.165,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,dc07973ee58d79940996e8e4458dd89a,2026-02-12T08:02:58.202Z
+HR-WS-065,10.10.3.165,OneDrive,C:\Users\svc_backup\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,2bbf153fa9968949c640d202021d8e3f,2026-02-13T20:51:22.220Z
+HR-WS-065,10.10.3.165,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,66df52a3fe1471696f506a4a2690b357,2026-02-10T13:21:44.634Z
+FIN-WS-066,10.10.1.166,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,69a94cf819533dd10e7ec76b0b77032a,2026-02-16T02:04:37.083Z
+FIN-WS-066,10.10.1.166,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,7d2e14e4796e51be1206a7abfd70c202,2026-02-17T07:51:27.575Z
+FIN-WS-066,10.10.1.166,OneDrive,C:\Users\cjohnson\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,e9dedc92ce86477003bbad2c26f2dc1d,2026-02-10T10:38:27.985Z
+FIN-WS-066,10.10.1.166,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,e68e585e83f868742c5f51b5feb72b72,2026-02-11T05:26:00.039Z
+FIN-WS-066,10.10.1.166,Steam,C:\Program Files (x86)\Steam\steam.exe -silent,Logon,True,(Not Signed),dacabfae9c7421ad3011a0eadf3e0443,2026-02-13T09:11:29.353Z
+SLS-WS-067,10.10.2.167,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,5f51d7d0e8888e07990da248c12efc6a,2026-02-17T15:19:00.925Z
+SLS-WS-067,10.10.2.167,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,b2b52fd93f2a11da12ccbae1e3f01fdf,2026-02-18T17:22:50.656Z
+SLS-WS-067,10.10.2.167,OneDrive,C:\Users\bwilson\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,eaeb983924bde23dc828cffacc2fa365,2026-02-14T17:13:54.310Z
+SLS-WS-067,10.10.2.167,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,cb6d47768131e6cb2e6b789c01badb1d,2026-02-13T04:54:44.965Z
+ENG-WS-068,10.10.3.168,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,1d78072736aaf3b08dbfda72b303bcd1,2026-02-12T10:17:52.651Z
+ENG-WS-068,10.10.3.168,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,e475c94081df0af0bb76745351b2d40c,2026-02-15T19:49:17.801Z
+ENG-WS-068,10.10.3.168,OneDrive,C:\Users\jsmith\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,e5992ba9a161353da4d300ca1ce2a1f3,2026-02-17T08:26:41.519Z
+ENG-WS-068,10.10.3.168,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,2d4cab9657ebeb3c2177531acbf581e3,2026-02-10T18:16:25.140Z
+LEG-WS-069,10.10.1.169,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,b1483fd46b2b62ebadd883c80938d34d,2026-02-13T07:53:52.108Z
+LEG-WS-069,10.10.1.169,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,8ce9fcda50019e404015bde12c5a98ca,2026-02-13T04:05:14.999Z
+LEG-WS-069,10.10.1.169,OneDrive,C:\Users\admin\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,4d24770fc83650ed89854b3cb253a557,2026-02-16T04:01:07.901Z
+LEG-WS-069,10.10.1.169,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,32db33f8e2614cb7d3c30cfa77573ab7,2026-02-12T10:06:06.030Z
+MKT-WS-070,10.10.2.170,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,3690e9435e87a3b2da8153837763d6fa,2026-02-15T12:51:45.643Z
+MKT-WS-070,10.10.2.170,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,611f1fb8cca866914714c3f77737e0bf,2026-02-10T10:52:50.728Z
+MKT-WS-070,10.10.2.170,OneDrive,C:\Users\cjohnson\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,282318771d4e5d5320c9ae9114ba79ef,2026-02-20T15:37:35.086Z
+MKT-WS-070,10.10.2.170,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,411fe474a0dc3c2098dba83da371b82b,2026-02-19T23:07:28.521Z
+MKT-WS-070,10.10.2.170,uTorrent,C:\Users\cjohnson\AppData\Roaming\uTorrent\uTorrent.exe /minimized,Logon,True,(Not Signed),0cae3b0d47ed5cbde4e68f091e66d1f9,2026-02-12T17:48:03.256Z
+EXEC-WS-071,10.10.3.171,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,1ca5480bb6110b7c97a13cd76d5358cd,2026-02-12T15:28:43.280Z
+EXEC-WS-071,10.10.3.171,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,92c685da727c44a3ce3fa492acfd8a0c,2026-02-18T16:34:25.734Z
+EXEC-WS-071,10.10.3.171,OneDrive,C:\Users\gwhite\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,32386481300f754aa2a29feb02931755,2026-02-14T11:21:06.851Z
+EXEC-WS-071,10.10.3.171,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,9c20b89abe39bf0cc2ac97dab5a996c9,2026-02-14T10:44:52.198Z
+EXEC-WS-071,10.10.3.171,Steam,C:\Program Files (x86)\Steam\steam.exe -silent,Logon,True,(Not Signed),d06125e2c8424b10e2923b09db7c8d92,2026-02-18T21:27:54.682Z
+IT-WS-072,10.10.1.172,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,cb7b573fe9140d654dfd153059cec23e,2026-02-20T03:09:22.548Z
+IT-WS-072,10.10.1.172,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,be04f87ba1c2b005f1c4e6e31f2a65bb,2026-02-20T09:31:17.420Z
+IT-WS-072,10.10.1.172,OneDrive,C:\Users\gwhite\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,f99ce66416492b49700e0de7ab8f49e2,2026-02-12T01:20:28.360Z
+IT-WS-072,10.10.1.172,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,68b05ec7686f503f5acd476d1470e9a8,2026-02-16T11:06:58.383Z
+HR-WS-073,10.10.2.173,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,0eea9d8033027713fe579dce9fcfc907,2026-02-10T21:27:35.847Z
+HR-WS-073,10.10.2.173,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,139da91d72859c78c9dfc840ff53fad2,2026-02-11T19:44:37.217Z
+HR-WS-073,10.10.2.173,OneDrive,C:\Users\gwhite\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,9cd4908a44e2690b00006b62bd71145e,2026-02-17T06:27:11.201Z
+HR-WS-073,10.10.2.173,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,19b467e51a124b4945dc148fe8410601,2026-02-15T07:02:48.879Z
+FIN-WS-074,10.10.3.174,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,d0fe1e4b1f64132f0916608a47cd113b,2026-02-14T07:06:20.159Z
+FIN-WS-074,10.10.3.174,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,75dd67220a772027d6ccb4a16908557f,2026-02-16T04:58:14.026Z
+FIN-WS-074,10.10.3.174,OneDrive,C:\Users\idavis\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,f31dc9eccc4f5f1019a61ab51df1bcf3,2026-02-18T21:54:55.899Z
+FIN-WS-074,10.10.3.174,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,0834614d2ccd6226f3dfd91f6870e205,2026-02-19T22:41:19.265Z
+SLS-WS-075,10.10.1.175,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,58a3f3e8a3efd3e794f9d70381478749,2026-02-10T22:13:17.055Z
+SLS-WS-075,10.10.1.175,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,f16ed7d63800f6e6118dcc03465d70f1,2026-02-14T09:12:21.535Z
+SLS-WS-075,10.10.1.175,OneDrive,C:\Users\cjohnson\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,5a90e6680bf14a9826bdfbd01e652e11,2026-02-11T11:25:24.778Z
+SLS-WS-075,10.10.1.175,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,e12e3431344420d6a9c0c0c52599fe07,2026-02-15T08:44:30.948Z
+DC-01,10.10.1.10,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,0917bf6a53fc4de5ded1e219738e4383,2026-02-19T21:49:06.115Z
+DC-01,10.10.1.10,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,a05c61ef8d7d6aee1ba89f5a6ac96f68,2026-02-11T01:52:42.165Z
+DC-01,10.10.1.10,OneDrive,C:\Users\bwilson\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,e0697fde4e2e8b3d3d08aedfd7154653,2026-02-11T01:06:10.097Z
+DC-01,10.10.1.10,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,a8ecdd8717e08108a0bc716c66d69d82,2026-02-19T06:25:33.306Z
+DC-02,10.10.2.10,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,8e46f4877112f92437b541ba7a887e07,2026-02-17T04:48:51.329Z
+DC-02,10.10.2.10,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,979189e8b0c249d75a1ccc4967cb0988,2026-02-19T06:21:28.740Z
+DC-02,10.10.2.10,OneDrive,C:\Users\idavis\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,63e689679efbd68b9abb28137a85f930,2026-02-16T06:02:32.762Z
+DC-02,10.10.2.10,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,e51f19b33cb1292474ddb3722a0b1eff,2026-02-11T12:29:21.456Z
+FILE-01,10.10.1.11,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,3cfbacc574bcdbe88697a22ac0ad8638,2026-02-15T00:42:20.076Z
+FILE-01,10.10.1.11,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,a45b31e4fd69a54f2c4d062b4c4eaa99,2026-02-13T13:22:11.398Z
+FILE-01,10.10.1.11,OneDrive,C:\Users\admin\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,83fef4984c8e4973fd684d6e6d0ddfdc,2026-02-15T08:23:32.263Z
+FILE-01,10.10.1.11,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,64d9a6110e88e9e3413066f1924cba07,2026-02-14T21:27:06.097Z
+EXCH-01,10.10.1.12,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,63cec7c6e35e0026c1720450ceec7934,2026-02-12T18:06:31.325Z
+EXCH-01,10.10.1.12,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,311bd1adc40a2e9072d76f9d8d33cd7d,2026-02-13T07:12:35.966Z
+EXCH-01,10.10.1.12,OneDrive,C:\Users\cjohnson\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,2a08fbfdc68efc14c4c2d3897475acd9,2026-02-18T22:57:33.185Z
+EXCH-01,10.10.1.12,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,d9e8ef9701fcd7dee505470e302b8472,2026-02-19T19:15:19.950Z
+WEB-01,10.10.3.10,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,f299839d55a02ccba36daeab018698a8,2026-02-12T00:42:42.409Z
+WEB-01,10.10.3.10,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,87554861f53ebdb14204b0319d543532,2026-02-20T08:53:42.632Z
+WEB-01,10.10.3.10,OneDrive,C:\Users\jsmith\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,052ad7b9cb17552f54425fbb307afb2f,2026-02-16T15:54:45.442Z
+WEB-01,10.10.3.10,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,4922ca93a61f0e6e6f7ffaf832301ab9,2026-02-12T18:43:55.289Z
+SQL-01,10.10.2.11,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,33289dc101881ca32b2549eea1f33fbb,2026-02-20T15:57:36.229Z
+SQL-01,10.10.2.11,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,bd96f2f5fce3cbcef65388abff27bcef,2026-02-12T16:12:09.448Z
+SQL-01,10.10.2.11,OneDrive,C:\Users\emartinez\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,b12baa76eaeb4ee8eb515c354662a053,2026-02-13T09:38:17.385Z
+SQL-01,10.10.2.11,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,f1413bff4520ec6759b1b3679af3fc53,2026-02-12T16:05:43.210Z
+PROXY-01,10.10.1.13,MicrosoftEdgeAutoLaunch,C:\Program Files\Microsoft\Edge\msedge.exe --no-startup-window,Logon,True,Microsoft Corporation,d10cdc47203a981f69ccd23b24077711,2026-02-15T15:14:35.089Z
+PROXY-01,10.10.1.13,SecurityHealth,C:\Windows\System32\SecurityHealthSystray.exe,Logon,True,Microsoft Corporation,f3f137e8da7eb37b0ae66fb45a71e4d3,2026-02-10T15:57:58.411Z
+PROXY-01,10.10.1.13,OneDrive,C:\Users\svc_web\AppData\Local\Microsoft\OneDrive\OneDrive.exe /background,Logon,True,Microsoft Corporation,99800716da8de3befa044253f65bf65d,2026-02-17T21:59:13.166Z
+PROXY-01,10.10.1.13,WindowsDefender,C:\ProgramData\Microsoft\Windows Defender\MsMpEng.exe,Logon,True,Microsoft Corporation,55e54fe6641547957cfae514eeb50c12,2026-02-16T12:46:38.263Z

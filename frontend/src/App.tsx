@@ -1,5 +1,5 @@
 /**
- * ThreatHunt  MUI-powered analyst-assist platform.
+ * ThreatHunt — MUI-powered analyst-assist platform.
  */
 
 import React, { useState, useCallback, Suspense } from 'react';
@@ -19,11 +19,25 @@ import ScienceIcon from '@mui/icons-material/Science';
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 import GppMaybeIcon from '@mui/icons-material/GppMaybe';
 import HubIcon from '@mui/icons-material/Hub';
+<<<<<<< HEAD
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 import BookmarksIcon from '@mui/icons-material/Bookmarks';
 import ShieldIcon from '@mui/icons-material/Shield';
+=======
+import DevicesIcon from '@mui/icons-material/Devices';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import TimelineIcon from '@mui/icons-material/Timeline';
+import ManageSearchIcon from '@mui/icons-material/ManageSearch';
+import ScheduleIcon from '@mui/icons-material/Schedule';
+import ShieldIcon from '@mui/icons-material/Shield';
+import BubbleChartIcon from '@mui/icons-material/BubbleChart';
+import WorkIcon from '@mui/icons-material/Work';
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
+import PlaylistPlayIcon from '@mui/icons-material/PlaylistPlay';
+>>>>>>> 7c454036c7ef6a3d6517f98cbee643fd0238e0b2
 import { SnackbarProvider } from 'notistack';
 import theme from './theme';
 
@@ -33,11 +47,12 @@ import HuntManager from './components/HuntManager';
 import DatasetViewer from './components/DatasetViewer';
 import FileUpload from './components/FileUpload';
 import AgentPanel from './components/AgentPanel';
-import EnrichmentPanel from './components/EnrichmentPanel';
+import AnalysisPanel from './components/AnalysisPanel';
 import AnnotationPanel from './components/AnnotationPanel';
 import HypothesisTracker from './components/HypothesisTracker';
 import CorrelationView from './components/CorrelationView';
 import AUPScanner from './components/AUPScanner';
+<<<<<<< HEAD
 
 /* -- Lazy imports (heavy: charts, network graph, new feature pages) -- */
 const NetworkMap = React.lazy(() => import('./components/NetworkMap'));
@@ -46,12 +61,27 @@ const MitreMatrix = React.lazy(() => import('./components/MitreMatrix'));
 const TimelineView = React.lazy(() => import('./components/TimelineView'));
 const PlaybookManager = React.lazy(() => import('./components/PlaybookManager'));
 const SavedSearches = React.lazy(() => import('./components/SavedSearches'));
+=======
+import NetworkMap from './components/NetworkMap';
+import NetworkPicture from './components/NetworkPicture';
+import ProcessTree from './components/ProcessTree';
+import StorylineGraph from './components/StorylineGraph';
+import TimelineScrubber from './components/TimelineScrubber';
+import QueryBar from './components/QueryBar';
+import MitreMatrix from './components/MitreMatrix';
+import KnowledgeGraph from './components/KnowledgeGraph';
+import CaseManager from './components/CaseManager';
+import AlertPanel from './components/AlertPanel';
+import InvestigationNotebook from './components/InvestigationNotebook';
+import PlaybookManager from './components/PlaybookManager';
+>>>>>>> 7c454036c7ef6a3d6517f98cbee643fd0238e0b2
 
 const DRAWER_WIDTH = 240;
 
 interface NavItem { label: string; path: string; icon: React.ReactNode }
 
 const NAV: NavItem[] = [
+<<<<<<< HEAD
   { label: 'Dashboard',       path: '/',              icon: <DashboardIcon /> },
   { label: 'Hunts',           path: '/hunts',         icon: <SearchIcon /> },
   { label: 'Datasets',        path: '/datasets',      icon: <StorageIcon /> },
@@ -68,6 +98,30 @@ const NAV: NavItem[] = [
   { label: 'Timeline',        path: '/timeline',      icon: <TimelineIcon /> },
   { label: 'Playbooks',       path: '/playbooks',     icon: <PlaylistAddCheckIcon /> },
   { label: 'Saved Searches',  path: '/saved-searches', icon: <BookmarksIcon /> },
+=======
+  { label: 'Dashboard',    path: '/',              icon: <DashboardIcon /> },
+  { label: 'Hunts',        path: '/hunts',         icon: <SearchIcon /> },
+  { label: 'Datasets',     path: '/datasets',      icon: <StorageIcon /> },
+  { label: 'Upload',       path: '/upload',        icon: <UploadFileIcon /> },
+  { label: 'Agent',        path: '/agent',         icon: <SmartToyIcon /> },
+  { label: 'Analysis',     path: '/analysis',      icon: <SecurityIcon /> },
+  { label: 'Annotations',  path: '/annotations',   icon: <BookmarkIcon /> },
+  { label: 'Hypotheses',   path: '/hypotheses',    icon: <ScienceIcon /> },
+  { label: 'Correlation',  path: '/correlation',   icon: <CompareArrowsIcon /> },
+  { label: 'Network Map',  path: '/network',        icon: <HubIcon /> },
+  { label: 'Net Picture',  path: '/netpicture',     icon: <DevicesIcon /> },
+  { label: 'Proc Tree',   path: '/proctree',       icon: <AccountTreeIcon /> },
+  { label: 'Storyline',   path: '/storyline',      icon: <TimelineIcon /> },
+  { label: 'Timeline',    path: '/timeline',       icon: <ScheduleIcon /> },
+  { label: 'Search',      path: '/search',         icon: <ManageSearchIcon /> },
+  { label: 'MITRE Map',   path: '/mitre',          icon: <ShieldIcon /> },
+  { label: 'Knowledge',   path: '/knowledge',      icon: <BubbleChartIcon /> },
+  { label: 'Cases',       path: '/cases',          icon: <WorkIcon /> },
+  { label: 'Alerts',      path: '/alerts',         icon: <NotificationsActiveIcon /> },
+  { label: 'Notebooks',   path: '/notebooks',      icon: <MenuBookIcon /> },
+  { label: 'Playbooks',   path: '/playbooks',      icon: <PlaylistPlayIcon /> },
+  { label: 'AUP Scanner',  path: '/aup',            icon: <GppMaybeIcon /> },
+>>>>>>> 7c454036c7ef6a3d6517f98cbee643fd0238e0b2
 ];
 
 function LazyFallback() {
@@ -131,6 +185,7 @@ function Shell() {
         ml: open ? 0 : `-${DRAWER_WIDTH}px`,
         transition: 'margin 225ms cubic-bezier(0,0,0.2,1)',
       }}>
+<<<<<<< HEAD
         <Suspense fallback={<LazyFallback />}>
           <Routes>
             <Route path="/" element={<Dashboard />} />
@@ -151,6 +206,32 @@ function Shell() {
             <Route path="/saved-searches" element={<SavedSearches />} />
           </Routes>
         </Suspense>
+=======
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/hunts" element={<HuntManager />} />
+          <Route path="/datasets" element={<DatasetViewer />} />
+          <Route path="/upload" element={<FileUpload />} />
+          <Route path="/agent" element={<AgentPanel />} />
+          <Route path="/analysis" element={<AnalysisPanel />} />
+          <Route path="/annotations" element={<AnnotationPanel />} />
+          <Route path="/hypotheses" element={<HypothesisTracker />} />
+          <Route path="/correlation" element={<CorrelationView />} />
+          <Route path="/network" element={<NetworkMap />} />
+          <Route path="/netpicture" element={<NetworkPicture />} />
+          <Route path="/proctree" element={<ProcessTree />} />
+          <Route path="/storyline" element={<StorylineGraph />} />
+          <Route path="/timeline" element={<TimelineScrubber />} />
+          <Route path="/search" element={<QueryBar />} />
+          <Route path="/mitre" element={<MitreMatrix />} />
+          <Route path="/knowledge" element={<KnowledgeGraph />} />
+          <Route path="/cases" element={<CaseManager />} />
+          <Route path="/alerts" element={<AlertPanel />} />
+          <Route path="/notebooks" element={<InvestigationNotebook />} />
+          <Route path="/playbooks" element={<PlaybookManager />} />
+          <Route path="/aup" element={<AUPScanner />} />
+        </Routes>
+>>>>>>> 7c454036c7ef6a3d6517f98cbee643fd0238e0b2
       </Box>
     </Box>
   );

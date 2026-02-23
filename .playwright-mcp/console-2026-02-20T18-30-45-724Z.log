@@ -1,0 +1,76 @@
+[     402ms] [WARNING] You have set a custom wheel sensitivity.  This will make your app zoom unnaturally when using mainstream mice.  You should change this value from the default only if you can guarantee that all your users will use the same hardware and OS configuration as your current machine. @ http://localhost:3000/static/js/main.cb47c3a0.js:1
+[   60389ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/analysis/process-tree?hunt_id=4bb956a4225e45459a464da1146d3cf5:0
+[  114742ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/analysis/process-tree?hunt_id=4bb956a4225e45459a464da1146d3cf5:0
+[  116603ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/analysis/process-tree?hunt_id=4bb956a4225e45459a464da1146d3cf5:0
+[  362021ms] [WARNING] You have set a custom wheel sensitivity.  This will make your app zoom unnaturally when using mainstream mice.  You should change this value from the default only if you can guarantee that all your users will use the same hardware and OS configuration as your current machine. @ http://localhost:3000/static/js/main.cb47c3a0.js:1
+[  379006ms] [WARNING] You have set a custom wheel sensitivity.  This will make your app zoom unnaturally when using mainstream mice.  You should change this value from the default only if you can guarantee that all your users will use the same hardware and OS configuration as your current machine. @ http://localhost:3000/static/js/main.cb47c3a0.js:1
+[  379019ms] [ERROR] NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+    at ps (http://localhost:3000/static/js/main.cb47c3a0.js:2:227378)
+    at ds (http://localhost:3000/static/js/main.cb47c3a0.js:2:227062)
+    at ps (http://localhost:3000/static/js/main.cb47c3a0.js:2:227824)
+    at ds (http://localhost:3000/static/js/main.cb47c3a0.js:2:227062)
+    at ps (http://localhost:3000/static/js/main.cb47c3a0.js:2:227824)
+    at hs (http://localhost:3000/static/js/main.cb47c3a0.js:2:228635)
+    at vs (http://localhost:3000/static/js/main.cb47c3a0.js:2:229095)
+    at hs (http://localhost:3000/static/js/main.cb47c3a0.js:2:228785)
+    at vs (http://localhost:3000/static/js/main.cb47c3a0.js:2:228898)
+    at hs (http://localhost:3000/static/js/main.cb47c3a0.js:2:228785) @ http://localhost:3000/static/js/main.cb47c3a0.js:1
+[  379021ms] NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+    at ps (http://localhost:3000/static/js/main.cb47c3a0.js:2:227378)
+    at ds (http://localhost:3000/static/js/main.cb47c3a0.js:2:227062)
+    at ps (http://localhost:3000/static/js/main.cb47c3a0.js:2:227824)
+    at ds (http://localhost:3000/static/js/main.cb47c3a0.js:2:227062)
+    at ps (http://localhost:3000/static/js/main.cb47c3a0.js:2:227824)
+    at hs (http://localhost:3000/static/js/main.cb47c3a0.js:2:228635)
+    at vs (http://localhost:3000/static/js/main.cb47c3a0.js:2:229095)
+    at hs (http://localhost:3000/static/js/main.cb47c3a0.js:2:228785)
+    at vs (http://localhost:3000/static/js/main.cb47c3a0.js:2:228898)
+    at hs (http://localhost:3000/static/js/main.cb47c3a0.js:2:228785)
+[  382647ms] [WARNING] You have set a custom wheel sensitivity.  This will make your app zoom unnaturally when using mainstream mice.  You should change this value from the default only if you can guarantee that all your users will use the same hardware and OS configuration as your current machine. @ http://localhost:3000/static/js/main.cb47c3a0.js:1
+[  386088ms] [WARNING] You have set a custom wheel sensitivity.  This will make your app zoom unnaturally when using mainstream mice.  You should change this value from the default only if you can guarantee that all your users will use the same hardware and OS configuration as your current machine. @ http://localhost:3000/static/js/main.cb47c3a0.js:1
+[  386343ms] [ERROR] NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+    at ps (http://localhost:3000/static/js/main.cb47c3a0.js:2:227378)
+    at ds (http://localhost:3000/static/js/main.cb47c3a0.js:2:227062)
+    at ps (http://localhost:3000/static/js/main.cb47c3a0.js:2:227824)
+    at ds (http://localhost:3000/static/js/main.cb47c3a0.js:2:227062)
+    at ps (http://localhost:3000/static/js/main.cb47c3a0.js:2:227824)
+    at hs (http://localhost:3000/static/js/main.cb47c3a0.js:2:228635)
+    at vs (http://localhost:3000/static/js/main.cb47c3a0.js:2:229095)
+    at hs (http://localhost:3000/static/js/main.cb47c3a0.js:2:228785)
+    at vs (http://localhost:3000/static/js/main.cb47c3a0.js:2:228898)
+    at hs (http://localhost:3000/static/js/main.cb47c3a0.js:2:228785) @ http://localhost:3000/static/js/main.cb47c3a0.js:1
+[  386345ms] NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+    at ps (http://localhost:3000/static/js/main.cb47c3a0.js:2:227378)
+    at ds (http://localhost:3000/static/js/main.cb47c3a0.js:2:227062)
+    at ps (http://localhost:3000/static/js/main.cb47c3a0.js:2:227824)
+    at ds (http://localhost:3000/static/js/main.cb47c3a0.js:2:227062)
+    at ps (http://localhost:3000/static/js/main.cb47c3a0.js:2:227824)
+    at hs (http://localhost:3000/static/js/main.cb47c3a0.js:2:228635)
+    at vs (http://localhost:3000/static/js/main.cb47c3a0.js:2:229095)
+    at hs (http://localhost:3000/static/js/main.cb47c3a0.js:2:228785)
+    at vs (http://localhost:3000/static/js/main.cb47c3a0.js:2:228898)
+    at hs (http://localhost:3000/static/js/main.cb47c3a0.js:2:228785)
+[  397704ms] [WARNING] You have set a custom wheel sensitivity.  This will make your app zoom unnaturally when using mainstream mice.  You should change this value from the default only if you can guarantee that all your users will use the same hardware and OS configuration as your current machine. @ http://localhost:3000/static/js/main.cb47c3a0.js:1
+[  519009ms] [WARNING] You have set a custom wheel sensitivity.  This will make your app zoom unnaturally when using mainstream mice.  You should change this value from the default only if you can guarantee that all your users will use the same hardware and OS configuration as your current machine. @ http://localhost:3000/static/js/main.cb47c3a0.js:1
+[  519273ms] [ERROR] NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+    at ps (http://localhost:3000/static/js/main.cb47c3a0.js:2:227378)
+    at ds (http://localhost:3000/static/js/main.cb47c3a0.js:2:227062)
+    at ps (http://localhost:3000/static/js/main.cb47c3a0.js:2:227824)
+    at ds (http://localhost:3000/static/js/main.cb47c3a0.js:2:227062)
+    at ps (http://localhost:3000/static/js/main.cb47c3a0.js:2:227824)
+    at hs (http://localhost:3000/static/js/main.cb47c3a0.js:2:228635)
+    at vs (http://localhost:3000/static/js/main.cb47c3a0.js:2:229095)
+    at hs (http://localhost:3000/static/js/main.cb47c3a0.js:2:228785)
+    at vs (http://localhost:3000/static/js/main.cb47c3a0.js:2:228898)
+    at hs (http://localhost:3000/static/js/main.cb47c3a0.js:2:228785) @ http://localhost:3000/static/js/main.cb47c3a0.js:1
+[  519274ms] NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+    at ps (http://localhost:3000/static/js/main.cb47c3a0.js:2:227378)
+    at ds (http://localhost:3000/static/js/main.cb47c3a0.js:2:227062)
+    at ps (http://localhost:3000/static/js/main.cb47c3a0.js:2:227824)
+    at ds (http://localhost:3000/static/js/main.cb47c3a0.js:2:227062)
+    at ps (http://localhost:3000/static/js/main.cb47c3a0.js:2:227824)
+    at hs (http://localhost:3000/static/js/main.cb47c3a0.js:2:228635)
+    at vs (http://localhost:3000/static/js/main.cb47c3a0.js:2:229095)
+    at hs (http://localhost:3000/static/js/main.cb47c3a0.js:2:228785)
+    at vs (http://localhost:3000/static/js/main.cb47c3a0.js:2:228898)
+    at hs (http://localhost:3000/static/js/main.cb47c3a0.js:2:228785)
