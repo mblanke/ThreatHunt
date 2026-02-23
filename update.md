@@ -39,3 +39,59 @@
 | OS detected | None | **Windows 10** (inferred from hostnames) |
 | Deduplication | None (same host  20 datasets) | **Full** (by FQDN/ClientId) |
 | System account filtering | None | **DWM-*, UMFD-*, LOCAL/NETWORK SERVICE removed** |
+## 2026-02-23: Agent Execution Controls, Learning Mode, and Dev Startup Hardening
+
+### Agent Assist: Explicit Execution + Learning Controls
+- **Problem**: Agent behavior was partly implicit (intent-triggered execution only), with no analyst override to force/disable execution and no explicit "learning mode" explainability toggle.
+- **Solution**:
+  - Added `execution_preference` to assist requests (`auto | force | off`).
+  - Added `learning_mode` flag for analyst-friendly explanations and rationale.
+  - Preserved deterministic execution path for policy-domain scans while allowing explicit override.
+
+#### Backend Updates
+- `backend/app/api/routes/agent_v2.py`
+  - Extended `AssistRequest` with `execution_preference` and `learning_mode`.
+  - Added `_should_execute_policy_scan(request)` helper:
+    - `off`: advisory-only (never execute scan)
+    - `force`: execute scan regardless of query phrasing
+    - `auto`: existing intent-based policy execution behavior
+  - Wired `learning_mode` into agent context calls.
+- `backend/app/agents/core_v2.py`
+  - Extended `AgentContext` with `learning_mode: bool`.
+  - Prompt construction now adds analyst-teaching/explainability guidance when enabled.
+
+#### Frontend Updates
+- `frontend/src/api/client.ts`
+  - Extended `AssistRequest` with `execution_preference` and `learning_mode`.
+  - Extended `AssistResponse` with optional `execution` payload.
+- `frontend/src/components/AgentPanel.tsx`
+  - Added Execution selector (`Auto`, `Force execute`, `Advisory only`).
+  - Added `Learning mode` switch.
+  - Added execution results accordion (scope, datasets, top domains, hit count, elapsed).
+  - Cleaned stream update logic to avoid loop-closure lint warnings.
+
+#### Tests and Validation
+- `backend/tests/test_agent_policy_execution.py`
+  - Added regression tests for:
+    - `execution_preference=off` (stays advisory)
+    - `execution_preference=force` (executes scanner)
+- Validation:
+  - Backend tests: `test_agent_policy_execution.py` passed.
+  - Frontend build: clean compile after warning cleanup.
+
+### Frontend Warning Cleanup
+- `frontend/src/components/AnalysisDashboard.tsx`
+  - Removed unused `DeleteIcon` import.
+- `frontend/src/components/MitreMatrix.tsx`
+  - Fixed `useCallback` dependency warning by including `huntList`.
+
+### Dev Reliability: Docker Compose Startup on PowerShell
+- **Problem**: Intermittent `docker compose up -d 2>&1` exit code `1` despite healthy/running containers.
+- **Root Cause**: PowerShell `2>&1` handling can surface `NativeCommandError` for compose stderr/progress output (false failure signal).
+- **Solution**:
+  - Added `scripts/dev-up.ps1` startup helper to:
+    - run compose with stable output handling,
+    - show container status,
+    - verify backend/frontend readiness,
+    - return actionable exit codes.
+  - Updated backend liveness probe to `http://localhost:8000/openapi.json` (current app does not expose `/health`).
