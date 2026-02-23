@@ -196,3 +196,12 @@ async def root():
             "openwebui": settings.OPENWEBUI_URL,
         },
     }
+
+
+@app.get("/health", tags=["health"])
+async def health():
+    return {
+        "service": "ThreatHunt API",
+        "version": settings.APP_VERSION,
+        "status": "ok",
+    }

@@ -37,11 +37,11 @@ Write-Step 'Container status'
 docker compose ps
 
 Write-Step 'Health checks'
-$backendOk = Wait-Http200 -url 'http://localhost:8000/openapi.json' -timeoutSeconds $HealthTimeoutSeconds
+$backendOk = Wait-Http200 -url 'http://localhost:8000/health' -timeoutSeconds $HealthTimeoutSeconds
 $frontendOk = if ($BackendOnly) { $true } else { Wait-Http200 -url 'http://localhost:3000/' -timeoutSeconds $HealthTimeoutSeconds }
 
 if (-not $backendOk) {
-    Write-Error 'Backend health check failed: http://localhost:8000/openapi.json did not return HTTP 200 in time.'
+    Write-Error 'Backend health check failed: http://localhost:8000/health did not return HTTP 200 in time.'
     exit 1
 }
 if (-not $frontendOk) {
@@ -50,7 +50,7 @@ if (-not $frontendOk) {
 }
 
 Write-Step 'All good'
-Write-Host 'Backend:  http://localhost:8000/openapi.json (OK)' -ForegroundColor Green
+Write-Host 'Backend:  http://localhost:8000/health (OK)' -ForegroundColor Green
 if (-not $BackendOnly) {
     Write-Host 'Frontend: http://localhost:3000/ (OK)' -ForegroundColor Green
 }
