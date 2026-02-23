@@ -1,8 +1,8 @@
 """Async job queue for background AI tasks.
 
 Manages triage, profiling, report generation, anomaly detection,
-and data queries as trackable jobs with status, progress, and
-cancellation support.
+keyword scanning, IOC extraction, and data queries as trackable
+jobs with status, progress, and cancellation support.
 """
 
 from __future__ import annotations
@@ -14,6 +14,8 @@ import uuid
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable, Coroutine, Optional
+
+from app.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +34,18 @@ class JobType(str, Enum):
     REPORT = "report"
     ANOMALY = "anomaly"
     QUERY = "query"
+    HOST_INVENTORY = "host_inventory"
+    KEYWORD_SCAN = "keyword_scan"
+    IOC_EXTRACT = "ioc_extract"
+
+
+# Job types that form the automatic upload pipeline
+PIPELINE_JOB_TYPES = frozenset({
+    JobType.TRIAGE,
+    JobType.ANOMALY,
+    JobType.KEYWORD_SCAN,
+    JobType.IOC_EXTRACT,
+})
 
 
 @dataclass
@@ -82,11 +96,7 @@ class Job:
 
 
 class JobQueue:
-    """In-memory async job queue with concurrency control.
-
-    Jobs are tracked by ID and can be listed, polled, or cancelled.
-    A configurable number of workers process jobs from the queue.
-    """
+    """In-memory async job queue with concurrency control."""
 
     def __init__(self, max_workers: int = 3):
         self._jobs: dict[str, Job] = {}
@@ -95,47 +105,56 @@ class JobQueue:
         self._workers: list[asyncio.Task] = []
         self._handlers: dict[JobType, Callable] = {}
         self._started = False
+        self._completion_callbacks: list[Callable[[Job], Coroutine]] = []
+        self._cleanup_task: asyncio.Task | None = None
 
-    def register_handler(
-        self,
-        job_type: JobType,
-        handler: Callable[[Job], Coroutine],
-    ):
-        """Register an async handler for a job type.
-
-        Handler signature: async def handler(job: Job) -> Any
-        The handler can update job.progress and job.message during execution.
-        It should check job.is_cancelled periodically and return early.
-        """
+    def register_handler(self, job_type: JobType, handler: Callable[[Job], Coroutine]):
         self._handlers[job_type] = handler
         logger.info(f"Registered handler for {job_type.value}")
 
+    def on_completion(self, callback: Callable[[Job], Coroutine]):
+        """Register a callback invoked after any job completes or fails."""
+        self._completion_callbacks.append(callback)
+
     async def start(self):
-        """Start worker tasks."""
         if self._started:
             return
         self._started = True
         for i in range(self._max_workers):
             task = asyncio.create_task(self._worker(i))
             self._workers.append(task)
+        if not self._cleanup_task or self._cleanup_task.done():
+            self._cleanup_task = asyncio.create_task(self._cleanup_loop())
         logger.info(f"Job queue started with {self._max_workers} workers")
 
     async def stop(self):
-        """Stop all workers."""
         self._started = False
         for w in self._workers:
             w.cancel()
         await asyncio.gather(*self._workers, return_exceptions=True)
         self._workers.clear()
+        if self._cleanup_task:
+            self._cleanup_task.cancel()
+            await asyncio.gather(self._cleanup_task, return_exceptions=True)
+            self._cleanup_task = None
         logger.info("Job queue stopped")
 
     def submit(self, job_type: JobType, **params) -> Job:
-        """Submit a new job. Returns the Job object immediately."""
-        job = Job(
-            id=str(uuid.uuid4()),
-            job_type=job_type,
-            params=params,
-        )
+        # Soft backpressure: prefer dedupe over queue amplification
+        dedupe_job = self._find_active_duplicate(job_type, params)
+        if dedupe_job is not None:
+            logger.info(
+                f"Job deduped: reusing {dedupe_job.id} ({job_type.value}) params={params}"
+            )
+            return dedupe_job
+
+        if self._queue.qsize() >= settings.JOB_QUEUE_MAX_BACKLOG:
+            logger.warning(
+                "Job queue backlog high (%d >= %d). Accepting job but system may be degraded.",
+                self._queue.qsize(), settings.JOB_QUEUE_MAX_BACKLOG,
+            )
+
+        job = Job(id=str(uuid.uuid4()), job_type=job_type, params=params)
         self._jobs[job.id] = job
         self._queue.put_nowait(job.id)
         logger.info(f"Job submitted: {job.id} ({job_type.value}) params={params}")
@@ -143,6 +162,22 @@ class JobQueue:
 
     def get_job(self, job_id: str) -> Job | None:
         return self._jobs.get(job_id)
+
+    def _find_active_duplicate(self, job_type: JobType, params: dict) -> Job | None:
+        """Return queued/running job with same key workload to prevent duplicate storms."""
+        key_fields = ["dataset_id", "hunt_id", "hostname", "question", "mode"]
+        sig = tuple((k, params.get(k)) for k in key_fields if params.get(k) is not None)
+        if not sig:
+            return None
+        for j in self._jobs.values():
+            if j.job_type != job_type:
+                continue
+            if j.status not in (JobStatus.QUEUED, JobStatus.RUNNING):
+                continue
+            other_sig = tuple((k, j.params.get(k)) for k in key_fields if j.params.get(k) is not None)
+            if sig == other_sig:
+                return j
+        return None
 
     def cancel_job(self, job_id: str) -> bool:
         job = self._jobs.get(job_id)
@@ -153,13 +188,7 @@ class JobQueue:
         job.cancel()
         return True
 
-    def list_jobs(
-        self,
-        status: JobStatus | None = None,
-        job_type: JobType | None = None,
-        limit: int = 50,
-    ) -> list[dict]:
-        """List jobs, newest first."""
+    def list_jobs(self, status=None, job_type=None, limit=50) -> list[dict]:
         jobs = sorted(self._jobs.values(), key=lambda j: j.created_at, reverse=True)
         if status:
             jobs = [j for j in jobs if j.status == status]
@@ -168,7 +197,6 @@ class JobQueue:
         return [j.to_dict() for j in jobs[:limit]]
 
     def get_stats(self) -> dict:
-        """Get queue statistics."""
         by_status = {}
         for j in self._jobs.values():
             by_status[j.status.value] = by_status.get(j.status.value, 0) + 1
@@ -177,26 +205,58 @@ class JobQueue:
             "queued": self._queue.qsize(),
             "by_status": by_status,
             "workers": self._max_workers,
-            "active_workers": sum(
-                1 for j in self._jobs.values() if j.status == JobStatus.RUNNING
-            ),
+            "active_workers": sum(1 for j in self._jobs.values() if j.status == JobStatus.RUNNING),
         }
 
+    def is_backlogged(self) -> bool:
+        return self._queue.qsize() >= settings.JOB_QUEUE_MAX_BACKLOG
+
+    def can_accept(self, reserve: int = 0) -> bool:
+        return (self._queue.qsize() + max(0, reserve)) < settings.JOB_QUEUE_MAX_BACKLOG
+
     def cleanup(self, max_age_seconds: float = 3600):
-        """Remove old completed/failed/cancelled jobs."""
         now = time.time()
+        terminal_states = (JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.CANCELLED)
         to_remove = [
             jid for jid, j in self._jobs.items()
-            if j.status in (JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.CANCELLED)
-            and (now - j.created_at) > max_age_seconds
+            if j.status in terminal_states and (now - j.created_at) > max_age_seconds
         ]
-        for jid in to_remove:
-            del self._jobs[jid]
-        if to_remove:
-            logger.info(f"Cleaned up {len(to_remove)} old jobs")
+
+        # Also cap retained terminal jobs to avoid unbounded memory growth
+        terminal_jobs = sorted(
+            [j for j in self._jobs.values() if j.status in terminal_states],
+            key=lambda j: j.created_at,
+            reverse=True,
+        )
+        overflow = terminal_jobs[settings.JOB_QUEUE_RETAIN_COMPLETED :]
+        to_remove.extend([j.id for j in overflow])
+
+        removed = 0
+        for jid in set(to_remove):
+            if jid in self._jobs:
+                del self._jobs[jid]
+                removed += 1
+        if removed:
+            logger.info(f"Cleaned up {removed} old jobs")
+
+    async def _cleanup_loop(self):
+        interval = max(10, settings.JOB_QUEUE_CLEANUP_INTERVAL_SECONDS)
+        while self._started:
+            try:
+                self.cleanup(max_age_seconds=settings.JOB_QUEUE_CLEANUP_MAX_AGE_SECONDS)
+            except Exception as e:
+                logger.warning(f"Job queue cleanup loop error: {e}")
+            await asyncio.sleep(interval)
+
+    def find_pipeline_jobs(self, dataset_id: str) -> list[Job]:
+        """Find all pipeline jobs for a given dataset_id."""
+        return [
+            j for j in self._jobs.values()
+            if j.job_type in PIPELINE_JOB_TYPES
+            and j.params.get("dataset_id") == dataset_id
+        ]
 
     async def _worker(self, worker_id: int):
-        """Worker loop: pull jobs from queue and execute handlers."""
         logger.info(f"Worker {worker_id} started")
         while self._started:
             try:
@@ -220,7 +280,10 @@ class JobQueue:
 
             job.status = JobStatus.RUNNING
             job.started_at = time.time()
+            if job.progress <= 0:
+                job.progress = 5.0
             job.message = "Running..."
+            await _sync_processing_task(job)
             logger.info(f"Worker {worker_id}: executing {job.id} ({job.job_type.value})")
 
             try:
@@ -231,38 +294,111 @@ class JobQueue:
                     job.result = result
                     job.message = "Completed"
                     job.completed_at = time.time()
-                    logger.info(
-                        f"Worker {worker_id}: completed {job.id} "
-                        f"in {job.elapsed_ms}ms"
-                    )
+                    logger.info(f"Worker {worker_id}: completed {job.id} in {job.elapsed_ms}ms")
             except Exception as e:
                 if not job.is_cancelled:
                     job.status = JobStatus.FAILED
                     job.error = str(e)
                     job.message = f"Failed: {e}"
                     job.completed_at = time.time()
-                    logger.error(
-                        f"Worker {worker_id}: failed {job.id}: {e}",
-                        exc_info=True,
-                    )
+                    logger.error(f"Worker {worker_id}: failed {job.id}: {e}", exc_info=True)
+
+            if job.is_cancelled and not job.completed_at:
+                job.completed_at = time.time()
+
+            await _sync_processing_task(job)
+
+            # Fire completion callbacks
+            for cb in self._completion_callbacks:
+                try:
+                    await cb(job)
+                except Exception as cb_err:
+                    logger.error(f"Completion callback error: {cb_err}", exc_info=True)
 
 
-#  Singleton + job handlers 
+async def _sync_processing_task(job: Job):
+    """Persist latest job state into processing_tasks (if linked by job_id)."""
+    from datetime import datetime, timezone
+    from sqlalchemy import update
 
-job_queue = JobQueue(max_workers=3)
+    try:
+        from app.db import async_session_factory
+        from app.db.models import ProcessingTask
+
+        values = {
+            "status": job.status.value,
+            "progress": float(job.progress),
+            "message": job.message,
+            "error": job.error,
+        }
+        if job.started_at:
+            values["started_at"] = datetime.fromtimestamp(job.started_at, tz=timezone.utc)
+        if job.completed_at:
+            values["completed_at"] = datetime.fromtimestamp(job.completed_at, tz=timezone.utc)
+
+        async with async_session_factory() as db:
+            await db.execute(
+                update(ProcessingTask)
+                .where(ProcessingTask.job_id == job.id)
+                .values(**values)
+            )
+            await db.commit()
+    except Exception as e:
+        logger.warning(f"Failed to sync processing task for job {job.id}: {e}")
+
+
+# -- Singleton + job handlers --
+
+job_queue = JobQueue(max_workers=5)
 
 
 async def _handle_triage(job: Job):
-    """Triage handler."""
+    """Triage handler - chains HOST_PROFILE after completion."""
     from app.services.triage import triage_dataset
     dataset_id = job.params.get("dataset_id")
     job.message = f"Triaging dataset {dataset_id}"
-    results = await triage_dataset(dataset_id)
-    return {"count": len(results) if results else 0}
+    await triage_dataset(dataset_id)
+
+    # Chain: trigger host profiling now that triage results exist
+    from app.db import async_session_factory
+    from app.db.models import Dataset
+    from sqlalchemy import select
+    try:
+        async with async_session_factory() as db:
+            ds = await db.execute(select(Dataset.hunt_id).where(Dataset.id == dataset_id))
+            row = ds.first()
+            hunt_id = row[0] if row else None
+        if hunt_id:
+            hp_job = job_queue.submit(JobType.HOST_PROFILE, hunt_id=hunt_id)
+            try:
+                from sqlalchemy import select
+                from app.db.models import ProcessingTask
+                async with async_session_factory() as db:
+                    existing = await db.execute(
+                        select(ProcessingTask.id).where(ProcessingTask.job_id == hp_job.id)
+                    )
+                    if existing.first() is None:
+                        db.add(ProcessingTask(
+                            hunt_id=hunt_id,
+                            dataset_id=dataset_id,
+                            job_id=hp_job.id,
+                            stage="host_profile",
+                            status="queued",
+                            progress=0.0,
+                            message="Queued",
+                        ))
+                        await db.commit()
+            except Exception as persist_err:
+                logger.warning(f"Failed to persist chained HOST_PROFILE task: {persist_err}")
+
+            logger.info(f"Triage done for {dataset_id} - chained HOST_PROFILE for hunt {hunt_id}")
+    except Exception as e:
+        logger.warning(f"Failed to chain host profile after triage: {e}")
+
+    return {"dataset_id": dataset_id}
 
 
 async def _handle_host_profile(job: Job):
-    """Host profiling handler."""
     from app.services.host_profiler import profile_all_hosts, profile_host
     hunt_id = job.params.get("hunt_id")
     hostname = job.params.get("hostname")
@@ -277,7 +413,6 @@ async def _handle_host_profile(job: Job):
 
 
 async def _handle_report(job: Job):
-    """Report generation handler."""
     from app.services.report_generator import generate_report
     hunt_id = job.params.get("hunt_id")
     job.message = f"Generating report for hunt {hunt_id}"
@@ -286,7 +421,6 @@ async def _handle_report(job: Job):
 
 
 async def _handle_anomaly(job: Job):
-    """Anomaly detection handler."""
     from app.services.anomaly_detector import detect_anomalies
     dataset_id = job.params.get("dataset_id")
     k = job.params.get("k", 3)
@@ -297,7 +431,6 @@ async def _handle_anomaly(job: Job):
 
 
 async def _handle_query(job: Job):
-    """Data query handler (non-streaming)."""
     from app.services.data_query import query_dataset
     dataset_id = job.params.get("dataset_id")
     question = job.params.get("question", "")
@@ -307,10 +440,152 @@ async def _handle_query(job: Job):
     return {"answer": answer}
 
 
+async def _handle_host_inventory(job: Job):
+    from app.db import async_session_factory
+    from app.services.host_inventory import build_host_inventory, inventory_cache
+
+    hunt_id = job.params.get("hunt_id")
+    if not hunt_id:
+        raise ValueError("hunt_id required")
+
+    inventory_cache.set_building(hunt_id)
+    job.message = f"Building host inventory for hunt {hunt_id}"
+
+    try:
+        async with async_session_factory() as db:
+            result = await build_host_inventory(hunt_id, db)
+        inventory_cache.put(hunt_id, result)
+        job.message = f"Built inventory: {result['stats']['total_hosts']} hosts"
+        return {"hunt_id": hunt_id, "total_hosts": result["stats"]["total_hosts"]}
+    except Exception:
+        inventory_cache.clear_building(hunt_id)
+        raise
+
+
+async def _handle_keyword_scan(job: Job):
+    """AUP keyword scan handler."""
+    from app.db import async_session_factory
+    from app.services.scanner import KeywordScanner, keyword_scan_cache
+
+    dataset_id = job.params.get("dataset_id")
+    job.message = f"Running AUP keyword scan on dataset {dataset_id}"
+
+    async with async_session_factory() as db:
+        scanner = KeywordScanner(db)
+        result = await scanner.scan(dataset_ids=[dataset_id])
+
+    # Cache dataset-only result for fast API reuse
+    if dataset_id:
+        keyword_scan_cache.put(dataset_id, result)
+
+    hits = result.get("total_hits", 0)
+    job.message = f"Keyword scan complete: {hits} hits"
+    logger.info(f"Keyword scan for {dataset_id}: {hits} hits across {result.get('rows_scanned', 0)} rows")
+    return {"dataset_id": dataset_id, "total_hits": hits, "rows_scanned": result.get("rows_scanned", 0)}
+
+
+async def _handle_ioc_extract(job: Job):
+    """IOC extraction handler."""
+    from app.db import async_session_factory
+    from app.services.ioc_extractor import extract_iocs_from_dataset
+
+    dataset_id = job.params.get("dataset_id")
+    job.message = f"Extracting IOCs from dataset {dataset_id}"
+
+    async with async_session_factory() as db:
+        iocs = await extract_iocs_from_dataset(dataset_id, db)
+
+    total = sum(len(v) for v in iocs.values())
+    job.message = f"IOC extraction complete: {total} IOCs found"
+    logger.info(f"IOC extract for {dataset_id}: {total} IOCs")
+    return {"dataset_id": dataset_id, "total_iocs": total, "breakdown": {k: len(v) for k, v in iocs.items()}}
+
+
+async def _on_pipeline_job_complete(job: Job):
+    """Update Dataset.processing_status when all pipeline jobs finish."""
+    if job.job_type not in PIPELINE_JOB_TYPES:
+        return
+
+    dataset_id = job.params.get("dataset_id")
+    if not dataset_id:
+        return
+
+    pipeline_jobs = job_queue.find_pipeline_jobs(dataset_id)
+    if not pipeline_jobs:
+        return
+
+    all_done = all(
+        j.status in (JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.CANCELLED)
+        for j in pipeline_jobs
+    )
+    if not all_done:
+        return
+
+    any_failed = any(j.status == JobStatus.FAILED for j in pipeline_jobs)
+    new_status = "completed_with_errors" if any_failed else "completed"
+
+    try:
+        from app.db import async_session_factory
+        from app.db.models import Dataset
+        from sqlalchemy import update
+
+        async with async_session_factory() as db:
+            await db.execute(
+                update(Dataset)
+                .where(Dataset.id == dataset_id)
+                .values(processing_status=new_status)
+            )
+            await db.commit()
+        logger.info(f"Dataset {dataset_id} processing_status -> {new_status}")
+    except Exception as e:
+        logger.error(f"Failed to update processing_status for {dataset_id}: {e}")
+
+
+
+
+async def reconcile_stale_processing_tasks() -> int:
+    """Mark queued/running processing tasks from prior runs as failed."""
+    from datetime import datetime, timezone
+    from sqlalchemy import update
+
+    try:
+        from app.db import async_session_factory
+        from app.db.models import ProcessingTask
+
+        now = datetime.now(timezone.utc)
+        async with async_session_factory() as db:
+            result = await db.execute(
+                update(ProcessingTask)
+                .where(ProcessingTask.status.in_(["queued", "running"]))
+                .values(
+                    status="failed",
+                    error="Recovered after service restart before task completion",
+                    message="Recovered stale task after restart",
+                    completed_at=now,
+                )
+            )
+            await db.commit()
+            updated = int(result.rowcount or 0)
+
+        if updated:
+            logger.warning(
+                "Reconciled %d stale processing tasks (queued/running -> failed) during startup",
+                updated,
+            )
+        return updated
+    except Exception as e:
+        logger.warning(f"Failed to reconcile stale processing tasks: {e}")
+        return 0
+
+
 def register_all_handlers():
-    """Register all job handlers."""
+    """Register all job handlers and completion callbacks."""
     job_queue.register_handler(JobType.TRIAGE, _handle_triage)
     job_queue.register_handler(JobType.HOST_PROFILE, _handle_host_profile)
     job_queue.register_handler(JobType.REPORT, _handle_report)
     job_queue.register_handler(JobType.ANOMALY, _handle_anomaly)
     job_queue.register_handler(JobType.QUERY, _handle_query)
+    job_queue.register_handler(JobType.HOST_INVENTORY, _handle_host_inventory)
+    job_queue.register_handler(JobType.KEYWORD_SCAN, _handle_keyword_scan)
+    job_queue.register_handler(JobType.IOC_EXTRACT, _handle_ioc_extract)
+    job_queue.on_completion(_on_pipeline_job_complete)

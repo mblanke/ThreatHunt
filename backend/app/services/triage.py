@@ -1,4 +1,4 @@
-"""Auto-triage service - fast LLM analysis of dataset batches via Roadrunner."""
+﻿"""Auto-triage service - fast LLM analysis of dataset batches via Roadrunner."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from app.db.models import Dataset, DatasetRow, TriageResult
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_FAST_MODEL = "qwen2.5-coder:7b-instruct-q4_K_M"
+DEFAULT_FAST_MODEL = settings.DEFAULT_FAST_MODEL
 ROADRUNNER_URL = f"{settings.roadrunner_url}/api/generate"
 
 ARTIFACT_FOCUS = {
@@ -80,7 +80,7 @@ async def triage_dataset(dataset_id: str) -> None:
             rows_result = await db.execute(
                 select(DatasetRow)
                 .where(DatasetRow.dataset_id == dataset_id)
-                .order_by(DatasetRow.row_number)
+                .order_by(DatasetRow.row_index)
                 .offset(offset)
                 .limit(batch_size)
             )

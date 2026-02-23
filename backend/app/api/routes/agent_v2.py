@@ -1,4 +1,4 @@
-"""API routes for analyst-assist agent — v2.
+﻿"""API routes for analyst-assist agent  v2.
 
 Supports quick, deep, and debate modes with streaming.
 Conversations are persisted to the database.
@@ -6,19 +6,25 @@ Conversations are persisted to the database.
 
 import json
 import logging
+import re
+import time
+from collections import Counter
+from urllib.parse import urlparse
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.db import get_db
-from app.db.models import Conversation, Message
+from app.db.models import Conversation, Message, Dataset, KeywordTheme
 from app.agents.core_v2 import ThreatHuntAgent, AgentContext, AgentResponse, Perspective
 from app.agents.providers_v2 import check_all_nodes
 from app.agents.registry import registry
 from app.services.sans_rag import sans_rag
+from app.services.scanner import KeywordScanner
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +41,7 @@ def get_agent() -> ThreatHuntAgent:
     return _agent
 
 
-# ── Request / Response models ─────────────────────────────────────────
+#  Request / Response models 
 
 
 class AssistRequest(BaseModel):
@@ -52,6 +58,8 @@ class AssistRequest(BaseModel):
     model_override: str | None = None
     conversation_id: str | None = Field(None, description="Persist messages to this conversation")
     hunt_id: str | None = None
+    execution_preference: str = Field(default="auto", description="auto | force | off")
+    learning_mode: bool = False
 
 
 class AssistResponseModel(BaseModel):
@@ -66,10 +74,170 @@ class AssistResponseModel(BaseModel):
     node_used: str = ""
     latency_ms: int = 0
     perspectives: list[dict] | None = None
+    execution: dict | None = None
     conversation_id: str | None = None
 
 
-# ── Routes ────────────────────────────────────────────────────────────
+POLICY_THEME_NAMES = {"Adult Content", "Gambling", "Downloads / Piracy"}
+POLICY_QUERY_TERMS = {
+    "policy", "violating", "violation", "browser history", "web history",
+    "domain", "domains", "adult", "gambling", "piracy", "aup",
+}
+WEB_DATASET_HINTS = {
+    "web", "history", "browser", "url", "visited_url", "domain", "title",
+}
+
+
+def _is_policy_domain_query(query: str) -> bool:
+    q = (query or "").lower()
+    if not q:
+        return False
+    score = sum(1 for t in POLICY_QUERY_TERMS if t in q)
+    return score >= 2 and ("domain" in q or "history" in q or "policy" in q)
+
+def _should_execute_policy_scan(request: AssistRequest) -> bool:
+    pref = (request.execution_preference or "auto").strip().lower()
+    if pref == "off":
+        return False
+    if pref == "force":
+        return True
+    return _is_policy_domain_query(request.query)
+
+
+def _extract_domain(value: str | None) -> str | None:
+    if not value:
+        return None
+    text = value.strip()
+    if not text:
+        return None
+
+    try:
+        parsed = urlparse(text)
+        if parsed.netloc:
+            return parsed.netloc.lower()
+    except Exception:
+        pass
+
+    m = re.search(r"([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}", text)
+    return m.group(0).lower() if m else None
+
+
+def _dataset_score(ds: Dataset) -> int:
+    score = 0
+    name = (ds.name or "").lower()
+    cols_l = {c.lower() for c in (ds.column_schema or {}).keys()}
+    norm_vals_l = {str(v).lower() for v in (ds.normalized_columns or {}).values()}
+
+    for h in WEB_DATASET_HINTS:
+        if h in name:
+            score += 2
+        if h in cols_l:
+            score += 3
+        if h in norm_vals_l:
+            score += 3
+
+    if "visited_url" in cols_l or "url" in cols_l:
+        score += 8
+    if "user" in cols_l or "username" in cols_l:
+        score += 2
+    if "clientid" in cols_l or "fqdn" in cols_l:
+        score += 2
+    if (ds.row_count or 0) > 0:
+        score += 1
+
+    return score
+
+
+async def _run_policy_domain_execution(request: AssistRequest, db: AsyncSession) -> dict:
+    scanner = KeywordScanner(db)
+
+    theme_result = await db.execute(
+        select(KeywordTheme).where(
+            KeywordTheme.enabled == True,  # noqa: E712
+            KeywordTheme.name.in_(list(POLICY_THEME_NAMES)),
+        )
+    )
+    themes = list(theme_result.scalars().all())
+    theme_ids = [t.id for t in themes]
+    theme_names = [t.name for t in themes] or sorted(POLICY_THEME_NAMES)
+
+    ds_query = select(Dataset).where(Dataset.processing_status.in_(["completed", "ready", "processing"]))
+    if request.hunt_id:
+        ds_query = ds_query.where(Dataset.hunt_id == request.hunt_id)
+    ds_result = await db.execute(ds_query)
+    candidates = list(ds_result.scalars().all())
+
+    if request.dataset_name:
+        needle = request.dataset_name.lower().strip()
+        candidates = [d for d in candidates if needle in (d.name or "").lower()]
+
+    scored = sorted(
+        ((d, _dataset_score(d)) for d in candidates),
+        key=lambda x: x[1],
+        reverse=True,
+    )
+    selected = [d for d, s in scored if s > 0][:8]
+    dataset_ids = [d.id for d in selected]
+
+    if not dataset_ids:
+        return {
+            "mode": "policy_scan",
+            "themes": theme_names,
+            "datasets_scanned": 0,
+            "dataset_names": [],
+            "total_hits": 0,
+            "policy_hits": 0,
+            "top_user_hosts": [],
+            "top_domains": [],
+            "sample_hits": [],
+            "note": "No suitable browser/web-history datasets found in current scope.",
+        }
+
+    result = await scanner.scan(
+        dataset_ids=dataset_ids,
+        theme_ids=theme_ids or None,
+        scan_hunts=False,
+        scan_annotations=False,
+        scan_messages=False,
+    )
+    hits = result.get("hits", [])
+
+    user_host_counter = Counter()
+    domain_counter = Counter()
+
+    for h in hits:
+        user = h.get("username") or "(unknown-user)"
+        host = h.get("hostname") or "(unknown-host)"
+        user_host_counter[f"{user}|{host}"] += 1
+
+        dom = _extract_domain(h.get("matched_value"))
+        if dom:
+            domain_counter[dom] += 1
+
+    top_user_hosts = [
+        {"user_host": k, "count": v}
+        for k, v in user_host_counter.most_common(10)
+    ]
+    top_domains = [
+        {"domain": k, "count": v}
+        for k, v in domain_counter.most_common(10)
+    ]
+
+    return {
+        "mode": "policy_scan",
+        "themes": theme_names,
+        "datasets_scanned": len(dataset_ids),
+        "dataset_names": [d.name for d in selected],
+        "total_hits": int(result.get("total_hits", 0)),
+        "policy_hits": int(result.get("total_hits", 0)),
+        "rows_scanned": int(result.get("rows_scanned", 0)),
+        "top_user_hosts": top_user_hosts,
+        "top_domains": top_domains,
+        "sample_hits": hits[:20],
+    }
+
+
+#  Routes 
 
 
 @router.post(
@@ -84,6 +252,76 @@ async def agent_assist(
     db: AsyncSession = Depends(get_db),
 ) -> AssistResponseModel:
     try:
+        # Deterministic execution mode for policy-domain investigations.
+        if _should_execute_policy_scan(request):
+            t0 = time.monotonic()
+            exec_payload = await _run_policy_domain_execution(request, db)
+            latency_ms = int((time.monotonic() - t0) * 1000)
+
+            policy_hits = exec_payload.get("policy_hits", 0)
+            datasets_scanned = exec_payload.get("datasets_scanned", 0)
+
+            if policy_hits > 0:
+                guidance = (
+                    f"Policy-violation scan complete: {policy_hits} hits across "
+                    f"{datasets_scanned} dataset(s). Top user/host pairs and domains are included "
+                    f"in execution results for triage."
+                )
+                confidence = 0.95
+                caveats = "Keyword-based matching can include false positives; validate with full URL context."
+            else:
+                guidance = (
+                    f"No policy-violation hits found in current scope "
+                    f"({datasets_scanned} dataset(s) scanned)."
+                )
+                confidence = 0.9
+                caveats = exec_payload.get("note") or "Try expanding scope to additional hunts/datasets."
+
+            response = AssistResponseModel(
+                guidance=guidance,
+                confidence=confidence,
+                suggested_pivots=["username", "hostname", "domain", "dataset_name"],
+                suggested_filters=[
+                    "theme_name in ['Adult Content','Gambling','Downloads / Piracy']",
+                    "username != null",
+                    "hostname != null",
+                ],
+                caveats=caveats,
+                reasoning=(
+                    "Intent matched policy-domain investigation; executed local keyword scan pipeline."
+                    if _is_policy_domain_query(request.query)
+                    else "Execution mode was forced by user preference; ran policy-domain scan pipeline."
+                ),
+                sans_references=["SANS FOR508", "SANS SEC504"],
+                model_used="execution:keyword_scanner",
+                node_used="local",
+                latency_ms=latency_ms,
+                execution=exec_payload,
+            )
+
+            conv_id = request.conversation_id
+            if conv_id or request.hunt_id:
+                conv_id = await _persist_conversation(
+                    db,
+                    conv_id,
+                    request,
+                    AgentResponse(
+                        guidance=response.guidance,
+                        confidence=response.confidence,
+                        suggested_pivots=response.suggested_pivots,
+                        suggested_filters=response.suggested_filters,
+                        caveats=response.caveats,
+                        reasoning=response.reasoning,
+                        sans_references=response.sans_references,
+                        model_used=response.model_used,
+                        node_used=response.node_used,
+                        latency_ms=response.latency_ms,
+                    ),
+                )
+                response.conversation_id = conv_id
+
+            return response
+
         agent = get_agent()
         context = AgentContext(
             query=request.query,
@@ -97,6 +335,7 @@ async def agent_assist(
             enrichment_summary=request.enrichment_summary,
             mode=request.mode,
             model_override=request.model_override,
+            learning_mode=request.learning_mode,
         )
 
         response = await agent.assist(context)
@@ -129,6 +368,7 @@ async def agent_assist(
                 }
                 for p in response.perspectives
             ] if response.perspectives else None,
+            execution=None,
             conversation_id=conv_id,
         )
 
@@ -208,7 +448,7 @@ async def list_models():
     }
 
 
-# ── Conversation persistence ──────────────────────────────────────────
+#  Conversation persistence 
 
 
 async def _persist_conversation(
@@ -263,3 +503,4 @@ async def _persist_conversation(
     await db.flush()
 
     return conv.id
+

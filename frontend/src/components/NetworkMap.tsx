@@ -14,6 +14,9 @@
  * - Node drag with springy neighbor physics
  * - Glassmorphism toolbar + floating legend overlay
  * - Rich popover: hostname, IP, OS, users, datasets
+ * - MODULE-LEVEL CACHE: graph survives tab switches
+ * - AUTO-LOAD: picks most recent hunt on mount
+ * - FULL VIEWPORT canvas: fills available space
  * - Zero extra npm dependencies
  */
 
@@ -59,6 +62,8 @@ interface GNode {
 interface GEdge { source: string; target: string; weight: number }
 interface Graph { nodes: GNode[]; edges: GEdge[] }
 
+type LabelMode = 'all' | 'highlight' | 'none';
+
 const TYPE_COLORS: Record<NodeType, string> = {
   host: '#60a5fa',
   external_ip: '#fbbf24',
@@ -68,6 +73,18 @@ const GLOW_COLORS: Record<NodeType, string> = {
   external_ip: 'rgba(251,191,36,0.35)',
 };
 
+// =========================================================================
+// MODULE-LEVEL CACHE - survives unmount/remount on tab switches
+// =========================================================================
+const graphCache = new Map<string, { graph: Graph; stats: InventoryStats; ts: number }>();
+let lastSelectedHuntId = '';
+const LARGE_HUNT_HOST_THRESHOLD = 400;
+const LARGE_HUNT_SUBGRAPH_HOSTS = 220;
+const LARGE_HUNT_SUBGRAPH_EDGES = 1200;
+const RENDER_SIMPLIFY_NODE_THRESHOLD = 120;
+const RENDER_SIMPLIFY_EDGE_THRESHOLD = 500;
+const EDGE_DRAW_TARGET = 600;
+
 // == Build graph from inventory ==========================================
 
 function buildGraphFromInventory(
@@ -75,53 +92,67 @@ function buildGraphFromInventory(
   canvasW: number, canvasH: number,
 ): Graph {
   const nodeMap = new Map<string, GNode>();
+  const cx = canvasW / 2, cy = canvasH / 2;
+  const MAX_EXTERNAL_NODES = 30;
 
-  // Create host nodes
   for (const h of hosts) {
     const r = Math.max(8, Math.min(26, 6 + Math.sqrt(h.row_count / 100) * 3));
     nodeMap.set(h.id, {
       id: h.id,
       label: h.hostname || h.fqdn || h.client_id,
-      x: canvasW / 2 + (Math.random() - 0.5) * canvasW * 0.75,
-      y: canvasH / 2 + (Math.random() - 0.5) * canvasH * 0.65,
+      x: cx + (Math.random() - 0.5) * canvasW * 0.75,
+      y: cy + (Math.random() - 0.5) * canvasH * 0.65,
       vx: 0, vy: 0, radius: r,
       color: TYPE_COLORS.host,
       count: h.row_count,
       meta: {
         type: 'host' as NodeType,
-        hostname: h.hostname,
-        fqdn: h.fqdn,
-        client_id: h.client_id,
-        ips: h.ips,
-        os: h.os,
-        users: h.users,
-        datasets: h.datasets,
-        row_count: h.row_count,
+        hostname: h.hostname, fqdn: h.fqdn, client_id: h.client_id,
+        ips: h.ips, os: h.os, users: h.users,
+        datasets: h.datasets, row_count: h.row_count,
       },
     });
   }
 
-  // Create edges + external IP nodes (for unresolved remote IPs)
-  const edges: GEdge[] = [];
+  const extIpCounts = new Map<string, number>();
+  const extIpLabel = new Map<string, string>();
   for (const c of connections) {
     if (!nodeMap.has(c.target)) {
-      nodeMap.set(c.target, {
-        id: c.target,
-        label: c.target_ip || c.target,
-        x: canvasW / 2 + (Math.random() - 0.5) * canvasW * 0.75,
-        y: canvasH / 2 + (Math.random() - 0.5) * canvasH * 0.65,
-        vx: 0, vy: 0, radius: 6,
-        color: TYPE_COLORS.external_ip,
-        count: c.count,
-        meta: {
-          type: 'external_ip' as NodeType,
-          hostname: '', fqdn: '', client_id: '',
-          ips: [c.target_ip || c.target],
-          os: '', users: [], datasets: [], row_count: 0,
-        },
-      });
+      extIpCounts.set(c.target, (extIpCounts.get(c.target) || 0) + c.count);
+      if (!extIpLabel.has(c.target)) extIpLabel.set(c.target, c.target_ip || c.target);
     }
-    edges.push({ source: c.source, target: c.target, weight: c.count });
+  }
+  const topExternal = new Set(
+    [...extIpCounts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, MAX_EXTERNAL_NODES)
+      .map(e => e[0])
+  );
+
+  for (const [id, totalCount] of extIpCounts) {
+    if (!topExternal.has(id)) continue;
+    nodeMap.set(id, {
+      id,
+      label: extIpLabel.get(id) || id,
+      x: cx + (Math.random() - 0.5) * canvasW * 0.75,
+      y: cy + (Math.random() - 0.5) * canvasH * 0.65,
+      vx: 0, vy: 0, radius: 6,
+      color: TYPE_COLORS.external_ip,
+      count: totalCount,
+      meta: {
+        type: 'external_ip' as NodeType,
+        hostname: '', fqdn: '', client_id: '',
+        ips: [extIpLabel.get(id) || id],
+        os: '', users: [], datasets: [], row_count: 0,
+      },
+    });
+  }
+
+  const edges: GEdge[] = [];
+  for (const c of connections) {
+    if (nodeMap.has(c.source) && nodeMap.has(c.target)) {
+      edges.push({ source: c.source, target: c.target, weight: c.count });
+    }
   }
 
   return { nodes: [...nodeMap.values()], edges };
@@ -135,17 +166,39 @@ function simulationStep(graph: Graph, cx: number, cy: number, alpha: number) {
   const k = 120;
   const repulsion = 12000;
   const damping = 0.82;
+  const N = nodes.length;
 
-  for (let i = 0; i < nodes.length; i++) {
-    for (let j = i + 1; j < nodes.length; j++) {
-      const a = nodes[i], b = nodes[j];
-      if (a.pinned && b.pinned) continue;
-      const dx = b.x - a.x, dy = b.y - a.y;
-      const dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
-      const force = (repulsion * alpha) / (dist * dist);
-      const fx = (dx / dist) * force, fy = (dy / dist) * force;
-      if (!a.pinned) { a.vx -= fx; a.vy -= fy; }
-      if (!b.pinned) { b.vx += fx; b.vy += fy; }
+  const SAMPLE_THRESHOLD = 150;
+  if (N > SAMPLE_THRESHOLD) {
+    const sampleSize = Math.min(40, Math.ceil(N * 0.15));
+    const scaleFactor = N / sampleSize;
+    for (let i = 0; i < N; i++) {
+      const a = nodes[i];
+      if (a.pinned) continue;
+      for (let s = 0; s < sampleSize; s++) {
+        const j = Math.floor(Math.random() * N);
+        if (j === i) continue;
+        const b = nodes[j];
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+        if (dist > 600) continue;
+        const force = (repulsion * alpha * scaleFactor) / (dist * dist);
+        const fx = (dx / dist) * force, fy = (dy / dist) * force;
+        a.vx -= fx; a.vy -= fy;
+      }
+    }
+  } else {
+    for (let i = 0; i < N; i++) {
+      for (let j = i + 1; j < N; j++) {
+        const a = nodes[i], b = nodes[j];
+        if (a.pinned && b.pinned) continue;
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+        const force = (repulsion * alpha) / (dist * dist);
+        const fx = (dx / dist) * force, fy = (dy / dist) * force;
+        if (!a.pinned) { a.vx -= fx; a.vy -= fy; }
+        if (!b.pinned) { b.vx += fx; b.vy += fy; }
+      }
     }
   }
   for (const e of edges) {
@@ -188,23 +241,26 @@ const GRID_SPACING = 32;
 
 function drawBackground(
   ctx: CanvasRenderingContext2D, w: number, h: number, vp: Viewport, dpr: number,
+  simplify: boolean,
 ) {
   ctx.fillStyle = BG_COLOR;
   ctx.fillRect(0, 0, w, h);
-  ctx.save();
-  ctx.translate(vp.x * dpr, vp.y * dpr);
-  ctx.scale(vp.scale * dpr, vp.scale * dpr);
-  const startX = -vp.x / vp.scale - GRID_SPACING;
-  const startY = -vp.y / vp.scale - GRID_SPACING;
-  const endX = startX + w / (vp.scale * dpr) + GRID_SPACING * 2;
-  const endY = startY + h / (vp.scale * dpr) + GRID_SPACING * 2;
-  ctx.fillStyle = GRID_DOT_COLOR;
-  for (let gx = Math.floor(startX / GRID_SPACING) * GRID_SPACING; gx < endX; gx += GRID_SPACING) {
-    for (let gy = Math.floor(startY / GRID_SPACING) * GRID_SPACING; gy < endY; gy += GRID_SPACING) {
-      ctx.beginPath(); ctx.arc(gx, gy, 1, 0, Math.PI * 2); ctx.fill();
+  if (!simplify) {
+    ctx.save();
+    ctx.translate(vp.x * dpr, vp.y * dpr);
+    ctx.scale(vp.scale * dpr, vp.scale * dpr);
+    const startX = -vp.x / vp.scale - GRID_SPACING;
+    const startY = -vp.y / vp.scale - GRID_SPACING;
+    const endX = startX + w / (vp.scale * dpr) + GRID_SPACING * 2;
+    const endY = startY + h / (vp.scale * dpr) + GRID_SPACING * 2;
+    ctx.fillStyle = GRID_DOT_COLOR;
+    for (let gx = Math.floor(startX / GRID_SPACING) * GRID_SPACING; gx < endX; gx += GRID_SPACING) {
+      for (let gy = Math.floor(startY / GRID_SPACING) * GRID_SPACING; gy < endY; gy += GRID_SPACING) {
+        ctx.beginPath(); ctx.arc(gx, gy, 1, 0, Math.PI * 2); ctx.fill();
+      }
     }
+    ctx.restore();
   }
-  ctx.restore();
   const vignette = ctx.createRadialGradient(w / 2, h / 2, w * 0.2, w / 2, h / 2, w * 0.7);
   vignette.addColorStop(0, 'rgba(10,16,30,0)');
   vignette.addColorStop(1, 'rgba(10,16,30,0.55)');
@@ -216,8 +272,11 @@ function drawEdges(
   ctx: CanvasRenderingContext2D, graph: Graph,
   hovered: string | null, selected: string | null,
   nodeMap: Map<string, GNode>, animTime: number,
+  simplify: boolean,
 ) {
-  for (const e of graph.edges) {
+  const edgeStep = simplify ? Math.max(1, Math.ceil(graph.edges.length / EDGE_DRAW_TARGET)) : 1;
+  for (let ei = 0; ei < graph.edges.length; ei += edgeStep) {
+    const e = graph.edges[ei];
     const a = nodeMap.get(e.source), b = nodeMap.get(e.target);
     if (!a || !b) continue;
     const isActive = (hovered && (e.source === hovered || e.target === hovered))
@@ -229,7 +288,7 @@ function drawEdges(
     const cpx = mx + (-dy / (len || 1)) * perpScale;
     const cpy = my + (dx / (len || 1)) * perpScale;
 
-    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.quadraticCurveTo(cpx, cpy, b.x, b.y);
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); if (simplify) { ctx.lineTo(b.x, b.y); } else { ctx.quadraticCurveTo(cpx, cpy, b.x, b.y); }
 
     if (isActive) {
       ctx.strokeStyle = 'rgba(96,165,250,0.8)';
@@ -240,11 +299,11 @@ function drawEdges(
       ctx.shadowColor = 'rgba(96,165,250,0.5)'; ctx.shadowBlur = 8;
       ctx.strokeStyle = 'rgba(96,165,250,0.3)';
       ctx.lineWidth = Math.min(5, 2 + e.weight * 0.2);
-      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.quadraticCurveTo(cpx, cpy, b.x, b.y);
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); if (simplify) { ctx.lineTo(b.x, b.y); } else { ctx.quadraticCurveTo(cpx, cpy, b.x, b.y); }
       ctx.stroke(); ctx.restore();
     } else {
       const alpha = Math.min(0.35, 0.08 + e.weight * 0.01);
-      ctx.strokeStyle = `rgba(100,116,139,${alpha})`;
+      ctx.strokeStyle = 'rgba(100,116,139,' + alpha + ')';
       ctx.lineWidth = Math.min(2.5, 0.4 + e.weight * 0.08);
       ctx.stroke();
     }
@@ -302,10 +361,16 @@ function drawLabels(
   ctx: CanvasRenderingContext2D, graph: Graph,
   hovered: string | null, selected: string | null,
   search: string, matchSet: Set<string>, vp: Viewport,
+  simplify: boolean, labelMode: LabelMode,
 ) {
+  if (labelMode === 'none') return;
   const dimmed = search.length > 0;
+  if (labelMode === 'highlight' && !search && !hovered && !selected) return;
+  if (simplify && labelMode !== 'all' && !search && !hovered && !selected) {
+    return;
+  }
   const fontSize = Math.max(9, Math.round(12 / vp.scale));
-  ctx.font = `500 ${fontSize}px Inter, system-ui, sans-serif`;
+  ctx.font = '500 ' + fontSize + 'px Inter, system-ui, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'bottom';
 
@@ -318,13 +383,13 @@ function drawLabels(
 
   for (const n of sorted) {
     const isHighlight = hovered === n.id || selected === n.id || matchSet.has(n.id);
-    // Always show labels for hosts (since they're deduped and fewer)
-    const show = isHighlight || n.meta.type === 'host' || n.count >= 2;
+    const show = labelMode === 'all'
+      ? (isHighlight || n.meta.type === 'host' || n.count >= 2)
+      : isHighlight;
     if (!show) continue;
     const isDim = dimmed && !matchSet.has(n.id);
     if (isDim) continue;
 
-    // Two-line label: hostname + IP (if available)
     const line1 = n.label;
     const line2 = n.meta.ips.length > 0 ? n.meta.ips[0] : '';
     const tw = Math.max(ctx.measureText(line1).width, line2 ? ctx.measureText(line2).width : 0);
@@ -355,11 +420,9 @@ function drawLabels(
     ctx.lineWidth = 0.8; ctx.stroke();
     ctx.restore();
 
-    // Hostname line
     ctx.fillStyle = isHighlight ? '#ffffff' : n.color;
     ctx.globalAlpha = isHighlight ? 1 : 0.85;
     ctx.fillText(line1, lx, ly - (line2 ? fontSize * 0.5 : 0));
-    // IP line (smaller, dimmer)
     if (line2) {
       ctx.fillStyle = 'rgba(148,163,184,0.6)';
       ctx.fillText(line2, lx, ly + fontSize * 0.5);
@@ -371,7 +434,7 @@ function drawLabels(
 function drawGraph(
   ctx: CanvasRenderingContext2D, graph: Graph,
   hovered: string | null, selected: string | null, search: string,
-  vp: Viewport, animTime: number, dpr: number,
+  vp: Viewport, animTime: number, dpr: number, labelMode: LabelMode,
 ) {
   const w = ctx.canvas.width, h = ctx.canvas.height;
   const nodeMap = new Map(graph.nodes.map(n => [n.id, n]));
@@ -386,17 +449,35 @@ function drawGraph(
       ) matchSet.add(n.id);
     }
   }
-  drawBackground(ctx, w, h, vp, dpr);
+  const simplify = graph.nodes.length > RENDER_SIMPLIFY_NODE_THRESHOLD || graph.edges.length > RENDER_SIMPLIFY_EDGE_THRESHOLD;
+  drawBackground(ctx, w, h, vp, dpr, simplify);
   ctx.save();
   ctx.translate(vp.x * dpr, vp.y * dpr);
   ctx.scale(vp.scale * dpr, vp.scale * dpr);
-  drawEdges(ctx, graph, hovered, selected, nodeMap, animTime);
+  drawEdges(ctx, graph, hovered, selected, nodeMap, animTime, simplify);
   drawNodes(ctx, graph, hovered, selected, search, matchSet);
-  drawLabels(ctx, graph, hovered, selected, search, matchSet, vp);
+  drawLabels(ctx, graph, hovered, selected, search, matchSet, vp, simplify, labelMode);
   ctx.restore();
 }
 
 // == Hit-test =============================================================
+
+function isPointOnNodeLabel(node: GNode, wx: number, wy: number, vp: Viewport): boolean {
+  const fontSize = Math.max(9, Math.round(12 / vp.scale));
+  const approxCharW = Math.max(5, fontSize * 0.58);
+  const line1 = node.label || '';
+  const line2 = node.meta.ips.length > 0 ? node.meta.ips[0] : '';
+  const tw = Math.max(line1.length * approxCharW, line2 ? line2.length * approxCharW : 0);
+  const px = 5, py = 2;
+  const totalH = line2 ? fontSize * 2 + py * 2 : fontSize + py * 2;
+  const lx = node.x, ly = node.y - node.radius - 6;
+  const rx = lx - tw / 2 - px;
+  const ry = ly - totalH;
+  const rw = tw + px * 2;
+  const rh = totalH;
+  return wx >= rx && wx <= (rx + rw) && wy >= ry && wy <= (ry + rh);
+}
+
 
 function screenToWorld(
   canvas: HTMLCanvasElement, clientX: number, clientY: number, vp: Viewport,
@@ -409,19 +490,56 @@ function hitTest(
   graph: Graph, canvas: HTMLCanvasElement, clientX: number, clientY: number, vp: Viewport,
 ): GNode | null {
   const { wx, wy } = screenToWorld(canvas, clientX, clientY, vp);
+
+  // Node-circle hit has priority
   for (const n of graph.nodes) {
     const dx = n.x - wx, dy = n.y - wy;
     if (dx * dx + dy * dy < (n.radius + 5) ** 2) return n;
   }
+
+  // Then label hit (so clicking text works too on manageable graph sizes)
+  if (graph.nodes.length <= 220) {
+    for (const n of graph.nodes) {
+      if (isPointOnNodeLabel(n, wx, wy, vp)) return n;
+    }
+  }
+
   return null;
 }
+
+// == Auto-fit: center graph and zoom to fit all nodes ====================
+
+function fitGraphToCanvas(graph: Graph, canvasW: number, canvasH: number): Viewport {
+  if (graph.nodes.length === 0) return { x: 0, y: 0, scale: 1 };
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const n of graph.nodes) {
+    minX = Math.min(minX, n.x - n.radius);
+    minY = Math.min(minY, n.y - n.radius);
+    maxX = Math.max(maxX, n.x + n.radius);
+    maxY = Math.max(maxY, n.y + n.radius);
+  }
+  const graphW = maxX - minX || 1;
+  const graphH = maxY - minY || 1;
+  const pad = 80;
+  const scaleX = (canvasW - pad * 2) / graphW;
+  const scaleY = (canvasH - pad * 2) / graphH;
+  const scale = Math.min(scaleX, scaleY, 2.5);
+  const cx = (minX + maxX) / 2;
+  const cy = (minY + maxY) / 2;
+  return {
+    x: canvasW / 2 - cx * scale,
+    y: canvasH / 2 - cy * scale,
+    scale,
+  };
+}
+
 // == Component =============================================================
 
 export default function NetworkMap() {
   const theme = useTheme();
 
   const [huntList, setHuntList] = useState<Hunt[]>([]);
-  const [selectedHuntId, setSelectedHuntId] = useState('');
+  const [selectedHuntId, setSelectedHuntId] = useState(lastSelectedHuntId);
 
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState('');
@@ -431,10 +549,14 @@ export default function NetworkMap() {
   const [hovered, setHovered] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<GNode | null>(null);
   const [search, setSearch] = useState('');
+  const [labelMode, setLabelMode] = useState<LabelMode>('highlight');
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const [canvasSize, setCanvasSize] = useState({ w: 900, h: 600 });
+  const [canvasSize, setCanvasSize] = useState({ w: 1200, h: 800 });
+
+  // Ref mirror of canvasSize - lets loadGraph read current size without depending on it
+  const canvasSizeRef = useRef({ w: 1200, h: 800 });
 
   const vpRef = useRef<Viewport>({ x: 0, y: 0, scale: 1 });
   const [vpScale, setVpScale] = useState(1);
@@ -450,31 +572,118 @@ export default function NetworkMap() {
   const selectedNodeRef = useRef<GNode | null>(null);
   const searchRef = useRef('');
   const graphRef = useRef<Graph | null>(null);
+  const hoverRafRef = useRef<number>(0);
 
   const [popoverAnchor, setPopoverAnchor] = useState<{ top: number; left: number } | null>(null);
 
   useEffect(() => { hoveredRef.current = hovered; }, [hovered]);
   useEffect(() => { selectedNodeRef.current = selectedNode; }, [selectedNode]);
   useEffect(() => { searchRef.current = search; }, [search]);
+  useEffect(() => { canvasSizeRef.current = canvasSize; }, [canvasSize, labelMode]);
 
-  // Load hunts on mount
-  useEffect(() => {
-    hunts.list(0, 200).then(r => setHuntList(r.hunts)).catch(() => {});
+  const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
+
+  const loadScaleAwareGraph = useCallback(async (huntId: string, forceRefresh = false) => {
+    setLoading(true); setError(''); setGraph(null); setStats(null);
+    setSelectedNode(null); setPopoverAnchor(null);
+
+    const waitReadyThen = async <T,>(fn: () => Promise<T>): Promise<T> => {
+      let delayMs = 1500;
+      const startedAt = Date.now();
+      for (;;) {
+        const out: any = await fn();
+        if (out && !out.status) return out as T;
+        const st = await network.inventoryStatus(huntId);
+        if (st.status === 'ready') {
+          const out2: any = await fn();
+          if (out2 && !out2.status) return out2 as T;
+        }
+        if (Date.now() - startedAt > 5 * 60 * 1000) throw new Error('Network data build timed out after 5 minutes');
+        const jitter = Math.floor(Math.random() * 250);
+        await sleep(delayMs + jitter);
+        delayMs = Math.min(10000, Math.floor(delayMs * 1.5));
+      }
+    };
+
+    try {
+      setProgress('Loading network summary');
+      const summary: any = await waitReadyThen(() => network.summary(huntId, 20));
+      const totalHosts = summary?.stats?.total_hosts || 0;
+
+      if (totalHosts > LARGE_HUNT_HOST_THRESHOLD) {
+        setProgress(`Large hunt detected (${totalHosts} hosts). Loading focused subgraph`);
+        const sub: any = await waitReadyThen(() => network.subgraph(huntId, LARGE_HUNT_SUBGRAPH_HOSTS, LARGE_HUNT_SUBGRAPH_EDGES));
+        if (!sub?.hosts || sub.hosts.length === 0) {
+          setError('No hosts found for subgraph.');
+          return;
+        }
+        const { w, h } = canvasSizeRef.current;
+        const g = buildGraphFromInventory(sub.hosts, sub.connections || [], w, h);
+        simulate(g, w / 2, h / 2, 20);
+        simAlphaRef.current = 0.3;
+        setStats(summary.stats);
+        graphCache.set(huntId, { graph: g, stats: summary.stats, ts: Date.now() });
+        setGraph(g);
+        return;
+      }
+
+      // Small/medium hunts: load full inventory
+      setProgress('Loading host inventory');
+      const inv: any = await waitReadyThen(() => network.hostInventory(huntId, forceRefresh));
+      if (!inv?.hosts || inv.hosts.length === 0) {
+        setError('No hosts found. Upload CSV files with host-identifying columns (ClientId, Fqdn, Hostname) to this hunt.');
+        return;
+      }
+      const { w, h } = canvasSizeRef.current;
+      const g = buildGraphFromInventory(inv.hosts, inv.connections || [], w, h);
+      simulate(g, w / 2, h / 2, 30);
+      simAlphaRef.current = 0.3;
+      setStats(summary.stats || inv.stats);
+      graphCache.set(huntId, { graph: g, stats: summary.stats || inv.stats, ts: Date.now() });
+      setGraph(g);
+    } catch (e: any) {
+      console.error('[NetworkMap] scale-aware load error:', e);
+      setError(e.message || 'Failed to load network data');
+    } finally {
+      setLoading(false);
+      setProgress('');
+    }
   }, []);
 
-  // Resize observer
+  // Persist selected hunt across tab switches
+  useEffect(() => { lastSelectedHuntId = selectedHuntId; }, [selectedHuntId]);
+
+  // Load hunts on mount + auto-select
+  useEffect(() => {
+    hunts.list(0, 200).then(r => {
+      setHuntList(r.hunts);
+      // Auto-select: restore last hunt, or pick first with datasets
+      if (!selectedHuntId && r.hunts.length > 0) {
+        const best = r.hunts.find(h => h.dataset_count > 0) || r.hunts[0];
+        setSelectedHuntId(best.id);
+      }
+    }).catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Resize observer - FILL available viewport
   useEffect(() => {
     const el = wrapperRef.current;
     if (!el) return;
-    const ro = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        const w = Math.round(entry.contentRect.width);
-        if (w > 100) setCanvasSize({ w, h: Math.max(500, Math.round(w * 0.56)) });
-      }
-    });
+    const updateSize = () => {
+      const rect = el.getBoundingClientRect();
+      const w = Math.round(rect.width);
+      // Fill to bottom of viewport with 16px margin
+      const h = Math.max(500, Math.round(window.innerHeight - rect.top - 16));
+      if (w > 100) setCanvasSize({ w, h });
+    };
+    updateSize();
+    const ro = new ResizeObserver(updateSize);
     ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
+    window.addEventListener('resize', updateSize);
+    return () => { ro.disconnect(); window.removeEventListener('resize', updateSize); };
+  // Re-run when graph or loading changes so we catch the element appearing
+  }, [graph, loading]);
 
   // HiDPI canvas sizing
   useEffect(() => {
@@ -485,43 +694,119 @@ export default function NetworkMap() {
     canvas.height = canvasSize.h * dpr;
     canvas.style.width = canvasSize.w + 'px';
     canvas.style.height = canvasSize.h + 'px';
-  }, [canvasSize]);
+  }, [canvasSize, labelMode]);
 
-  // Load host inventory for selected hunt
-  const loadGraph = useCallback(async (huntId: string) => {
+  // Load graph data for selected hunt (delegates to scale-aware loader).
+  const loadGraph = useCallback(async (huntId: string, forceRefresh = false) => {
     if (!huntId) return;
-    setLoading(true); setError(''); setGraph(null); setStats(null);
-    setSelectedNode(null); setPopoverAnchor(null);
-    try {
-      setProgress('Building host inventory (scanning all datasets)\u2026');
-      const inv = await network.hostInventory(huntId);
-      setStats(inv.stats);
 
-      if (inv.hosts.length === 0) {
-        setError('No hosts found. Upload CSV files with host-identifying columns (ClientId, Fqdn, Hostname) to this hunt.');
-        setLoading(false); setProgress('');
+    // Check module-level cache first (5 min TTL)
+    if (!forceRefresh) {
+      const cached = graphCache.get(huntId);
+      if (cached && Date.now() - cached.ts < 5 * 60 * 1000) {
+        setGraph(cached.graph);
+        setStats(cached.stats);
+        setError('');
+        simAlphaRef.current = 0;
+        return;
+      }
+    }
+
+    await loadScaleAwareGraph(huntId, forceRefresh);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);  // Stable - reads canvasSizeRef, no state deps
+
+  // Single master effect: when hunt changes, check backend status, poll if building, then load
+  useEffect(() => {
+    if (!selectedHuntId) return;
+    let cancelled = false;
+
+    const waitUntilReady = async (): Promise<boolean> => {
+      // Poll inventory-status with exponential backoff until 'ready' (or cancelled)
+      setProgress('Host inventory is being prepared in the background');
+      setLoading(true);
+      let delayMs = 1500;
+      const startedAt = Date.now();
+      for (;;) {
+        const jitter = Math.floor(Math.random() * 250);
+        await sleep(delayMs + jitter);
+        if (cancelled) return false;
+        try {
+          const st = await network.inventoryStatus(selectedHuntId);
+          if (cancelled) return false;
+          if (st.status === 'ready') return true;
+          if (Date.now() - startedAt > 5 * 60 * 1000) {
+            setError('Host inventory build timed out. Please retry.');
+            return false;
+          }
+          delayMs = Math.min(10000, Math.floor(delayMs * 1.5));
+          // still building or none (job may not have started yet) - keep polling
+        } catch {
+          if (cancelled) return false;
+          delayMs = Math.min(10000, Math.floor(delayMs * 1.5));
+        }
+      }
+    };
+
+    const run = async () => {
+      // Check module-level JS cache first (instant)
+      const cached = graphCache.get(selectedHuntId);
+      if (cached && Date.now() - cached.ts < 5 * 60 * 1000) {
+        setGraph(cached.graph);
+        setStats(cached.stats);
+        setError('');
+        simAlphaRef.current = 0;
         return;
       }
 
-      setProgress(`Building graph for ${inv.stats.total_hosts} hosts\u2026`);
-      const g = buildGraphFromInventory(inv.hosts, inv.connections, canvasSize.w, canvasSize.h);
-      simulate(g, canvasSize.w / 2, canvasSize.h / 2, 30);
-      simAlphaRef.current = 0.8;
-      setGraph(g);
-    } catch (e: any) { setError(e.message); }
-    setLoading(false); setProgress('');
-  }, [canvasSize]);
+      try {
+        // Ask backend if inventory is ready, building, or cold
+        const st = await network.inventoryStatus(selectedHuntId);
+        if (cancelled) return;
 
-  useEffect(() => {
-    if (selectedHuntId) loadGraph(selectedHuntId);
+        if (st.status === 'ready') {
+          // Instant load from backend cache
+          await loadGraph(selectedHuntId);
+          return;
+        }
+
+        if (st.status === 'none') {
+          // Cold cache: trigger a background build via host-inventory (returns 202)
+          try { await network.hostInventory(selectedHuntId); } catch { /* 202 or error, don't care */ }
+        }
+
+        // Wait for build to finish (covers both 'building' and 'none' -> just triggered)
+        const ready = await waitUntilReady();
+        if (cancelled || !ready) return;
+
+        // Now load the freshly cached data
+        await loadGraph(selectedHuntId);
+      } catch (e: any) {
+        if (!cancelled) {
+          console.error('[NetworkMap] status/load error:', e);
+          setError(e.message || 'Failed to load network inventory');
+          setLoading(false);
+          setProgress('');
+        }
+      }
+    };
+
+    run();
+    return () => { cancelled = true; };
   }, [selectedHuntId, loadGraph]);
 
+  // Auto-fit viewport when graph loads
   useEffect(() => {
-    vpRef.current = { x: 0, y: 0, scale: 1 };
-    setVpScale(1);
+    if (graph) {
+      const vp = fitGraphToCanvas(graph, canvasSize.w, canvasSize.h);
+      vpRef.current = vp;
+      setVpScale(vp.scale);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [graph]);
 
   useEffect(() => { graphRef.current = graph; }, [graph]);
+
 
   // Animation loop
   const startAnimLoop = useCallback(() => {
@@ -538,10 +823,10 @@ export default function NetworkMap() {
 
       if (simAlphaRef.current > 0.01) {
         simulationStep(g, canvasSize.w / 2, canvasSize.h / 2, simAlphaRef.current);
-        simAlphaRef.current *= 0.97;
+        simAlphaRef.current *= 0.93;
         if (simAlphaRef.current < 0.01) simAlphaRef.current = 0;
       }
-      drawGraph(ctx, g, hoveredRef.current, selectedNodeRef.current?.id ?? null, searchRef.current, vpRef.current, ts, dpr);
+      drawGraph(ctx, g, hoveredRef.current, selectedNodeRef.current?.id ?? null, searchRef.current, vpRef.current, ts, dpr, labelMode);
 
       const needsAnim = simAlphaRef.current > 0.01
         || hoveredRef.current !== null
@@ -554,23 +839,27 @@ export default function NetworkMap() {
       }
     };
     animFrameRef.current = requestAnimationFrame(tick);
-  }, [canvasSize]);
+  }, [canvasSize, labelMode]);
 
   useEffect(() => {
     if (graph) startAnimLoop();
-    return () => { cancelAnimationFrame(animFrameRef.current); isAnimatingRef.current = false; };
+    return () => {
+      cancelAnimationFrame(animFrameRef.current);
+      cancelAnimationFrame(hoverRafRef.current);
+      isAnimatingRef.current = false;
+    };
   }, [graph, startAnimLoop]);
-
-  useEffect(() => { startAnimLoop(); }, [hovered, selectedNode, search, startAnimLoop]);
 
   const redraw = useCallback(() => {
     if (!graph || !canvasRef.current) return;
     const ctx = canvasRef.current.getContext('2d');
     const dpr = window.devicePixelRatio || 1;
-    if (ctx) drawGraph(ctx, graph, hovered, selectedNode?.id ?? null, search, vpRef.current, animTimeRef.current, dpr);
-  }, [graph, hovered, selectedNode, search]);
+    if (ctx) drawGraph(ctx, graph, hovered, selectedNode?.id ?? null, search, vpRef.current, animTimeRef.current, dpr, labelMode);
+  }, [graph, hovered, selectedNode, search, labelMode]);
 
   useEffect(() => { if (!isAnimatingRef.current) redraw(); }, [redraw]);
+
+  useEffect(() => { if (!isAnimatingRef.current) redraw(); }, [hovered, selectedNode, search, redraw]);
 
   // Mouse wheel -> zoom
   useEffect(() => {
@@ -617,8 +906,13 @@ export default function NetworkMap() {
       panStart.current = { x: e.clientX, y: e.clientY };
       redraw(); return;
     }
-    const node = hitTest(graph, canvasRef.current, e.clientX, e.clientY, vpRef.current);
-    setHovered(node?.id ?? null);
+    cancelAnimationFrame(hoverRafRef.current);
+    const clientX = e.clientX;
+    const clientY = e.clientY;
+    hoverRafRef.current = requestAnimationFrame(() => {
+      const node = hitTest(graph, canvasRef.current as HTMLCanvasElement, clientX, clientY, vpRef.current);
+      setHovered(prev => (prev === (node?.id ?? null) ? prev : (node?.id ?? null)));
+    });
   }, [graph, redraw, startAnimLoop]);
 
   const onMouseUp = useCallback(() => { dragNode.current = null; isPanning.current = false; }, []);
@@ -649,28 +943,37 @@ export default function NetworkMap() {
     vp.scale = newScale; setVpScale(newScale); redraw();
   }, [canvasSize, redraw]);
 
-  const resetView = useCallback(() => {
-    vpRef.current = { x: 0, y: 0, scale: 1 }; setVpScale(1); redraw();
-  }, [redraw]);
+  const fitView = useCallback(() => {
+    if (!graph) return;
+    const vp = fitGraphToCanvas(graph, canvasSize.w, canvasSize.h);
+    vpRef.current = vp; setVpScale(vp.scale); redraw();
+  }, [graph, canvasSize, redraw]);
 
   const connectionCount = selectedNode && graph
     ? graph.edges.filter(e => e.source === selectedNode.id || e.target === selectedNode.id).length
     : 0;
+
+  const nodeById = useMemo(() => {
+    const m = new Map<string, GNode>();
+    if (!graph) return m;
+    for (const n of graph.nodes) m.set(n.id, n);
+    return m;
+  }, [graph]);
 
   const connectedNodes = useMemo(() => {
     if (!selectedNode || !graph) return [];
     const neighbors: { id: string; type: NodeType; weight: number }[] = [];
     for (const e of graph.edges) {
       if (e.source === selectedNode.id) {
-        const n = graph.nodes.find(x => x.id === e.target);
+        const n = nodeById.get(e.target);
         if (n) neighbors.push({ id: n.id, type: n.meta.type, weight: e.weight });
       } else if (e.target === selectedNode.id) {
-        const n = graph.nodes.find(x => x.id === e.source);
+        const n = nodeById.get(e.source);
         if (n) neighbors.push({ id: n.id, type: n.meta.type, weight: e.weight });
       }
     }
     return neighbors.sort((a, b) => b.weight - a.weight).slice(0, 12);
-  }, [selectedNode, graph]);
+  }, [selectedNode, graph, nodeById]);
 
   const hostCount = graph ? graph.nodes.filter(n => n.meta.type === 'host').length : 0;
   const extCount = graph ? graph.nodes.filter(n => n.meta.type === 'external_ip').length : 0;
@@ -681,16 +984,17 @@ export default function NetworkMap() {
     if (hovered) return 'pointer';
     return 'grab';
   };
+
   // == Render ==============================================================
   return (
-    <Box>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
       {/* Glassmorphism toolbar */}
       <Paper
         elevation={0}
         sx={{
-          mb: 2, p: 1.5, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1.5,
+          mb: 1, p: 1.5, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1.5,
           background: 'rgba(30,41,59,0.65)', backdropFilter: 'blur(16px)',
-          borderColor: 'rgba(148,163,184,0.12)',
+          borderColor: 'rgba(148,163,184,0.12)', flexShrink: 0,
         }}
       >
         <Stack direction="row" alignItems="center" spacing={1}>
@@ -702,7 +1006,7 @@ export default function NetworkMap() {
 
         <Box sx={{ flex: 1 }} />
 
-        <FormControl size="small" sx={{ minWidth: 200 }}>
+        <FormControl size="small" sx={{ minWidth: 220 }}>
           <InputLabel id="hunt-selector-label">Hunt</InputLabel>
           <Select
             labelId="hunt-selector-label"
@@ -724,7 +1028,7 @@ export default function NetworkMap() {
           placeholder="Search hosts, IPs, users\u2026"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          sx={{ width: 200, '& .MuiInputBase-input': { py: 0.8 } }}
+          sx={{ width: 220, '& .MuiInputBase-input': { py: 0.8 } }}
           slotProps={{
             input: {
               startAdornment: <SearchIcon sx={{ mr: 0.5, fontSize: 18, color: 'text.secondary' }} />,
@@ -732,10 +1036,25 @@ export default function NetworkMap() {
           }}
         />
 
-        <Tooltip title="Refresh inventory">
+        <FormControl size="small" sx={{ minWidth: 150 }}>
+          <InputLabel id="label-mode-selector">Labels</InputLabel>
+          <Select
+            labelId="label-mode-selector"
+            value={labelMode}
+            label="Labels"
+            onChange={e => setLabelMode(e.target.value as LabelMode)}
+            sx={{ '& .MuiSelect-select': { py: 0.8 } }}
+          >
+            <MenuItem value="none">None</MenuItem>
+            <MenuItem value="highlight">Selected/Search</MenuItem>
+            <MenuItem value="all">All</MenuItem>
+          </Select>
+        </FormControl>
+
+        <Tooltip title="Force refresh (ignore cache)">
           <span>
             <IconButton
-              onClick={() => loadGraph(selectedHuntId)}
+              onClick={() => loadGraph(selectedHuntId, true)}
               disabled={loading || !selectedHuntId}
               size="small"
               sx={{ bgcolor: 'rgba(96,165,250,0.1)', '&:hover': { bgcolor: 'rgba(96,165,250,0.2)' } }}
@@ -748,7 +1067,7 @@ export default function NetworkMap() {
 
       {/* Stats summary cards */}
       {stats && !loading && (
-        <Stack direction="row" spacing={1.5} sx={{ mb: 2 }} flexWrap="wrap" useFlexGap>
+        <Stack direction="row" spacing={1.5} sx={{ mb: 1, flexShrink: 0 }} flexWrap="wrap" useFlexGap>
           {[
             { label: 'Hosts', value: stats.total_hosts, color: TYPE_COLORS.host },
             { label: 'With IPs', value: stats.hosts_with_ips, color: '#34d399' },
@@ -773,14 +1092,14 @@ export default function NetworkMap() {
 
       {/* Loading indicator */}
       <Fade in={loading}>
-        <Paper sx={{ p: 2, mb: 2, background: 'rgba(30,41,59,0.65)', backdropFilter: 'blur(12px)' }}>
+        <Paper sx={{ p: 2, mb: 1, background: 'rgba(30,41,59,0.65)', backdropFilter: 'blur(12px)', flexShrink: 0 }}>
           <Stack direction="row" alignItems="center" spacing={2}>
             <Box sx={{ flex: 1 }}>
               <Typography variant="body2" color="text.secondary" gutterBottom>{progress}</Typography>
               <LinearProgress sx={{
                 borderRadius: 1,
                 '& .MuiLinearProgress-bar': {
-                  background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.info.main})`,
+                  background: 'linear-gradient(90deg, ' + theme.palette.primary.main + ', ' + theme.palette.info.main + ')',
                 },
               }} />
             </Box>
@@ -788,21 +1107,22 @@ export default function NetworkMap() {
         </Paper>
       </Fade>
 
-      {error && <Alert severity="warning" sx={{ mb: 2 }}>{error}</Alert>}
+      {error && <Alert severity="warning" sx={{ mb: 1, flexShrink: 0 }}>{error}</Alert>}
 
-      {/* Canvas area */}
+      {/* Canvas area - takes ALL remaining space */}
+      <Box ref={wrapperRef} sx={{ flex: 1, minHeight: 500, display: 'flex', flexDirection: 'column' }}>
       {graph && (
         <Paper
-          ref={wrapperRef}
           sx={{
             position: 'relative', overflow: 'hidden',
             backgroundColor: BG_COLOR,
             borderColor: 'rgba(148,163,184,0.08)', borderRadius: 2,
+            flex: 1, minHeight: 500,
           }}
         >
           <canvas
             ref={canvasRef}
-            style={{ display: 'block', cursor: getCursor() }}
+            style={{ display: 'block', cursor: getCursor(), width: '100%', height: '100%' }}
             onMouseDown={onMouseDown}
             onMouseMove={onMouseMove}
             onMouseUp={onMouseUp}
@@ -823,21 +1143,21 @@ export default function NetworkMap() {
           >
             <Chip
               icon={<ComputerIcon sx={{ fontSize: 14 }} />}
-              label={`Hosts (${hostCount})`}
+              label={'Hosts (' + hostCount + ')'}
               size="small"
               sx={{
                 bgcolor: TYPE_COLORS.host + '22', color: TYPE_COLORS.host,
-                border: `1.5px solid ${TYPE_COLORS.host}88`,
+                border: '1.5px solid ' + TYPE_COLORS.host + '88',
                 fontWeight: 600, fontSize: 11,
               }}
             />
             {extCount > 0 && (
               <Chip
-                label={`External IPs (${extCount})`}
+                label={'External IPs (' + extCount + ')'}
                 size="small"
                 sx={{
                   bgcolor: TYPE_COLORS.external_ip + '22', color: TYPE_COLORS.external_ip,
-                  border: `1.5px solid ${TYPE_COLORS.external_ip}88`,
+                  border: '1.5px solid ' + TYPE_COLORS.external_ip + '88',
                   fontWeight: 600, fontSize: 11,
                 }}
               />
@@ -868,7 +1188,7 @@ export default function NetworkMap() {
             {[
               { tip: 'Zoom in', icon: <ZoomInIcon fontSize="small" />, fn: () => zoomBy(1.3) },
               { tip: 'Zoom out', icon: <ZoomOutIcon fontSize="small" />, fn: () => zoomBy(1 / 1.3) },
-              { tip: 'Reset view', icon: <CenterFocusStrongIcon fontSize="small" />, fn: resetView },
+              { tip: 'Fit to view', icon: <CenterFocusStrongIcon fontSize="small" />, fn: fitView },
             ].map(z => (
               <Tooltip key={z.tip} title={z.tip} placement="left">
                 <IconButton size="small" onClick={z.fn}
@@ -882,7 +1202,7 @@ export default function NetworkMap() {
               </Tooltip>
             ))}
             <Chip
-              label={`${Math.round(vpScale * 100)}%`}
+              label={Math.round(vpScale * 100) + '%'}
               size="small"
               sx={{
                 bgcolor: 'rgba(10,16,30,0.75)', color: theme.palette.text.secondary,
@@ -903,6 +1223,7 @@ export default function NetworkMap() {
           </Fade>
         </Paper>
       )}
+
       {/* Node detail popover */}
       <Popover
         open={Boolean(selectedNode && popoverAnchor)}
@@ -917,7 +1238,7 @@ export default function NetworkMap() {
       >
         {selectedNode && (
           <Box>
-            <Box sx={{ height: 3, background: `linear-gradient(90deg, ${TYPE_COLORS[selectedNode.meta.type]}, ${TYPE_COLORS[selectedNode.meta.type]}44)` }} />
+            <Box sx={{ height: 3, background: 'linear-gradient(90deg, ' + TYPE_COLORS[selectedNode.meta.type] + ', ' + TYPE_COLORS[selectedNode.meta.type] + '44)' }} />
             <Box sx={{ p: 2 }}>
               <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
                 <Stack direction="row" alignItems="center" spacing={1}>
@@ -932,7 +1253,7 @@ export default function NetworkMap() {
                       bgcolor: TYPE_COLORS[selectedNode.meta.type] + '22',
                       color: TYPE_COLORS[selectedNode.meta.type],
                       fontWeight: 700, fontSize: 10, height: 22,
-                      border: `1px solid ${TYPE_COLORS[selectedNode.meta.type]}44`,
+                      border: '1px solid ' + TYPE_COLORS[selectedNode.meta.type] + '44',
                     }}
                   />
                 </Stack>
@@ -958,7 +1279,7 @@ export default function NetworkMap() {
                     IP Address
                   </Typography>
                   <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: 13 }}>
-                    {selectedNode.meta.ips.length > 0 ? selectedNode.meta.ips.join(', ') : <em style={{ opacity: 0.4 }}>No IP detected</em>}
+                    {selectedNode.meta.ips.length > 0 ? selectedNode.meta.ips.join(', ') : 'No IP detected'}
                   </Typography>
                 </Box>
 
@@ -967,7 +1288,7 @@ export default function NetworkMap() {
                     Operating System
                   </Typography>
                   <Typography variant="body2" sx={{ fontSize: 13 }}>
-                    {selectedNode.meta.os || <em style={{ opacity: 0.4 }}>Unknown</em>}
+                    {selectedNode.meta.os || 'Unknown'}
                   </Typography>
                 </Box>
 
@@ -986,9 +1307,7 @@ export default function NetworkMap() {
                       ))}
                     </Stack>
                   ) : (
-                    <Typography variant="body2" sx={{ fontSize: 13 }}>
-                      <em style={{ opacity: 0.4 }}>No user data</em>
-                    </Typography>
+                    <Typography variant="body2" sx={{ fontSize: 13 }}>No user data</Typography>
                   )}
                 </Box>
 
@@ -1007,11 +1326,11 @@ export default function NetworkMap() {
               <Divider sx={{ my: 1.5, borderColor: 'rgba(148,163,184,0.1)' }} />
 
               <Stack direction="row" spacing={0.8} flexWrap="wrap" gap={0.5}>
-                <Chip label={`${selectedNode.meta.row_count.toLocaleString()} rows`} size="small"
+                <Chip label={selectedNode.meta.row_count.toLocaleString() + ' rows'} size="small"
                   sx={{ fontWeight: 600, fontSize: 11, bgcolor: 'rgba(96,165,250,0.1)', color: theme.palette.primary.main, border: '1px solid rgba(96,165,250,0.2)' }} />
-                <Chip label={`${connectionCount} connections`} size="small"
+                <Chip label={connectionCount + ' connections'} size="small"
                   sx={{ fontWeight: 600, fontSize: 11, bgcolor: 'rgba(244,114,182,0.1)', color: theme.palette.secondary.main, border: '1px solid rgba(244,114,182,0.2)' }} />
-                <Chip label={`${selectedNode.meta.datasets.length} datasets`} size="small"
+                <Chip label={selectedNode.meta.datasets.length + ' datasets'} size="small"
                   sx={{ fontWeight: 600, fontSize: 11, bgcolor: 'rgba(251,191,36,0.1)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.2)' }} />
               </Stack>
 
@@ -1026,7 +1345,7 @@ export default function NetworkMap() {
                         sx={{
                           fontSize: 10, height: 22, fontFamily: 'monospace',
                           bgcolor: TYPE_COLORS[cn.type] + '15', color: TYPE_COLORS[cn.type],
-                          border: `1px solid ${TYPE_COLORS[cn.type]}33`, cursor: 'pointer',
+                          border: '1px solid ' + TYPE_COLORS[cn.type] + '33', cursor: 'pointer',
                           '&:hover': { bgcolor: TYPE_COLORS[cn.type] + '30' },
                         }}
                         onClick={() => { setSearch(cn.id); closePopover(); }}
@@ -1053,27 +1372,29 @@ export default function NetworkMap() {
         )}
       </Popover>
 
-      {/* Empty states */}
+      {/* Empty states - also fill remaining space */}
       {!selectedHuntId && !loading && (
-        <Paper ref={wrapperRef} sx={{
-          p: 6, textAlign: 'center',
+        <Paper sx={{
+          flex: 1, minHeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center',
           background: 'rgba(30,41,59,0.4)', borderColor: 'rgba(148,163,184,0.08)',
         }}>
-          <HubIcon sx={{ fontSize: 56, color: 'rgba(96,165,250,0.2)', mb: 2 }} />
-          <Typography variant="h6" color="text.secondary" gutterBottom sx={{ fontWeight: 600 }}>
-            Select a hunt to visualize its network
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 480, mx: 'auto' }}>
-            Choose a hunt from the dropdown above. The map builds a clean,
-            deduplicated host inventory showing each endpoint with its hostname,
-            IP address, OS, and logged-in users.
-          </Typography>
+          <Box sx={{ textAlign: 'center' }}>
+            <HubIcon sx={{ fontSize: 56, color: 'rgba(96,165,250,0.2)', mb: 2 }} />
+            <Typography variant="h6" color="text.secondary" gutterBottom sx={{ fontWeight: 600 }}>
+              Select a hunt to visualize its network
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 480, mx: 'auto' }}>
+              Choose a hunt from the dropdown above. The map builds a clean,
+              deduplicated host inventory showing each endpoint with its hostname,
+              IP address, OS, and logged-in users.
+            </Typography>
+          </Box>
         </Paper>
       )}
 
       {selectedHuntId && !graph && !loading && !error && (
         <Paper sx={{
-          p: 6, textAlign: 'center',
+          flex: 1, minHeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center',
           background: 'rgba(30,41,59,0.4)', borderColor: 'rgba(148,163,184,0.08)',
         }}>
           <Typography color="text.secondary">
@@ -1081,6 +1402,7 @@ export default function NetworkMap() {
           </Typography>
         </Paper>
       )}
+      </Box>
     </Box>
   );
 }

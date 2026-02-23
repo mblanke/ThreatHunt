@@ -71,6 +71,20 @@ export interface Hunt {
   dataset_count: number; hypothesis_count: number;
 }
 
+export interface HuntProgress {
+  hunt_id: string;
+  status: 'idle' | 'processing' | 'ready';
+  progress_percent: number;
+  dataset_total: number;
+  dataset_completed: number;
+  dataset_processing: number;
+  dataset_errors: number;
+  active_jobs: number;
+  queued_jobs: number;
+  network_status: 'none' | 'building' | 'ready';
+  stages: Record<string, any>;
+}
+
 export const hunts = {
   list: (skip = 0, limit = 50) =>
     api<{ hunts: Hunt[]; total: number }>(`/api/hunts?skip=${skip}&limit=${limit}`),
@@ -80,6 +94,7 @@ export const hunts = {
   update: (id: string, data: Partial<{ name: string; description: string; status: string }>) =>
     api<Hunt>(`/api/hunts/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   delete: (id: string) => api(`/api/hunts/${id}`, { method: 'DELETE' }),
+  progress: (id: string) => api<HuntProgress>(`/api/hunts/${id}/progress`),
 };
 
 // -- Datasets --
@@ -166,6 +181,8 @@ export interface AssistRequest {
   active_hypotheses?: string[]; annotations_summary?: string;
   enrichment_summary?: string; mode?: 'quick' | 'deep' | 'debate';
   model_override?: string; conversation_id?: string; hunt_id?: string;
+  execution_preference?: 'auto' | 'force' | 'off';
+  learning_mode?: boolean;
 }
 
 export interface AssistResponse {
@@ -174,6 +191,15 @@ export interface AssistResponse {
   sans_references: string[]; model_used: string; node_used: string;
   latency_ms: number; perspectives: Record<string, any>[] | null;
   conversation_id: string | null;
+  execution?: {
+    scope: string;
+    datasets_scanned: string[];
+    policy_hits: number;
+    result_count: number;
+    top_domains: string[];
+    top_user_hosts: string[];
+    elapsed_ms: number;
+  } | null;
 }
 
 export interface NodeInfo { url: string; available: boolean }
@@ -326,10 +352,12 @@ export interface ScanHit {
   theme_name: string; theme_color: string; keyword: string;
   source_type: string; source_id: string | number; field: string;
   matched_value: string; row_index: number | null; dataset_name: string | null;
+  hostname?: string | null; username?: string | null;
 }
 export interface ScanResponse {
   total_hits: number; hits: ScanHit[]; themes_scanned: number;
   keywords_scanned: number; rows_scanned: number;
+  cache_used?: boolean; cache_status?: string; cached_at?: string | null;
 }
 
 export const keywords = {
@@ -363,6 +391,7 @@ export const keywords = {
   scan: (opts: {
     dataset_ids?: string[]; theme_ids?: string[];
     scan_hunts?: boolean; scan_annotations?: boolean; scan_messages?: boolean;
+    prefer_cache?: boolean; force_rescan?: boolean;
   }) =>
     api<ScanResponse>('/api/keywords/scan', {
       method: 'POST', body: JSON.stringify(opts),
@@ -579,7 +608,213 @@ export interface HostInventory {
   stats: InventoryStats;
 }
 
+export interface InventoryStatus {
+  hunt_id: string;
+  status: 'ready' | 'building' | 'none';
+}
+
+export interface NetworkSummaryHost {
+  id: string;
+  hostname: string;
+  row_count: number;
+  ip_count: number;
+  user_count: number;
+}
+
+export interface NetworkSummary {
+  stats: InventoryStats;
+  top_hosts: NetworkSummaryHost[];
+  top_edges: InventoryConnection[];
+  status?: 'building' | 'deferred';
+  message?: string;
+}
+
 export const network = {
-  hostInventory: (huntId: string) =>
-    api<HostInventory>(`/api/network/host-inventory?hunt_id=${encodeURIComponent(huntId)}`),
+  hostInventory: (huntId: string, force = false) =>
+    api<HostInventory | { status: 'building' | 'deferred'; message?: string }>(`/api/network/host-inventory?hunt_id=${encodeURIComponent(huntId)}${force ? '&force=true' : ''}`),
+  summary: (huntId: string, topN = 20) =>
+    api<NetworkSummary | { status: 'building' | 'deferred'; message?: string }>(`/api/network/summary?hunt_id=${encodeURIComponent(huntId)}&top_n=${topN}`),
+  subgraph: (huntId: string, maxHosts = 250, maxEdges = 1500, nodeId?: string) => {
+    let qs = `/api/network/subgraph?hunt_id=${encodeURIComponent(huntId)}&max_hosts=${maxHosts}&max_edges=${maxEdges}`;
+    if (nodeId) qs += `&node_id=${encodeURIComponent(nodeId)}`;
+    return api<HostInventory | { status: 'building' | 'deferred'; message?: string }>(qs);
+  },
+  inventoryStatus: (huntId: string) =>
+    api<InventoryStatus>(`/api/network/inventory-status?hunt_id=${encodeURIComponent(huntId)}`),
+  rebuildInventory: (huntId: string) =>
+    api<{ job_id: string; status: string }>(`/api/network/rebuild-inventory?hunt_id=${encodeURIComponent(huntId)}`, { method: 'POST' }),
 };
+
+// -- MITRE ATT&CK Coverage (Feature 1) --
+
+export interface MitreTechnique {
+  id: string;
+  tactic: string;
+  sources: { type: string; risk_score?: number; hostname?: string; title?: string }[];
+  count: number;
+}
+
+export interface MitreCoverage {
+  tactics: string[];
+  technique_count: number;
+  detection_count: number;
+  tactic_coverage: Record<string, { techniques: MitreTechnique[]; count: number }>;
+  all_techniques: MitreTechnique[];
+}
+
+export const mitre = {
+  coverage: (huntId?: string) => {
+    const q = huntId ? `?hunt_id=${encodeURIComponent(huntId)}` : '';
+    return api<MitreCoverage>(`/api/mitre/coverage${q}`);
+  },
+};
+
+// -- Timeline (Feature 2) --
+
+export interface TimelineEvent {
+  timestamp: string;
+  dataset_id: string;
+  dataset_name: string;
+  artifact_type: string;
+  row_index: number;
+  hostname: string;
+  process: string;
+  summary: string;
+  data: Record<string, string>;
+}
+
+export interface TimelineData {
+  hunt_id: string;
+  hunt_name: string;
+  event_count: number;
+  datasets: { id: string; name: string; artifact_type: string; row_count: number }[];
+  events: TimelineEvent[];
+}
+
+export const timeline = {
+  getHuntTimeline: (huntId: string, limit = 2000) =>
+    api<TimelineData>(`/api/timeline/hunt/${huntId}?limit=${limit}`),
+};
+
+// -- Playbooks (Feature 3) --
+
+export interface PlaybookStep {
+  id: number;
+  order_index: number;
+  title: string;
+  description: string | null;
+  step_type: string;
+  target_route: string | null;
+  is_completed: boolean;
+  completed_at: string | null;
+  notes: string | null;
+}
+
+export interface PlaybookSummary {
+  id: string;
+  name: string;
+  description: string | null;
+  is_template: boolean;
+  hunt_id: string | null;
+  status: string;
+  total_steps: number;
+  completed_steps: number;
+  created_at: string | null;
+}
+
+export interface PlaybookDetail {
+  id: string;
+  name: string;
+  description: string | null;
+  is_template: boolean;
+  hunt_id: string | null;
+  status: string;
+  created_at: string | null;
+  steps: PlaybookStep[];
+}
+
+export interface PlaybookTemplate {
+  name: string;
+  description: string;
+  steps: { title: string; description: string; step_type: string; target_route: string }[];
+}
+
+export const playbooks = {
+  list: (huntId?: string) => {
+    const q = huntId ? `?hunt_id=${encodeURIComponent(huntId)}` : '';
+    return api<{ playbooks: PlaybookSummary[] }>(`/api/playbooks${q}`);
+  },
+  templates: () => api<{ templates: PlaybookTemplate[] }>('/api/playbooks/templates'),
+  get: (id: string) => api<PlaybookDetail>(`/api/playbooks/${id}`),
+  create: (data: { name: string; description?: string; hunt_id?: string; is_template?: boolean; steps?: { title: string; description?: string; step_type?: string; target_route?: string }[] }) =>
+    api<PlaybookDetail>('/api/playbooks', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: { name?: string; description?: string; status?: string }) =>
+    api(`/api/playbooks/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id: string) => api(`/api/playbooks/${id}`, { method: 'DELETE' }),
+  updateStep: (stepId: number, data: { is_completed?: boolean; notes?: string }) =>
+    api(`/api/playbooks/steps/${stepId}`, { method: 'PUT', body: JSON.stringify(data) }),
+};
+
+// -- Saved Searches (Feature 5) --
+
+export interface SavedSearchData {
+  id: string;
+  name: string;
+  description: string | null;
+  search_type: string;
+  query_params: Record<string, any>;
+  hunt_id?: string | null;
+  threshold: number | null;
+  last_run_at: string | null;
+  last_result_count: number | null;
+  created_at: string | null;
+}
+
+export interface SearchRunResult {
+  search_id: string;
+  search_name: string;
+  search_type: string;
+  result_count: number;
+  previous_count: number;
+  delta: number;
+  results: any[];
+}
+
+export const savedSearches = {
+  list: (searchType?: string) => {
+    const q = searchType ? `?search_type=${encodeURIComponent(searchType)}` : '';
+    return api<{ searches: SavedSearchData[] }>(`/api/searches${q}`);
+  },
+  get: (id: string) => api<SavedSearchData>(`/api/searches/${id}`),
+  create: (data: { name: string; description?: string; search_type: string; query_params: Record<string, any>; threshold?: number; hunt_id?: string }) =>
+    api<SavedSearchData>('/api/searches', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: { name?: string; description?: string; search_type?: string; query_params?: Record<string, any>; threshold?: number; hunt_id?: string }) =>
+    api(`/api/searches/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id: string) => api(`/api/searches/${id}`, { method: 'DELETE' }),
+  run: (id: string) => api<SearchRunResult>(`/api/searches/${id}/run`, { method: 'POST' }),
+};
+
+// -- STIX Export --
+
+export const stixExport = {
+  /** Download a STIX 2.1 bundle JSON for a given hunt */
+  download: async (huntId: string): Promise<void> => {
+    const headers: Record<string, string> = {};
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+    const res = await fetch(`${BASE}/api/export/stix/${huntId}`, { headers });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.detail || `HTTP ${res.status}`);
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `hunt-${huntId}-stix-bundle.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  },
+};
+

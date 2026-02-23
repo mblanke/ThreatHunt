@@ -7,24 +7,24 @@ services:
     ports:
       - "8000:8000"
     environment:
-      # ── LLM Cluster (Wile / Roadrunner via Tailscale) ──
+      # â”€â”€ LLM Cluster (Wile / Roadrunner via Tailscale) â”€â”€
       TH_WILE_HOST: "100.110.190.12"
       TH_ROADRUNNER_HOST: "100.110.190.11"
       TH_OLLAMA_PORT: "11434"
       TH_OPEN_WEBUI_URL: "https://ai.guapo613.beer"
 
-      # ── Database ──
+      # â”€â”€ Database â”€â”€
       TH_DATABASE_URL: "sqlite+aiosqlite:///./threathunt.db"
 
-      # ── Auth ──
+      # â”€â”€ Auth â”€â”€
       TH_JWT_SECRET: "change-me-in-production"
 
-      # ── Enrichment API keys (set your own) ──
+      # â”€â”€ Enrichment API keys (set your own) â”€â”€
       # TH_VIRUSTOTAL_API_KEY: ""
       # TH_ABUSEIPDB_API_KEY: ""
       # TH_SHODAN_API_KEY: ""
 
-      # ── Agent behaviour ──
+      # â”€â”€ Agent behaviour â”€â”€
       TH_AGENT_MAX_TOKENS: "4096"
       TH_AGENT_TEMPERATURE: "0.3"
     volumes:
@@ -51,7 +51,7 @@ services:
     networks:
       - threathunt
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/"]
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:3000/"]
       interval: 30s
       timeout: 10s
       retries: 3

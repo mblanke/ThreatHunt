@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import re
 import json
 import logging
 
@@ -17,6 +18,9 @@ logger = logging.getLogger(__name__)
 
 HEAVY_MODEL = settings.DEFAULT_HEAVY_MODEL
 WILE_URL = f"{settings.wile_url}/api/generate"
+
+# Velociraptor client IDs (C.hex) are not real hostnames
+CLIENTID_RE = re.compile(r"^C\.[0-9a-fA-F]{8,}$")
 
 
 async def _get_triage_summary(db, dataset_id: str) -> str:
@@ -154,7 +158,7 @@ async def profile_host(
             logger.info("Host profile %s: risk=%.1f level=%s", hostname, profile.risk_score, profile.risk_level)
 
         except Exception as e:
-            logger.error("Failed to profile host %s: %s", hostname, e)
+            logger.error("Failed to profile host %s: %r", hostname, e)
             profile = HostProfile(
                 hunt_id=hunt_id, hostname=hostname, fqdn=fqdn,
                 risk_score=0.0, risk_level="unknown",
@@ -184,6 +188,13 @@ async def profile_all_hosts(hunt_id: str) -> None:
                     h = str(host).strip()
                     if h not in hostnames:
                         hostnames[h] = data.get("fqdn") or data.get("Fqdn")
+
+    # Filter out Velociraptor client IDs - not real hostnames
+    real_hosts = {h: f for h, f in hostnames.items() if not CLIENTID_RE.match(h)}
+    skipped = len(hostnames) - len(real_hosts)
+    if skipped:
+        logger.info("Skipped %d Velociraptor client IDs", skipped)
+    hostnames = real_hosts
 
     logger.info("Discovered %d unique hosts in hunt %s", len(hostnames), hunt_id)
 

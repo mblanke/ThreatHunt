@@ -21,9 +21,14 @@ _engine_kwargs: dict = dict(
 )
 
 if _is_sqlite:
-    _engine_kwargs["connect_args"] = {"timeout": 30}
-    _engine_kwargs["pool_size"] = 1
-    _engine_kwargs["max_overflow"] = 0
+    _engine_kwargs["connect_args"] = {"timeout": 60, "check_same_thread": False}
+    # NullPool: each session gets its own connection.
+    # Combined with WAL mode, this allows concurrent reads while a write is in progress.
+    from sqlalchemy.pool import NullPool
+    _engine_kwargs["poolclass"] = NullPool
+else:
+    _engine_kwargs["pool_size"] = 5
+    _engine_kwargs["max_overflow"] = 10
 
 engine = create_async_engine(settings.DATABASE_URL, **_engine_kwargs)
 
@@ -34,7 +39,7 @@ def _set_sqlite_pragmas(dbapi_conn, connection_record):
     if _is_sqlite:
         cursor = dbapi_conn.cursor()
         cursor.execute("PRAGMA journal_mode=WAL")
-        cursor.execute("PRAGMA busy_timeout=5000")
+        cursor.execute("PRAGMA busy_timeout=30000")
         cursor.execute("PRAGMA synchronous=NORMAL")
         cursor.close()
 
@@ -44,6 +49,10 @@ async_session_factory = async_sessionmaker(
     class_=AsyncSession,
     expire_on_commit=False,
 )
+
+
+# Alias expected by other modules
+async_session = async_session_factory
 
 
 class Base(DeclarativeBase):
@@ -71,5 +80,5 @@ async def init_db() -> None:
 
 
 async def dispose_db() -> None:
-    """Dispose of the engine connection pool."""
+    """Dispose of the engine on shutdown."""
     await engine.dispose()

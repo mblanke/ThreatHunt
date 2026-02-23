@@ -381,6 +381,10 @@ async def submit_job(
             detail=f"Invalid job_type: {job_type}. Valid: {[t.value for t in JobType]}",
         )
 
+    if not job_queue.can_accept():
+        raise HTTPException(status_code=429, detail="Job queue is busy. Retry shortly.")
+    if not job_queue.can_accept():
+        raise HTTPException(status_code=429, detail="Job queue is busy. Retry shortly.")
     job = job_queue.submit(jt, **params)
     return {"job_id": job.id, "status": job.status.value, "job_type": job_type}
 

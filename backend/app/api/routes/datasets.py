@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.db import get_db
+from app.db.models import ProcessingTask
 from app.db.repositories.datasets import DatasetRepository
 from app.services.csv_parser import parse_csv_bytes, infer_column_types
 from app.services.normalizer import (
@@ -18,15 +19,20 @@ from app.services.normalizer import (
     detect_ioc_columns,
     detect_time_range,
 )
+from app.services.artifact_classifier import classify_artifact, get_artifact_category
 
 logger = logging.getLogger(__name__)
+
+from app.services.job_queue import job_queue, JobType
+from app.services.host_inventory import inventory_cache
+from app.services.scanner import keyword_scan_cache
 
 router = APIRouter(prefix="/api/datasets", tags=["datasets"])
 
 ALLOWED_EXTENSIONS = {".csv", ".tsv", ".txt"}
 
 
-# ── Response models ───────────────────────────────────────────────────
+# -- Response models --
 
 
 class DatasetSummary(BaseModel):
@@ -43,6 +49,8 @@ class DatasetSummary(BaseModel):
     delimiter: str | None = None
     time_range_start: str | None = None
     time_range_end: str | None = None
+    artifact_type: str | None = None
+    processing_status: str | None = None
     hunt_id: str | None = None
     created_at: str
 
@@ -67,10 +75,13 @@ class UploadResponse(BaseModel):
     column_types: dict
     normalized_columns: dict
     ioc_columns: dict
+    artifact_type: str | None = None
+    processing_status: str
+    jobs_queued: list[str]
     message: str
 
 
-# ── Routes ────────────────────────────────────────────────────────────
+# -- Routes --
 
 
 @router.post(
@@ -78,7 +89,7 @@ class UploadResponse(BaseModel):
     response_model=UploadResponse,
     summary="Upload a CSV dataset",
     description="Upload a CSV/TSV file for analysis. The file is parsed, columns normalized, "
-    "IOCs auto-detected, and rows stored in the database.",
+    "IOCs auto-detected, artifact type classified, and all processing jobs queued automatically.",
 )
 async def upload_dataset(
     file: UploadFile = File(...),
@@ -87,7 +98,7 @@ async def upload_dataset(
     hunt_id: str | None = Query(None, description="Hunt ID to associate with"),
     db: AsyncSession = Depends(get_db),
 ):
-    """Upload and parse a CSV dataset."""
+    """Upload and parse a CSV dataset, then trigger full processing pipeline."""
     # Validate file
     if not file.filename:
         raise HTTPException(status_code=400, detail="No filename provided")
@@ -136,7 +147,12 @@ async def upload_dataset(
     # Detect time range
     time_start, time_end = detect_time_range(rows, column_mapping)
 
-    # Store in DB
+    # Classify artifact type from column headers
+    artifact_type = classify_artifact(columns)
+    artifact_category = get_artifact_category(artifact_type)
+    logger.info(f"Artifact classification: {artifact_type} (category: {artifact_category})")
+
+    # Store in DB with processing_status = "processing"
     repo = DatasetRepository(db)
     dataset = await repo.create_dataset(
         name=name or Path(file.filename).stem,
@@ -152,6 +168,8 @@ async def upload_dataset(
         time_range_start=time_start,
         time_range_end=time_end,
         hunt_id=hunt_id,
+        artifact_type=artifact_type,
+        processing_status="processing",
     )
 
     await repo.bulk_insert_rows(
@@ -162,8 +180,87 @@ async def upload_dataset(
 
     logger.info(
         f"Uploaded dataset '{dataset.name}': {len(rows)} rows, "
-        f"{len(columns)} columns, {len(ioc_columns)} IOC columns detected"
+        f"{len(columns)} columns, {len(ioc_columns)} IOC columns, "
+        f"artifact={artifact_type}"
     )
+
+    # -- Queue full processing pipeline --
+    jobs_queued = []
+
+    task_rows: list[ProcessingTask] = []
+
+    # 1. AI Triage (chains to HOST_PROFILE automatically on completion)
+    triage_job = job_queue.submit(JobType.TRIAGE, dataset_id=dataset.id)
+    jobs_queued.append("triage")
+    task_rows.append(ProcessingTask(
+        hunt_id=hunt_id,
+        dataset_id=dataset.id,
+        job_id=triage_job.id,
+        stage="triage",
+        status="queued",
+        progress=0.0,
+        message="Queued",
+    ))
+
+    # 2. Anomaly detection (embedding-based outlier detection)
+    anomaly_job = job_queue.submit(JobType.ANOMALY, dataset_id=dataset.id)
+    jobs_queued.append("anomaly")
+    task_rows.append(ProcessingTask(
+        hunt_id=hunt_id,
+        dataset_id=dataset.id,
+        job_id=anomaly_job.id,
+        stage="anomaly",
+        status="queued",
+        progress=0.0,
+        message="Queued",
+    ))
+
+    # 3. AUP keyword scan
+    kw_job = job_queue.submit(JobType.KEYWORD_SCAN, dataset_id=dataset.id)
+    jobs_queued.append("keyword_scan")
+    task_rows.append(ProcessingTask(
+        hunt_id=hunt_id,
+        dataset_id=dataset.id,
+        job_id=kw_job.id,
+        stage="keyword_scan",
+        status="queued",
+        progress=0.0,
+        message="Queued",
+    ))
+
+    # 4. IOC extraction
+    ioc_job = job_queue.submit(JobType.IOC_EXTRACT, dataset_id=dataset.id)
+    jobs_queued.append("ioc_extract")
+    task_rows.append(ProcessingTask(
+        hunt_id=hunt_id,
+        dataset_id=dataset.id,
+        job_id=ioc_job.id,
+        stage="ioc_extract",
+        status="queued",
+        progress=0.0,
+        message="Queued",
+    ))
+
+    # 5. Host inventory (network map) - requires hunt_id
+    if hunt_id:
+        inventory_cache.invalidate(hunt_id)
+        inv_job = job_queue.submit(JobType.HOST_INVENTORY, hunt_id=hunt_id)
+        jobs_queued.append("host_inventory")
+        task_rows.append(ProcessingTask(
+            hunt_id=hunt_id,
+            dataset_id=dataset.id,
+            job_id=inv_job.id,
+            stage="host_inventory",
+            status="queued",
+            progress=0.0,
+            message="Queued",
+        ))
+
+    if task_rows:
+        db.add_all(task_rows)
+        await db.flush()
+
+    logger.info(f"Queued {len(jobs_queued)} processing jobs for dataset {dataset.id}: {jobs_queued}")
 
     return UploadResponse(
         id=dataset.id,
@@ -173,7 +270,10 @@ async def upload_dataset(
         column_types=column_types,
         normalized_columns=column_mapping,
         ioc_columns=ioc_columns,
-        message=f"Successfully uploaded {len(rows)} rows with {len(ioc_columns)} IOC columns detected",
+        artifact_type=artifact_type,
+        processing_status="processing",
+        jobs_queued=jobs_queued,
+        message=f"Successfully uploaded {len(rows)} rows. {len(jobs_queued)} processing jobs queued.",
     )
 
 
@@ -208,6 +308,8 @@ async def list_datasets(
                 delimiter=ds.delimiter,
                 time_range_start=ds.time_range_start.isoformat() if ds.time_range_start else None,
                 time_range_end=ds.time_range_end.isoformat() if ds.time_range_end else None,
+                artifact_type=ds.artifact_type,
+                processing_status=ds.processing_status,
                 hunt_id=ds.hunt_id,
                 created_at=ds.created_at.isoformat(),
             )
@@ -244,6 +346,8 @@ async def get_dataset(
         delimiter=ds.delimiter,
         time_range_start=ds.time_range_start.isoformat() if ds.time_range_start else None,
         time_range_end=ds.time_range_end.isoformat() if ds.time_range_end else None,
+        artifact_type=ds.artifact_type,
+        processing_status=ds.processing_status,
         hunt_id=ds.hunt_id,
         created_at=ds.created_at.isoformat(),
     )
@@ -292,4 +396,5 @@ async def delete_dataset(
     deleted = await repo.delete_dataset(dataset_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Dataset not found")
+    keyword_scan_cache.invalidate_dataset(dataset_id)
     return {"message": "Dataset deleted", "id": dataset_id}

@@ -13,6 +13,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import Dataset, DatasetRow
+from app.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +79,55 @@ def _extract_username(raw: str) -> str:
         return ''
     return name or ''
 
+
+
+
+#  In-memory host inventory cache 
+# Pre-computed results stored per hunt_id, built in background after upload.
+
+import time as _time
+
+class _InventoryCache:
+    """Simple in-memory cache for pre-computed host inventories."""
+
+    def __init__(self):
+        self._data: dict[str, dict] = {}   # hunt_id -> result dict
+        self._timestamps: dict[str, float] = {}  # hunt_id -> epoch
+        self._building: set[str] = set()   # hunt_ids currently being built
+
+    def get(self, hunt_id: str) -> dict | None:
+        """Return cached result if present. Never expires; only invalidated on new upload."""
+        return self._data.get(hunt_id)
+
+    def put(self, hunt_id: str, result: dict):
+        self._data[hunt_id] = result
+        self._timestamps[hunt_id] = _time.time()
+        self._building.discard(hunt_id)
+        logger.info(f"Cached host inventory for hunt {hunt_id} "
+                     f"({result['stats']['total_hosts']} hosts)")
+
+    def invalidate(self, hunt_id: str):
+        self._data.pop(hunt_id, None)
+        self._timestamps.pop(hunt_id, None)
+
+    def is_building(self, hunt_id: str) -> bool:
+        return hunt_id in self._building
+
+    def set_building(self, hunt_id: str):
+        self._building.add(hunt_id)
+
+    def clear_building(self, hunt_id: str):
+        self._building.discard(hunt_id)
+
+    def status(self, hunt_id: str) -> str:
+        if hunt_id in self._building:
+            return "building"
+        if hunt_id in self._data:
+            return "ready"
+        return "none"
+
+
+inventory_cache = _InventoryCache()
 
 def _infer_os(fqdn: str) -> str:
     u = fqdn.upper()
@@ -151,33 +201,61 @@ async def build_host_inventory(hunt_id: str, db: AsyncSession) -> dict:
         }}
 
     hosts: dict[str, dict] = {}          # fqdn -> host record
-    ip_to_host: dict[str, str] = {}       # local-ip -> fqdn
+    ip_to_host: dict[str, str] = {}      # local-ip -> fqdn
     connections: dict[tuple, int] = defaultdict(int)
     total_rows = 0
     ds_with_hosts = 0
+    sampled_dataset_count = 0
+    total_row_budget = max(0, int(settings.NETWORK_INVENTORY_MAX_TOTAL_ROWS))
+    max_connections = max(0, int(settings.NETWORK_INVENTORY_MAX_CONNECTIONS))
+    global_budget_reached = False
+    dropped_connections = 0
 
     for ds in all_datasets:
+        if total_row_budget and total_rows >= total_row_budget:
+            global_budget_reached = True
+            break
+
         cols = _identify_columns(ds)
         if not cols['fqdn'] and not cols['host_id']:
             continue
         ds_with_hosts += 1
 
         batch_size = 5000
-        offset = 0
+        max_rows_per_dataset = max(0, int(settings.NETWORK_INVENTORY_MAX_ROWS_PER_DATASET))
+        rows_scanned_this_dataset = 0
+        sampled_dataset = False
+        last_row_index = -1
+
         while True:
+            if total_row_budget and total_rows >= total_row_budget:
+                sampled_dataset = True
+                global_budget_reached = True
+                break
+
             rr = await db.execute(
                 select(DatasetRow)
                 .where(DatasetRow.dataset_id == ds.id)
+                .where(DatasetRow.row_index > last_row_index)
                 .order_by(DatasetRow.row_index)
-                .offset(offset).limit(batch_size)
+                .limit(batch_size)
             )
             rows = rr.scalars().all()
             if not rows:
                 break
 
             for ro in rows:
+                if max_rows_per_dataset and rows_scanned_this_dataset >= max_rows_per_dataset:
+                    sampled_dataset = True
+                    break
+                if total_row_budget and total_rows >= total_row_budget:
+                    sampled_dataset = True
+                    global_budget_reached = True
+                    break
+
                 data = ro.data or {}
                 total_rows += 1
+                rows_scanned_this_dataset += 1
 
                 fqdn = ''
                 for c in cols['fqdn']:
@@ -239,11 +317,32 @@ async def build_host_inventory(hunt_id: str, db: AsyncSession) -> dict:
                             rport = _clean(data.get(pc))
                             if rport:
                                 break
-                        connections[(host_key, rip, rport)] += 1
+                        conn_key = (host_key, rip, rport)
+                        if max_connections and len(connections) >= max_connections and conn_key not in connections:
+                            dropped_connections += 1
+                            continue
+                        connections[conn_key] += 1
 
-            offset += batch_size
+            if sampled_dataset:
+                sampled_dataset_count += 1
+                logger.info(
+                    "Host inventory sampling for dataset %s (%d rows scanned)",
+                    ds.id,
+                    rows_scanned_this_dataset,
+                )
+                break
+
+            last_row_index = rows[-1].row_index
             if len(rows) < batch_size:
                 break
+
+        if global_budget_reached:
+            logger.info(
+                "Host inventory global row budget reached for hunt %s at %d rows",
+                hunt_id,
+                total_rows,
+            )
+            break
 
     # Post-process hosts
     for h in hosts.values():
@@ -286,5 +385,12 @@ async def build_host_inventory(hunt_id: str, db: AsyncSession) -> dict:
             "total_rows_scanned": total_rows,
             "hosts_with_ips": sum(1 for h in host_list if h['ips']),
             "hosts_with_users": sum(1 for h in host_list if h['users']),
+            "row_budget_per_dataset": settings.NETWORK_INVENTORY_MAX_ROWS_PER_DATASET,
+            "row_budget_total": settings.NETWORK_INVENTORY_MAX_TOTAL_ROWS,
+            "connection_budget": settings.NETWORK_INVENTORY_MAX_CONNECTIONS,
+            "sampled_mode": settings.NETWORK_INVENTORY_MAX_ROWS_PER_DATASET > 0 or settings.NETWORK_INVENTORY_MAX_TOTAL_ROWS > 0,
+            "sampled_datasets": sampled_dataset_count,
+            "global_budget_reached": global_budget_reached,
+            "dropped_connections": dropped_connections,
         },
     }

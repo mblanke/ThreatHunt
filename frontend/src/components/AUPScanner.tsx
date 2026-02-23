@@ -188,11 +188,13 @@ const RESULT_COLUMNS: GridColDef[] = [
     ),
   },
   { field: 'keyword', headerName: 'Keyword', width: 140 },
-  { field: 'source_type', headerName: 'Source', width: 120 },
-  { field: 'dataset_name', headerName: 'Dataset', width: 150 },
+  { field: 'dataset_name', headerName: 'Dataset', width: 170 },
+  { field: 'hostname', headerName: 'Hostname', width: 170, valueGetter: (v, row) => row.hostname || '' },
+  { field: 'username', headerName: 'User', width: 160, valueGetter: (v, row) => row.username || '' },
+  { field: 'matched_value', headerName: 'Matched Value', flex: 1, minWidth: 220 },
   { field: 'field', headerName: 'Field', width: 130 },
-  { field: 'matched_value', headerName: 'Matched Value', flex: 1, minWidth: 200 },
-  { field: 'row_index', headerName: 'Row #', width: 80, type: 'number' },
+  { field: 'source_type', headerName: 'Source', width: 120 },
+  { field: 'row_index', headerName: 'Row #', width: 90, type: 'number' },
 ];
 
 export default function AUPScanner() {
@@ -210,9 +212,9 @@ export default function AUPScanner() {
   // Scan options
   const [selectedDs, setSelectedDs] = useState<Set<string>>(new Set());
   const [selectedThemes, setSelectedThemes] = useState<Set<string>>(new Set());
-  const [scanHunts, setScanHunts] = useState(true);
-  const [scanAnnotations, setScanAnnotations] = useState(true);
-  const [scanMessages, setScanMessages] = useState(true);
+  const [scanHunts, setScanHunts] = useState(false);
+  const [scanAnnotations, setScanAnnotations] = useState(false);
+  const [scanMessages, setScanMessages] = useState(false);
 
   // Load themes + hunts
   const loadData = useCallback(async () => {
@@ -224,9 +226,13 @@ export default function AUPScanner() {
       ]);
       setThemes(tRes.themes);
       setHuntList(hRes.hunts);
+      if (!selectedHuntId && hRes.hunts.length > 0) {
+        const best = hRes.hunts.find(h => h.dataset_count > 0) || hRes.hunts[0];
+        setSelectedHuntId(best.id);
+      }
     } catch (e: any) { enqueueSnackbar(e.message, { variant: 'error' }); }
     setLoading(false);
-  }, [enqueueSnackbar]);
+  }, [enqueueSnackbar, selectedHuntId]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
@@ -237,7 +243,7 @@ export default function AUPScanner() {
     datasets.list(0, 500, selectedHuntId).then(res => {
       if (cancelled) return;
       setDsList(res.datasets);
-      setSelectedDs(new Set(res.datasets.map(d => d.id)));
+      setSelectedDs(new Set(res.datasets.slice(0, 3).map(d => d.id)));
     }).catch(() => {});
     return () => { cancelled = true; };
   }, [selectedHuntId]);
@@ -251,6 +257,15 @@ export default function AUPScanner() {
 
   // Run scan
   const runScan = useCallback(async () => {
+    if (!selectedHuntId) {
+      enqueueSnackbar('Please select a hunt before running AUP scan', { variant: 'warning' });
+      return;
+    }
+    if (selectedDs.size === 0) {
+      enqueueSnackbar('No datasets selected for this hunt', { variant: 'warning' });
+      return;
+    }
+
     setScanning(true);
     setScanResult(null);
     try {
@@ -260,6 +275,7 @@ export default function AUPScanner() {
         scan_hunts: scanHunts,
         scan_annotations: scanAnnotations,
         scan_messages: scanMessages,
+        prefer_cache: true,
       });
       setScanResult(res);
       enqueueSnackbar(`Scan complete — ${res.total_hits} hits found`, {
@@ -267,7 +283,7 @@ export default function AUPScanner() {
       });
     } catch (e: any) { enqueueSnackbar(e.message, { variant: 'error' }); }
     setScanning(false);
-  }, [selectedDs, selectedThemes, scanHunts, scanAnnotations, scanMessages, enqueueSnackbar]);
+  }, [selectedHuntId, selectedDs, selectedThemes, scanHunts, scanAnnotations, scanMessages, enqueueSnackbar]);
 
   if (loading) return <Box sx={{ p: 4, textAlign: 'center' }}><CircularProgress /></Box>;
 
@@ -316,8 +332,37 @@ export default function AUPScanner() {
                 )}
                 {!selectedHuntId && (
                   <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                    All datasets will be scanned if no hunt is selected
+                    Select a hunt to enable scoped scanning
                   </Typography>
+                )}
+
+                <FormControl size="small" fullWidth sx={{ mt: 1.2 }} disabled={!selectedHuntId || dsList.length === 0}>
+                  <InputLabel id="aup-dataset-label">Datasets</InputLabel>
+                  <Select
+                    labelId="aup-dataset-label"
+                    multiple
+                    value={Array.from(selectedDs)}
+                    label="Datasets"
+                    renderValue={(selected) => `${(selected as string[]).length} selected`}
+                    onChange={(e) => setSelectedDs(new Set(e.target.value as string[]))}
+                  >
+                    {dsList.map(d => (
+                      <MenuItem key={d.id} value={d.id}>
+                        <Checkbox size="small" checked={selectedDs.has(d.id)} />
+                        <Typography variant="body2" sx={{ ml: 0.5 }}>
+                          {d.name} ({d.row_count.toLocaleString()} rows)
+                        </Typography>
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                {selectedHuntId && dsList.length > 0 && (
+                  <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                    <Button size="small" onClick={() => setSelectedDs(new Set(dsList.slice(0, 3).map(d => d.id)))}>Top 3</Button>
+                    <Button size="small" onClick={() => setSelectedDs(new Set(dsList.map(d => d.id)))}>All</Button>
+                    <Button size="small" onClick={() => setSelectedDs(new Set())}>Clear</Button>
+                  </Stack>
                 )}
               </Box>
 
@@ -372,7 +417,7 @@ export default function AUPScanner() {
                 <Button
                   variant="contained" color="warning" size="large"
                   startIcon={scanning ? <CircularProgress size={20} color="inherit" /> : <PlayArrowIcon />}
-                  onClick={runScan} disabled={scanning}
+                  onClick={runScan} disabled={scanning || !selectedHuntId || selectedDs.size === 0}
                 >
                   {scanning ? 'Scanning…' : 'Run Scan'}
                 </Button>
@@ -392,6 +437,15 @@ export default function AUPScanner() {
               <strong>{scanResult.total_hits}</strong> hits across{' '}
               <strong>{scanResult.rows_scanned}</strong> rows |{' '}
               {scanResult.themes_scanned} themes, {scanResult.keywords_scanned} keywords scanned
+              {scanResult.cache_status && (
+                <Chip
+                  size="small"
+                  label={scanResult.cache_status === 'hit' ? 'Cached' : 'Live'}
+                  sx={{ ml: 1, height: 20 }}
+                  color={scanResult.cache_status === 'hit' ? 'success' : 'default'}
+                  variant="outlined"
+                />
+              )}
             </Alert>
           )}
 

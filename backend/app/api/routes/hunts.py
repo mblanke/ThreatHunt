@@ -8,14 +8,13 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_db
-from app.db.models import Hunt, Conversation, Message
+from app.db.models import Hunt, Dataset, ProcessingTask
+from app.services.job_queue import job_queue
+from app.services.host_inventory import inventory_cache
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/hunts", tags=["hunts"])
-
-
-# ── Models ────────────────────────────────────────────────────────────
 
 
 class HuntCreate(BaseModel):
@@ -26,7 +25,7 @@ class HuntCreate(BaseModel):
 class HuntUpdate(BaseModel):
     name: str | None = None
     description: str | None = None
-    status: str | None = None  # active | closed | archived
+    status: str | None = None
 
 
 class HuntResponse(BaseModel):
@@ -46,7 +45,18 @@ class HuntListResponse(BaseModel):
     total: int
 
 
-# ── Routes ────────────────────────────────────────────────────────────
+class HuntProgressResponse(BaseModel):
+    hunt_id: str
+    status: str
+    progress_percent: float
+    dataset_total: int
+    dataset_completed: int
+    dataset_processing: int
+    dataset_errors: int
+    active_jobs: int
+    queued_jobs: int
+    network_status: str
+    stages: dict
 
 
 @router.post("", response_model=HuntResponse, summary="Create a new hunt")
@@ -119,6 +129,125 @@ async def get_hunt(hunt_id: str, db: AsyncSession = Depends(get_db)):
         updated_at=hunt.updated_at.isoformat(),
         dataset_count=len(hunt.datasets) if hunt.datasets else 0,
         hypothesis_count=len(hunt.hypotheses) if hunt.hypotheses else 0,
+    )
+
+
+@router.get("/{hunt_id}/progress", response_model=HuntProgressResponse, summary="Get hunt processing progress")
+async def get_hunt_progress(hunt_id: str, db: AsyncSession = Depends(get_db)):
+    hunt = await db.get(Hunt, hunt_id)
+    if not hunt:
+        raise HTTPException(status_code=404, detail="Hunt not found")
+
+    ds_rows = await db.execute(
+        select(Dataset.id, Dataset.processing_status)
+        .where(Dataset.hunt_id == hunt_id)
+    )
+    datasets = ds_rows.all()
+    dataset_ids = {row[0] for row in datasets}
+
+    dataset_total = len(datasets)
+    dataset_completed = sum(1 for _, st in datasets if st == "completed")
+    dataset_errors = sum(1 for _, st in datasets if st == "completed_with_errors")
+    dataset_processing = max(0, dataset_total - dataset_completed - dataset_errors)
+
+    jobs = job_queue.list_jobs(limit=5000)
+    relevant_jobs = [
+        j for j in jobs
+        if j.get("params", {}).get("hunt_id") == hunt_id
+        or j.get("params", {}).get("dataset_id") in dataset_ids
+    ]
+    active_jobs_mem = sum(1 for j in relevant_jobs if j.get("status") == "running")
+    queued_jobs_mem = sum(1 for j in relevant_jobs if j.get("status") == "queued")
+
+    task_rows = await db.execute(
+        select(ProcessingTask.stage, ProcessingTask.status, ProcessingTask.progress)
+        .where(ProcessingTask.hunt_id == hunt_id)
+    )
+    tasks = task_rows.all()
+
+    task_total = len(tasks)
+    task_done = sum(1 for _, st, _ in tasks if st in ("completed", "failed", "cancelled"))
+    task_running = sum(1 for _, st, _ in tasks if st == "running")
+    task_queued = sum(1 for _, st, _ in tasks if st == "queued")
+    task_ratio = (task_done / task_total) if task_total > 0 else None
+
+    active_jobs = max(active_jobs_mem, task_running)
+    queued_jobs = max(queued_jobs_mem, task_queued)
+
+    stage_rollup: dict[str, dict] = {}
+    for stage, status, progress in tasks:
+        bucket = stage_rollup.setdefault(stage, {"total": 0, "done": 0, "running": 0, "queued": 0, "progress_sum": 0.0})
+        bucket["total"] += 1
+        if status in ("completed", "failed", "cancelled"):
+            bucket["done"] += 1
+        elif status == "running":
+            bucket["running"] += 1
+        elif status == "queued":
+            bucket["queued"] += 1
+        bucket["progress_sum"] += float(progress or 0.0)
+
+    for stage_name, bucket in stage_rollup.items():
+        total = max(1, bucket["total"])
+        bucket["percent"] = round(bucket["progress_sum"] / total, 1)
+
+    if inventory_cache.get(hunt_id) is not None:
+        network_status = "ready"
+        network_ratio = 1.0
+    elif inventory_cache.is_building(hunt_id):
+        network_status = "building"
+        network_ratio = 0.5
+    else:
+        network_status = "none"
+        network_ratio = 0.0
+
+    dataset_ratio = ((dataset_completed + dataset_errors) / dataset_total) if dataset_total > 0 else 1.0
+    if task_ratio is None:
+        overall_ratio = min(1.0, (dataset_ratio * 0.85) + (network_ratio * 0.15))
+    else:
+        overall_ratio = min(1.0, (dataset_ratio * 0.50) + (task_ratio * 0.35) + (network_ratio * 0.15))
+    progress_percent = round(overall_ratio * 100.0, 1)
+
+    status = "ready"
+    if dataset_total == 0:
+        status = "idle"
+    elif progress_percent < 100:
+        status = "processing"
+
+    stages = {
+        "datasets": {
+            "total": dataset_total,
+            "completed": dataset_completed,
+            "processing": dataset_processing,
+            "errors": dataset_errors,
+            "percent": round(dataset_ratio * 100.0, 1),
+        },
+        "network": {
+            "status": network_status,
+            "percent": round(network_ratio * 100.0, 1),
+        },
+        "jobs": {
+            "active": active_jobs,
+            "queued": queued_jobs,
+            "total_seen": len(relevant_jobs),
+            "task_total": task_total,
+            "task_done": task_done,
+            "task_percent": round((task_ratio or 0.0) * 100.0, 1) if task_total else None,
+        },
+        "task_stages": stage_rollup,
+    }
+
+    return HuntProgressResponse(
+        hunt_id=hunt_id,
+        status=status,
+        progress_percent=progress_percent,
+        dataset_total=dataset_total,
+        dataset_completed=dataset_completed,
+        dataset_processing=dataset_processing,
+        dataset_errors=dataset_errors,
+        active_jobs=active_jobs,
+        queued_jobs=queued_jobs,
+        network_status=network_status,
+        stages=stages,
     )
 
 

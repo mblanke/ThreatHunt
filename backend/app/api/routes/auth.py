@@ -1,4 +1,4 @@
-"""API routes for authentication — register, login, refresh, profile."""
+﻿"""API routes for authentication â€” register, login, refresh, profile."""
 
 import logging
 
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 
-# ── Request / Response models ─────────────────────────────────────────
+# â”€â”€ Request / Response models â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 class RegisterRequest(BaseModel):
@@ -57,7 +57,7 @@ class AuthResponse(BaseModel):
     tokens: TokenPair
 
 
-# ── Routes ────────────────────────────────────────────────────────────
+# â”€â”€ Routes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 @router.post(
@@ -86,7 +86,7 @@ async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
     user = User(
         username=body.username,
         email=body.email,
-        password_hash=hash_password(body.password),
+        hashed_password=hash_password(body.password),
         display_name=body.display_name or body.username,
         role="analyst",  # Default role
     )
@@ -120,13 +120,13 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.username == body.username))
     user = result.scalar_one_or_none()
 
-    if not user or not user.password_hash:
+    if not user or not user.hashed_password:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password",
         )
 
-    if not verify_password(body.password, user.password_hash):
+    if not verify_password(body.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password",
@@ -165,7 +165,7 @@ async def refresh_token(body: RefreshRequest, db: AsyncSession = Depends(get_db)
     if token_data.type != "refresh":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token type — use refresh token",
+            detail="Invalid token type â€” use refresh token",
         )
 
     result = await db.execute(select(User).where(User.id == token_data.sub))
@@ -195,3 +195,4 @@ async def get_profile(user: User = Depends(get_current_user)):
         is_active=user.is_active,
         created_at=user.created_at.isoformat() if hasattr(user.created_at, 'isoformat') else str(user.created_at),
     )
+

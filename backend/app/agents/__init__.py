@@ -1,16 +1,18 @@
-"""Analyst-assist agent module for ThreatHunt.
+﻿"""Analyst-assist agent module for ThreatHunt.
 
 Provides read-only guidance on CSV artifact data, analytical pivots, and hypotheses.
 Agents are advisory only and do not execute actions or modify data.
 """
 
-from .core import ThreatHuntAgent
-from .providers import LLMProvider, LocalProvider, NetworkedProvider, OnlineProvider
+from .core_v2 import ThreatHuntAgent, AgentContext, AgentResponse, Perspective
+from .providers_v2 import OllamaProvider, OpenWebUIProvider, EmbeddingProvider
 
 __all__ = [
     "ThreatHuntAgent",
-    "LLMProvider",
-    "LocalProvider",
-    "NetworkedProvider",
-    "OnlineProvider",
+    "AgentContext",
+    "AgentResponse",
+    "Perspective",
+    "OllamaProvider",
+    "OpenWebUIProvider",
+    "EmbeddingProvider",
 ]

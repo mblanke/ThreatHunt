@@ -1,4 +1,4 @@
-"""Tests for CSV parser and normalizer services."""
+﻿"""Tests for CSV parser and normalizer services."""
 
 import pytest
 from app.services.csv_parser import parse_csv_bytes, detect_encoding, detect_delimiter, infer_column_types
@@ -43,8 +43,9 @@ class TestCSVParser:
         assert len(rows) == 2
 
     def test_parse_empty_file(self):
-        with pytest.raises(Exception):
-            parse_csv_bytes(b"")
+        rows, meta = parse_csv_bytes(b"")
+        assert len(rows) == 0
+        assert meta["row_count"] == 0
 
     def test_detect_encoding_utf8(self):
         enc = detect_encoding(SAMPLE_CSV)
@@ -53,17 +54,15 @@ class TestCSVParser:
 
     def test_infer_column_types(self):
         types = infer_column_types(
-            ["192.168.1.1", "10.0.0.1", "8.8.8.8"],
-            "src_ip",
+            [{"src_ip": "192.168.1.1"}, {"src_ip": "10.0.0.1"}, {"src_ip": "8.8.8.8"}],
         )
-        assert types == "ip"
+        assert types["src_ip"] == "ip"
 
     def test_infer_column_types_hash(self):
         types = infer_column_types(
-            ["d41d8cd98f00b204e9800998ecf8427e"],
-            "hash",
+            [{"hash": "d41d8cd98f00b204e9800998ecf8427e"}],
         )
-        assert types == "hash_md5"
+        assert types["hash"] == "hash_md5"
 
 
 class TestNormalizer:
@@ -94,7 +93,7 @@ class TestNormalizer:
         start, end = detect_time_range(rows, column_mapping)
         # Should detect time range from timestamp column
         if start:
-            assert "2025" in start
+            assert "2025" in str(start)
 
     def test_normalize_rows(self):
         rows = [{"SourceAddr": "10.0.0.1", "ProcessName": "cmd.exe"}]
@@ -102,3 +101,6 @@ class TestNormalizer:
         normalized = normalize_rows(rows, mapping)
         assert len(normalized) == 1
         assert normalized[0].get("src_ip") == "10.0.0.1"
+
+
+

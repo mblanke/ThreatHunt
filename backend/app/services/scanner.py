@@ -1,4 +1,4 @@
-"""AUP Keyword Scanner — searches dataset rows, hunts, annotations, and
+"""AUP Keyword Scanner  searches dataset rows, hunts, annotations, and
 messages for keyword matches.
 
 Scanning is done in Python (not SQL LIKE on JSON columns) for portability
@@ -8,24 +8,49 @@ across SQLite / PostgreSQL and to provide per-cell match context.
 import logging
 import re
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 
-from sqlalchemy import select, func
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.config import settings
 
 from app.db.models import (
     KeywordTheme,
-    Keyword,
     DatasetRow,
     Dataset,
     Hunt,
     Annotation,
     Message,
-    Conversation,
 )
 
 logger = logging.getLogger(__name__)
 
-BATCH_SIZE = 500
+BATCH_SIZE = 200
+
+
+def _infer_hostname_and_user(data: dict) -> tuple[str | None, str | None]:
+    """Best-effort extraction of hostname and user from a dataset row."""
+    if not data:
+        return None, None
+
+    host_keys = (
+        'hostname', 'host_name', 'host', 'computer_name', 'computer',
+        'fqdn', 'client_id', 'agent_id', 'endpoint_id',
+    )
+    user_keys = (
+        'username', 'user_name', 'user', 'account_name',
+        'logged_in_user', 'samaccountname', 'sam_account_name',
+    )
+
+    def pick(keys):
+        for k in keys:
+            for actual_key, v in data.items():
+                if actual_key.lower() == k and v not in (None, ''):
+                    return str(v)
+        return None
+
+    return pick(host_keys), pick(user_keys)
 
 
 @dataclass
@@ -39,6 +64,8 @@ class ScanHit:
     matched_value: str
     row_index: int | None = None
     dataset_name: str | None = None
+    hostname: str | None = None
+    username: str | None = None
 
 
 @dataclass
@@ -50,21 +77,54 @@ class ScanResult:
     rows_scanned: int = 0
 
 
+@dataclass
+class KeywordScanCacheEntry:
+    dataset_id: str
+    result: dict
+    built_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+
+class KeywordScanCache:
+    """In-memory per-dataset cache for dataset-only keyword scans.
+
+    This enables fast-path reads when users run AUP scans against datasets that
+    were already scanned during upload pipeline processing.
+    """
+
+    def __init__(self):
+        self._entries: dict[str, KeywordScanCacheEntry] = {}
+
+    def put(self, dataset_id: str, result: dict):
+        self._entries[dataset_id] = KeywordScanCacheEntry(dataset_id=dataset_id, result=result)
+
+    def get(self, dataset_id: str) -> KeywordScanCacheEntry | None:
+        return self._entries.get(dataset_id)
+
+    def invalidate_dataset(self, dataset_id: str):
+        self._entries.pop(dataset_id, None)
+
+    def clear(self):
+        self._entries.clear()
+
+
+keyword_scan_cache = KeywordScanCache()
+
+
 class KeywordScanner:
     """Scans multiple data sources for keyword/regex matches."""
 
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    # ── Public API ────────────────────────────────────────────────────
+    #  Public API 
 
     async def scan(
         self,
         dataset_ids: list[str] | None = None,
         theme_ids: list[str] | None = None,
-        scan_hunts: bool = True,
-        scan_annotations: bool = True,
-        scan_messages: bool = True,
+        scan_hunts: bool = False,
+        scan_annotations: bool = False,
+        scan_messages: bool = False,
     ) -> dict:
         """Run a full AUP scan and return dict matching ScanResponse."""
         # Load themes + keywords
@@ -103,7 +163,7 @@ class KeywordScanner:
             "rows_scanned": result.rows_scanned,
         }
 
-    # ── Internal ──────────────────────────────────────────────────────
+    #  Internal 
 
     async def _load_themes(self, theme_ids: list[str] | None) -> list[KeywordTheme]:
         q = select(KeywordTheme).where(KeywordTheme.enabled == True)  # noqa: E712
@@ -143,6 +203,8 @@ class KeywordScanner:
         hits: list[ScanHit],
         row_index: int | None = None,
         dataset_name: str | None = None,
+        hostname: str | None = None,
+        username: str | None = None,
     ) -> None:
         """Check text against all compiled patterns, append hits."""
         if not text:
@@ -150,8 +212,7 @@ class KeywordScanner:
         for (theme_id, theme_name, theme_color), keyword_patterns in patterns.items():
             for kw_value, pat in keyword_patterns:
                 if pat.search(text):
-                    # Truncate matched_value for display
-                    matched_preview = text[:200] + ("…" if len(text) > 200 else "")
+                    matched_preview = text[:200] + ("" if len(text) > 200 else "")
                     hits.append(ScanHit(
                         theme_name=theme_name,
                         theme_color=theme_color,
@@ -162,13 +223,14 @@ class KeywordScanner:
                         matched_value=matched_preview,
                         row_index=row_index,
                         dataset_name=dataset_name,
+                        hostname=hostname,
+                        username=username,
                     ))
 
     async def _scan_datasets(
         self, patterns: dict, result: ScanResult, dataset_ids: list[str] | None
     ) -> None:
-        """Scan dataset rows in batches."""
-        # Build dataset name lookup
+        """Scan dataset rows in batches using keyset pagination (no OFFSET)."""
         ds_q = select(Dataset.id, Dataset.name)
         if dataset_ids:
             ds_q = ds_q.where(Dataset.id.in_(dataset_ids))
@@ -178,37 +240,66 @@ class KeywordScanner:
         if not ds_map:
             return
 
-        # Iterate rows in batches
-        offset = 0
-        row_q_base = select(DatasetRow).where(
-            DatasetRow.dataset_id.in_(list(ds_map.keys()))
-        ).order_by(DatasetRow.id)
+        import asyncio
 
-        while True:
-            rows_result = await self.db.execute(
-                row_q_base.offset(offset).limit(BATCH_SIZE)
+        max_rows = max(0, int(settings.SCANNER_MAX_ROWS_PER_SCAN))
+        budget_reached = False
+
+        for ds_id, ds_name in ds_map.items():
+            if max_rows and result.rows_scanned >= max_rows:
+                budget_reached = True
+                break
+
+            last_id = 0
+            while True:
+                if max_rows and result.rows_scanned >= max_rows:
+                    budget_reached = True
+                    break
+                rows_result = await self.db.execute(
+                    select(DatasetRow)
+                    .where(DatasetRow.dataset_id == ds_id)
+                    .where(DatasetRow.id > last_id)
+                    .order_by(DatasetRow.id)
+                    .limit(BATCH_SIZE)
+                )
+                rows = rows_result.scalars().all()
+                if not rows:
+                    break
+
+                for row in rows:
+                    result.rows_scanned += 1
+                    data = row.data or {}
+                    hostname, username = _infer_hostname_and_user(data)
+                    for col_name, cell_value in data.items():
+                        if cell_value is None:
+                            continue
+                        text = str(cell_value)
+                        self._match_text(
+                            text,
+                            patterns,
+                            "dataset_row",
+                            row.id,
+                            col_name,
+                            result.hits,
+                            row_index=row.row_index,
+                            dataset_name=ds_name,
+                            hostname=hostname,
+                            username=username,
+                        )
+
+                last_id = rows[-1].id
+                await asyncio.sleep(0)
+                if len(rows) < BATCH_SIZE:
+                    break
+
+            if budget_reached:
+                break
+
+        if budget_reached:
+            logger.warning(
+                "AUP scan row budget reached (%d rows). Returning partial results.",
+                result.rows_scanned,
             )
-            rows = rows_result.scalars().all()
-            if not rows:
-                break
-
-            for row in rows:
-                result.rows_scanned += 1
-                data = row.data or {}
-                for col_name, cell_value in data.items():
-                    if cell_value is None:
-                        continue
-                    text = str(cell_value)
-                    self._match_text(
-                        text, patterns, "dataset_row", row.id,
-                        col_name, result.hits,
-                        row_index=row.row_index,
-                        dataset_name=ds_map.get(row.dataset_id),
-                    )
-
-            offset += BATCH_SIZE
-            if len(rows) < BATCH_SIZE:
-                break
 
     async def _scan_hunts(self, patterns: dict, result: ScanResult) -> None:
         """Scan hunt names and descriptions."""
